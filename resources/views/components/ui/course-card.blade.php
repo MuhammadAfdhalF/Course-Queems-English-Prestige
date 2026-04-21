@@ -1,48 +1,63 @@
 @props([
 'title' => 'Course Title',
-'level' => 'Beginner',
+'level' => 'Intermediate',
 'mode' => 'Online',
-'price' => 'Rp 0',
-'progress' => null,
-'image' => 'https://placehold.co/600x400',
+'price' => 'Rp. 100.000',
+'description' => 'Short description about this course.',
+'image' => 'https://placehold.co/800x500',
 'buttonText' => 'View Detail',
 ])
 
-<x-ui.card {{ $attributes->merge(['class' => 'overflow-hidden p-0']) }}>
-    <div class="aspect-[4/3] overflow-hidden bg-slate-100">
+@php
+$modeClasses = $mode === 'Offline'
+? 'bg-[#CFE2D7] text-[var(--color-brand-blue)]'
+: 'bg-[#58E19A] text-[var(--color-brand-blue)]';
+
+$levelClasses = 'bg-[#D4A017] text-white';
+@endphp
+
+<div {{ $attributes->merge(['class' => 'overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-sm']) }}>
+    <div class="relative aspect-[4/3] overflow-hidden bg-slate-100">
         <img src="{{ $image }}" alt="{{ $title }}" class="h-full w-full object-cover">
+
+        <div class="absolute left-3 top-3">
+            <span class="inline-flex items-center rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] {{ $modeClasses }}">
+                {{ $mode }}
+            </span>
+        </div>
+
+        <div class="absolute right-3 top-3">
+            <span class="inline-flex items-center rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] {{ $levelClasses }}">
+                {{ $level }}
+            </span>
+        </div>
     </div>
 
     <div class="space-y-4 p-5">
-        <div class="flex flex-wrap gap-2">
-            <x-ui.badge variant="warning">{{ $level }}</x-ui.badge>
-            <x-ui.badge variant="success">{{ $mode }}</x-ui.badge>
-        </div>
+        <div>
+            <h3 class="text-[30px] font-bold leading-tight text-[var(--color-brand-blue)] lg:text-[21px]">
+                {{ $title }}
+            </h3>
 
-        <div class="flex items-start justify-between gap-3">
-            <h3 class="text-xl font-bold leading-snug text-slate-900">{{ $title }}</h3>
-            <p class="whitespace-nowrap text-sm font-semibold text-[var(--color-brand-blue)]">
-                {{ $price }}
+            <p class="mt-3 text-sm leading-6 text-slate-500">
+                {{ $description }}
             </p>
         </div>
 
-        @if(!is_null($progress))
-        <div class="space-y-2">
-            <div class="flex items-center justify-between text-sm text-slate-500">
-                <span>Progress</span>
-                <span>{{ $progress }}%</span>
-            </div>
+        <div class="pt-2">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Tuition Fee
+            </p>
 
-            <div class="h-2 overflow-hidden rounded-full bg-slate-200">
-                <div
-                    class="h-full rounded-full bg-[var(--color-brand-blue)]"
-                    style="width: {{ $progress }}%"></div>
+            <div class="mt-2 flex items-center justify-between gap-4">
+                <p class="text-[16px] font-bold text-[var(--color-brand-blue)] lg:text-[18px]">
+                    {{ $price }}
+                </p>
+
+                <x-ui.button class="px-5 py-2 text-xs uppercase tracking-[0.14em]">
+                    {{ $buttonText }}
+                </x-ui.button>
             </div>
         </div>
-        @endif
-
-        <x-ui.button variant="outline" class="w-full">
-            {{ $buttonText }}
-        </x-ui.button>
     </div>
-</x-ui.card>
+</div>
