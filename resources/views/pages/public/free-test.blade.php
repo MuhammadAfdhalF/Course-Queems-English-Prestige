@@ -1,0 +1,8 @@
+@extends('layouts.public')
+
+@section('content')
+<section class="mx-auto max-w-7xl px-4 py-16 lg:px-8">
+    <h1 class="text-4xl font-bold text-slate-900">Free Test</h1>
+    <p class="mt-4 text-slate-600">Free test page placeholder.</p>
+</section>
+@endsection
