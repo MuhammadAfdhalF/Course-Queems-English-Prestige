@@ -6,6 +6,7 @@
 'description' => 'Short description about this course.',
 'image' => 'https://placehold.co/800x500',
 'buttonText' => 'View Detail',
+'href' => '#',
 ])
 
 @php
@@ -54,9 +55,11 @@ $levelClasses = 'bg-[#D4A017] text-white';
                     {{ $price }}
                 </p>
 
-                <x-ui.button class="px-5 py-2 text-xs uppercase tracking-[0.14em]">
+                <a
+                    href="{{ $href }}"
+                    class="inline-flex items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:opacity-90">
                     {{ $buttonText }}
-                </x-ui.button>
+                </a>
             </div>
         </div>
     </div>
