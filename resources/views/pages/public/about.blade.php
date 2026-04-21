@@ -1,8 +1,10 @@
 @extends('layouts.public')
 
 @section('content')
-<section class="mx-auto max-w-7xl px-4 py-16 lg:px-8">
-    <h1 class="text-4xl font-bold text-slate-900">About Us</h1>
-    <p class="mt-4 text-slate-600">About page placeholder.</p>
-</section>
+@include('partials.public.about.hero')
+@include('partials.public.about.journey')
+@include('partials.public.about.why-study')
+@include('partials.public.about.vision-mission')
+@include('partials.public.about.mentors')
+@include('partials.public.about.cta')
 @endsection
