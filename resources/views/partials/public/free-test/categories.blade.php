@@ -14,9 +14,10 @@
         <div class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             <x-public.test-category-card
                 title="Grammar"
-                duration="15 mins"
-                description="Test your understanding of tenses, structures, and common syntax..."
-            >
+                duration="10 Minutes"
+                questions="10 Questions"
+                description="Test your understanding of tenses, sentence structure, and common grammar patterns."
+                :href="route('free-test.show')">
                 <x-slot:icon>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7h5M8 12h8M8 17h4" />
@@ -27,9 +28,10 @@
 
             <x-public.test-category-card
                 title="Reading"
-                duration="15 mins"
-                description="Evaluate comprehension, speed, and vocabulary in context."
-            >
+                duration="15 Minutes"
+                questions="12 Questions"
+                description="Evaluate comprehension, reading speed, and vocabulary in context."
+                href="#">
                 <x-slot:icon>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6.5A2.5 2.5 0 016.5 4H10v16H6.5A2.5 2.5 0 014 17.5v-11zM20 6.5A2.5 2.5 0 0017.5 4H14v16h3.5a2.5 2.5 0 002.5-2.5v-11z" />
@@ -39,9 +41,10 @@
 
             <x-public.test-category-card
                 title="Listening"
-                duration="15 mins"
-                description="Assess your ability to understand native speakers and nuance."
-            >
+                duration="15 Minutes"
+                questions="10 Questions"
+                description="Assess your ability to understand spoken English, meaning, and nuance."
+                href="#">
                 <x-slot:icon>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 18V6a4 4 0 10-8 0v6a4 4 0 008 0zm0 0a4 4 0 008 0V6a4 4 0 10-8 0" />
@@ -51,9 +54,10 @@
 
             <x-public.test-category-card
                 title="Vocabulary"
-                duration="15 mins"
-                description="Check your lexical range and academic word knowledge."
-            >
+                duration="15 Minutes"
+                questions="12 Questions"
+                description="Check your lexical range, word choice, and academic vocabulary knowledge."
+                href="#">
                 <x-slot:icon>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6.5A2.5 2.5 0 016.5 4H10v16H6.5A2.5 2.5 0 014 17.5v-11zM20 6.5A2.5 2.5 0 0017.5 4H14v16h3.5a2.5 2.5 0 002.5-2.5v-11z" />

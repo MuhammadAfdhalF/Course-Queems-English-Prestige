@@ -19,11 +19,11 @@
                 About Us
             </x-public.nav-link>
 
-            <x-public.nav-link :href="route('courses')" :active="request()->routeIs('courses')">
+            <x-public.nav-link :href="route('courses')" :active="request()->routeIs('courses') || request()->routeIs('courses.show')">
                 Course
             </x-public.nav-link>
 
-            <x-public.nav-link :href="route('free-test')" :active="request()->routeIs('free-test')">
+            <x-public.nav-link :href="route('free-test')" :active="request()->routeIs('free-test') || request()->routeIs('free-test.show')">
                 Free Test
             </x-public.nav-link>
 
@@ -60,11 +60,11 @@
                 About Us
             </a>
 
-            <a href="{{ route('courses') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('courses') ? 'bg-blue-50 text-[var(--color-brand-blue)]' : 'text-slate-700 hover:bg-slate-50' }}">
+            <a href="{{ route('courses') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('courses') || request()->routeIs('courses.show') ? 'bg-blue-50 text-[var(--color-brand-blue)]' : 'text-slate-700 hover:bg-slate-50' }}">
                 Course
             </a>
 
-            <a href="{{ route('free-test') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('free-test') ? 'bg-blue-50 text-[var(--color-brand-blue)]' : 'text-slate-700 hover:bg-slate-50' }}">
+            <a href="{{ route('free-test') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('free-test') || request()->routeIs('free-test.show') ? 'bg-blue-50 text-[var(--color-brand-blue)]' : 'text-slate-700 hover:bg-slate-50' }}">
                 Free Test
             </a>
 
