@@ -1,8 +1,7 @@
 @extends('layouts.public')
 
 @section('content')
-<section class="mx-auto max-w-7xl px-4 py-16 lg:px-8">
-    <h1 class="text-4xl font-bold text-slate-900">Contact</h1>
-    <p class="mt-4 text-slate-600">Contact page placeholder.</p>
-</section>
+    @include('partials.public.contact.hero')
+    @include('partials.public.contact.channels')
+    @include('partials.public.contact.location')
 @endsection
