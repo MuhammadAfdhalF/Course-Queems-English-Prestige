@@ -1,17 +1,17 @@
 <section class="bg-slate-50">
     <div class="mx-auto max-w-7xl px-4 py-16 lg:px-8">
         <div class="mx-auto max-w-3xl text-center">
-            <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">
+            <h2 class="reveal text-2xl font-bold text-slate-900 md:text-3xl">
                 What Our <span class="text-[var(--color-brand-gold)]">Students Say</span>
             </h2>
 
-            <p class="mt-3 text-base text-slate-600">
+            <p class="reveal reveal-delay-1 mt-3 text-base text-slate-600">
                 Transforming careers, one lesson at a time.
             </p>
         </div>
 
         <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 rounded-2xl border border-slate-200 bg-white p-6">
+            <div class="reveal motion-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="flex items-center gap-1 text-amber-400">
                     <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                 </div>
@@ -32,7 +32,7 @@
                 </div>
             </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 rounded-2xl border border-slate-200 bg-white p-6">
+            <div class="reveal reveal-delay-1 motion-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="flex items-center gap-1 text-amber-400">
                     <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                 </div>
@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 rounded-2xl border border-slate-200 bg-white p-6">
+            <div class="reveal reveal-delay-2 motion-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="flex items-center gap-1 text-amber-400">
                     <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                 </div>
@@ -74,7 +74,7 @@
                 </div>
             </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 rounded-2xl border border-slate-200 bg-white p-6">
+            <div class="reveal reveal-delay-3 motion-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="flex items-center gap-1 text-amber-400">
                     <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                 </div>
