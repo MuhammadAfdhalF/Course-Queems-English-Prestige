@@ -16,14 +16,13 @@
                 ">
                 <div class="relative z-10 flex h-full flex-col justify-between">
                     <div>
-                        <div class="flex items-center gap-3">
+                        <div class="reveal flex items-center gap-3">
                             <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-white/10 ring-2 ring-white/20 backdrop-blur-sm">
                                 <img
                                     src="{{ asset('images/logo-queens-english-blue.png') }}"
                                     alt="Queens English Prestige Logo"
                                     class="h-full w-full object-cover"
                                     onerror="this.style.display='none';">
-
                             </div>
 
                             <div>
@@ -33,21 +32,20 @@
                             </div>
                         </div>
 
-
                         <div class="mt-14">
-                            <h1 class="text-4xl font-extrabold leading-[1.05] tracking-tight lg:text-[58px]">
+                            <h1 class="reveal reveal-delay-1 text-4xl font-extrabold leading-[1.05] tracking-tight lg:text-[58px]">
                                 Start Your
                                 <span class="block text-[var(--color-brand-gold)]">Journey</span>
                             </h1>
 
-                            <p class="mt-6 max-w-sm text-base leading-7 text-slate-100/95 lg:text-lg">
+                            <p class="reveal reveal-delay-2 mt-6 max-w-sm text-base leading-7 text-slate-100/95 lg:text-lg">
                                 Create your account and unlock access to courses, progress tracking,
                                 and certificates.
                             </p>
                         </div>
 
                         <div class="mt-10 space-y-5">
-                            <div class="flex items-start gap-4">
+                            <div class="reveal reveal-delay-2 flex items-start gap-4">
                                 <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-gold)] text-white shadow-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7" />
@@ -58,7 +56,7 @@
                                 </p>
                             </div>
 
-                            <div class="flex items-start gap-4">
+                            <div class="reveal reveal-delay-3 flex items-start gap-4">
                                 <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-gold)] text-white shadow-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7" />
@@ -69,7 +67,7 @@
                                 </p>
                             </div>
 
-                            <div class="flex items-start gap-4">
+                            <div class="reveal reveal-delay-4 flex items-start gap-4">
                                 <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-gold)] text-white shadow-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7" />
@@ -88,11 +86,11 @@
             <div class="bg-slate-50 px-6 py-8 lg:px-10 lg:py-10">
                 <div class="mx-auto w-full max-w-2xl rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm lg:p-10">
                     <div class="text-center">
-                        <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--color-brand-gold)]">
+                        <p class="reveal text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--color-brand-gold)]">
                             Join Us
                         </p>
 
-                        <h2 class="mt-3 text-3xl font-extrabold text-slate-900 lg:text-[40px]">
+                        <h2 class="reveal reveal-delay-1 mt-3 text-3xl font-extrabold text-slate-900 lg:text-[40px]">
                             Create Account
                         </h2>
                     </div>
@@ -101,7 +99,7 @@
                         @csrf
 
                         {{-- ACCOUNT INFORMATION --}}
-                        <div>
+                        <div class="reveal reveal-delay-1">
                             <h3 class="text-sm font-bold uppercase tracking-[0.12em] text-slate-900">
                                 Account Information
                             </h3>
@@ -121,7 +119,7 @@
                                             type="text"
                                             name="name"
                                             placeholder="Full Name"
-                                            class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                            class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                     </div>
                                 </div>
 
@@ -139,7 +137,7 @@
                                             type="email"
                                             name="email"
                                             placeholder="Email Address"
-                                            class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                            class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                     </div>
                                 </div>
 
@@ -152,7 +150,7 @@
                                             type="text"
                                             name="country_code"
                                             value="+62"
-                                            class="h-13 rounded-xl border border-slate-300 bg-slate-50 px-4 text-sm font-medium text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                            class="focus-brand h-13 rounded-xl border border-slate-300 bg-slate-50 px-4 text-sm font-medium text-slate-700">
 
                                         <div class="relative">
                                             <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -164,7 +162,7 @@
                                                 type="text"
                                                 name="phone"
                                                 placeholder="Phone Number"
-                                                class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                         </div>
                                     </div>
                                 </div>
@@ -184,7 +182,7 @@
                                                 type="password"
                                                 name="password"
                                                 placeholder="Password"
-                                                class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                         </div>
                                     </div>
 
@@ -202,7 +200,7 @@
                                                 type="password"
                                                 name="password_confirmation"
                                                 placeholder="Confirm Password"
-                                                class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                         </div>
                                     </div>
                                 </div>
@@ -214,7 +212,7 @@
                         </div>
 
                         {{-- PERSONAL DETAILS --}}
-                        <div>
+                        <div class="reveal reveal-delay-2">
                             <h3 class="text-sm font-bold uppercase tracking-[0.12em] text-slate-900">
                                 Personal Details
                             </h3>
@@ -235,7 +233,7 @@
                                                 type="text"
                                                 name="place_of_birth"
                                                 placeholder="Place of Birth"
-                                                class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                         </div>
                                     </div>
 
@@ -252,7 +250,7 @@
                                             <input
                                                 type="date"
                                                 name="date_of_birth"
-                                                class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900">
                                         </div>
                                     </div>
                                 </div>
@@ -278,7 +276,7 @@
                         </div>
 
                         {{-- ADDITIONAL INFORMATION --}}
-                        <div>
+                        <div class="reveal reveal-delay-3">
                             <h3 class="text-sm font-bold uppercase tracking-[0.12em] text-slate-900">
                                 Additional Information
                             </h3>
@@ -298,7 +296,7 @@
                                             type="text"
                                             name="address"
                                             placeholder="Full Address"
-                                            class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                            class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                     </div>
                                 </div>
 
@@ -317,7 +315,7 @@
                                                 type="text"
                                                 name="occupation"
                                                 placeholder="Occupation"
-                                                class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                         </div>
                                     </div>
 
@@ -335,7 +333,7 @@
                                                 type="text"
                                                 name="institution"
                                                 placeholder="Institution"
-                                                class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                         </div>
                                     </div>
                                 </div>
@@ -356,17 +354,17 @@
                                             type="text"
                                             name="instagram"
                                             placeholder="Instagram (username or link)"
-                                            class="h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                            class="focus-brand h-13 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400">
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- SUBMIT --}}
-                        <div class="pt-2">
+                        <div class="reveal reveal-delay-4 pt-2">
                             <button
                                 type="submit"
-                                class="inline-flex h-14 w-full items-center justify-center rounded-xl bg-[var(--color-brand-blue)] text-base font-bold text-white shadow-md transition hover:opacity-95">
+                                class="motion-button inline-flex h-14 w-full items-center justify-center rounded-xl bg-[var(--color-brand-blue)] text-base font-bold text-white shadow-md transition hover:opacity-95">
                                 Sign Up
                             </button>
 
