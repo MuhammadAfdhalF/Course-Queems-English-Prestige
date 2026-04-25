@@ -8,8 +8,8 @@ $test = [
 'total_questions' => 10,
 'duration' => '10 Minutes',
 'requires_login' => false,
-'current_question' => 1,
-'progress' => 10,
+'current_question' => 10,
+'progress' => 100,
 ];
 
 $questionOneOptions = [
@@ -20,10 +20,10 @@ $questionOneOptions = [
 ];
 
 $questionThreeDots = [
+['active' => false],
+['active' => false],
+['active' => false],
 ['active' => true],
-['active' => false],
-['active' => false],
-['active' => false],
 ];
 @endphp
 
@@ -62,7 +62,8 @@ $questionThreeDots = [
 
             @include('partials.public.free-test.test-navigation', [
             'previousHref' => route('free-test'),
-            'nextHref' => '#',
+            'nextHref' => route('free-test.result'),
+            'nextLabel' => 'Finish Test',
             'dots' => $questionThreeDots,
             ])
         </div>

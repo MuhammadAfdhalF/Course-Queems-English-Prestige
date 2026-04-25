@@ -1,6 +1,7 @@
 @props([
 'previousHref' => '#',
 'nextHref' => '#',
+'nextLabel' => 'Next Question',
 'dots' => [],
 ])
 
@@ -23,7 +24,7 @@
     <a href="{{ $nextHref }}">
         <x-ui.button variant="gold" class="w-full px-6 py-3 sm:w-auto">
             <span class="inline-flex items-center gap-2">
-                <span>Next Question</span>
+                <span>{{ $nextLabel }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 12h14m-6-6l6 6-6 6" />
                 </svg>
