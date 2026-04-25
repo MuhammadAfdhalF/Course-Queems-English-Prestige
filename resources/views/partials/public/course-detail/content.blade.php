@@ -1,6 +1,6 @@
 <section class="pt-6">
     <div class="space-y-12">
-        <div>
+        <div class="reveal">
             <h2 class="text-3xl font-bold text-slate-900">Course Overview</h2>
 
             <div class="mt-5 space-y-5 text-base leading-8 text-slate-600">
@@ -28,34 +28,44 @@
             </ul>
         </div>
 
-        <div>
+        <div class="reveal reveal-delay-1">
             <h2 class="text-3xl font-bold text-slate-900">Course Syllabus</h2>
 
             <div class="mt-6 space-y-4">
-                <x-public.syllabus-item
-                    title="Module 01: Foundations of Rhetoric"
-                    content="Learn the principles of persuasive writing, audience targeting, narrative logic, and how rhetorical frameworks support professional academic communication."
-                    :open="true" />
+                <div class="reveal">
+                    <x-public.syllabus-item
+                        title="Module 01: Foundations of Rhetoric"
+                        content="Learn the principles of persuasive writing, audience targeting, narrative logic, and how rhetorical frameworks support professional academic communication."
+                        :open="true" />
+                </div>
 
-                <x-public.syllabus-item
-                    title="Module 02: Structural Integrity & Flow"
-                    content="Build strong paragraph flow, transitions, argument continuity, and document coherence for long-form professional writing." />
+                <div class="reveal reveal-delay-1">
+                    <x-public.syllabus-item
+                        title="Module 02: Structural Integrity & Flow"
+                        content="Build strong paragraph flow, transitions, argument continuity, and document coherence for long-form professional writing." />
+                </div>
 
-                <x-public.syllabus-item
-                    title="Module 03: Critical Analysis Techniques"
-                    content="Develop advanced analysis methods to interpret information critically and construct evidence-based arguments with clarity." />
+                <div class="reveal reveal-delay-2">
+                    <x-public.syllabus-item
+                        title="Module 03: Critical Analysis Techniques"
+                        content="Develop advanced analysis methods to interpret information critically and construct evidence-based arguments with clarity." />
+                </div>
 
-                <x-public.syllabus-item
-                    title="Module 04: The Art of Revision"
-                    content="Refine drafts using editing frameworks, structural revision, tone control, and consistency checks for publication-ready writing." />
+                <div class="reveal reveal-delay-3">
+                    <x-public.syllabus-item
+                        title="Module 04: The Art of Revision"
+                        content="Refine drafts using editing frameworks, structural revision, tone control, and consistency checks for publication-ready writing." />
+                </div>
 
-                <x-public.syllabus-item
-                    title="Module 05: Ethical Citation & Research"
-                    content="Understand academic honesty, proper referencing systems, source integration, and ethical practices in professional research writing." />
+                <div class="reveal reveal-delay-4">
+                    <x-public.syllabus-item
+                        title="Module 05: Ethical Citation & Research"
+                        content="Understand academic honesty, proper referencing systems, source integration, and ethical practices in professional research writing." />
+                </div>
             </div>
         </div>
 
-        <div>
+        <div class="reveal reveal-delay-2">
             <h2 class="text-3xl font-bold text-slate-900">Students Benefit</h2>
 
             <ul class="mt-6 list-disc space-y-1 pl-6 text-base font-semibold text-slate-800">
