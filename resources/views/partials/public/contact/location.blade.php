@@ -10,7 +10,7 @@ $emailHref = 'mailto:hello@queensenglishprestige.com';
 <section class="bg-[#f8f8f6]">
     <div class="mx-auto max-w-7xl px-4 pb-20 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
-            <div>
+            <div class="reveal">
                 <h2 class="text-4xl font-bold tracking-tight text-slate-900">
                     Our Location
                 </h2>
@@ -32,7 +32,7 @@ $emailHref = 'mailto:hello@queensenglishprestige.com';
             </div>
 
             <div class="space-y-5 lg:pt-[88px]">
-                <div class="rounded-[24px] border border-[#d9e1ec] bg-white p-6 shadow-sm">
+                <div class="reveal reveal-delay-1 rounded-[24px] border border-[#d9e1ec] bg-white p-6 shadow-sm">
                     <div class="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[#eef4ff] text-[var(--color-brand-blue)]">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21s7-5.6 7-11a7 7 0 10-14 0c0 5.4 7 11 7 11z" />
@@ -58,7 +58,7 @@ $emailHref = 'mailto:hello@queensenglishprestige.com';
                         rel="noopener noreferrer"
                         class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-brand-blue)] hover:underline">
                         <span>Open in Google Maps</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="motion-link-arrow h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 17L17 7M17 7H9M17 7v8" />
                         </svg>
                     </a>
@@ -68,7 +68,7 @@ $emailHref = 'mailto:hello@queensenglishprestige.com';
                     href="{{ $whatsappHref }}"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex w-full items-center justify-center gap-2 rounded-[16px] bg-[var(--color-brand-blue)] px-6 py-4 text-sm font-semibold text-white transition hover:opacity-90">
+                    class="reveal reveal-delay-2 motion-button inline-flex w-full items-center justify-center gap-2 rounded-[16px] bg-[var(--color-brand-blue)] px-6 py-4 text-sm font-semibold text-white transition hover:opacity-90">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 10.5A5.5 5.5 0 1112.5 16c-.95 0-1.85-.24-2.64-.66L6 16l.7-3.6A5.48 5.48 0 017 10.5z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 9.5c.2 1 1.3 2.2 2.3 2.5.4.1.8 0 1.1-.2l.8-.5" />
@@ -78,7 +78,7 @@ $emailHref = 'mailto:hello@queensenglishprestige.com';
 
                 <a
                     href="{{ $emailHref }}"
-                    class="inline-flex w-full items-center justify-center gap-2 rounded-[16px] border border-[var(--color-brand-blue)] bg-white px-6 py-4 text-sm font-semibold text-[var(--color-brand-blue)] transition hover:bg-slate-50">
+                    class="reveal reveal-delay-3 motion-button inline-flex w-full items-center justify-center gap-2 rounded-[16px] border border-[var(--color-brand-blue)] bg-white px-6 py-4 text-sm font-semibold text-[var(--color-brand-blue)] transition hover:bg-slate-50">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 12h14" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6l6 6-6 6" />
