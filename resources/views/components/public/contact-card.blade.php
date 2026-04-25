@@ -26,7 +26,7 @@ $valueClasses = $isEmail
     href="{{ $href }}"
     target="_blank"
     rel="noopener noreferrer"
-    {{ $attributes->merge(['class' => 'group relative block min-h-[210px] rounded-[22px] border p-6 transition duration-200 hover:-translate-y-1 ' . $cardClasses]) }}>
+    {{ $attributes->merge(['class' => 'group motion-card relative block min-h-[210px] rounded-[22px] border p-6 transition duration-200 hover:-translate-y-1 ' . $cardClasses]) }}>
 
     @if($featured)
     <span class="absolute right-4 top-4 inline-flex items-center rounded-md bg-[var(--color-brand-gold)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
@@ -50,7 +50,8 @@ $valueClasses = $isEmail
         @if($value)
         @if($isEmail)
         <div class="mt-6 font-bold text-[var(--color-brand-blue)] group-hover:underline {{ $valueClasses }}">
-            <span class="block">hello@quue</span>
+            <span class="block">hello@queensenglish</span>
+            <span class="block">prestige.com</span>
         </div>
         @else
         <p class="mt-6 font-bold text-[var(--color-brand-blue)] group-hover:underline {{ $valueClasses }}">
