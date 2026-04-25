@@ -15,5 +15,7 @@ Route::view('/news', 'pages.public.news')->name('news');
 Route::view('/contact', 'pages.public.contact')->name('contact');
 
 Route::view('/login', 'pages.auth.login')->name('login');
+Route::view('/register', 'pages.auth.register')->name('register');
+
 Route::view('/student', 'pages.student.dashboard')->name('student.dashboard');
 Route::view('/admin', 'pages.admin.dashboard')->name('admin.dashboard');

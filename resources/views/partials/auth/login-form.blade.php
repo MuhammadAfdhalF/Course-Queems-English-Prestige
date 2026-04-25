@@ -87,7 +87,7 @@
                     <p class="text-[16px] text-slate-900">
                         Don’t have an account ?
                     </p>
-                    <a href="#" class="mt-1 inline-block text-[16px] font-medium text-[var(--color-brand-gold)] underline decoration-[1.5px] underline-offset-2">
+                    <a href="{{ route('register') }}" class="font-semibold text-[var(--color-brand-gold)] hover:underline">
                         Create Account
                     </a>
                 </div>
