@@ -27,7 +27,10 @@ $questionThreeDots = [
 ];
 @endphp
 
-@include('partials.public.free-test.test-header', ['test' => $test])
+<div class="reveal">
+    @include('partials.public.free-test.test-header', ['test' => $test])
+</div>
+
 @include('partials.public.free-test.test-progress', ['progress' => $test['progress']])
 
 <section class="relative overflow-hidden bg-[#f7f6f2]">
@@ -40,32 +43,38 @@ $questionThreeDots = [
 
     <div class="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
         <div class="mx-auto max-w-[760px] space-y-8">
-            <x-public.test-question-card
-                number="01"
-                question="Choose the correct sentence.">
-                <div class="space-y-2.5">
-                    @foreach ($questionOneOptions as $index => $option)
-                    <x-public.test-option
-                        :selected="$index === 1"
-                        :label="$option" />
-                    @endforeach
-                </div>
-            </x-public.test-question-card>
+            <div class="reveal">
+                <x-public.test-question-card
+                    number="01"
+                    question="Choose the correct sentence.">
+                    <div class="space-y-2.5">
+                        @foreach ($questionOneOptions as $index => $option)
+                        <x-public.test-option
+                            :selected="$index === 1"
+                            :label="$option" />
+                        @endforeach
+                    </div>
+                </x-public.test-question-card>
+            </div>
 
-            <x-public.test-question-card
-                number="03"
-                question="Fill in the blank: If I ___ more time...">
-                <x-public.test-input-question
-                    placeholder="Type your answer..."
-                    helper="One word only" />
-            </x-public.test-question-card>
+            <div class="reveal reveal-delay-1">
+                <x-public.test-question-card
+                    number="03"
+                    question="Fill in the blank: If I ___ more time...">
+                    <x-public.test-input-question
+                        placeholder="Type your answer..."
+                        helper="One word only" />
+                </x-public.test-question-card>
+            </div>
 
-            @include('partials.public.free-test.test-navigation', [
-            'previousHref' => route('free-test'),
-            'nextHref' => route('free-test.result'),
-            'nextLabel' => 'Finish Test',
-            'dots' => $questionThreeDots,
-            ])
+            <div class="reveal reveal-delay-2">
+                @include('partials.public.free-test.test-navigation', [
+                'previousHref' => route('free-test'),
+                'nextHref' => route('free-test.result'),
+                'nextLabel' => 'Finish Test',
+                'dots' => $questionThreeDots,
+                ])
+            </div>
         </div>
     </div>
 </section>
