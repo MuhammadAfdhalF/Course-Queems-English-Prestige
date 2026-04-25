@@ -45,8 +45,7 @@ $emailHref = 'mailto:hello@queensenglishprestige.com';
                     </h3>
 
                     <p class="mt-3 text-base leading-7 text-slate-500">
-                        Jalan Sukajadi, Pekanbaru, Riau
-                    </p>
+                        Jl. H. Abdul Kadir Abbas SH, Pandau Jaya, Kec. Siak Hulu, Kabupaten Kampar, Riau 28284 </p>
 
                     <p class="mt-5 text-base font-bold text-slate-900">
                         Mon–Fri: 9AM – 6PM
