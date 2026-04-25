@@ -1,22 +1,22 @@
 <section class="bg-slate-50">
     <div class="mx-auto max-w-7xl px-4 py-16 lg:px-8">
         <div class="text-center">
-            <h2 class="text-2xl font-bold text-[var(--color-brand-blue)] md:text-3xl">
+            <h2 class="reveal text-2xl font-bold text-[var(--color-brand-blue)] md:text-3xl">
                 Meet Our Lead Mentors
             </h2>
 
-            <p class="mt-3 text-sm text-slate-500">
+            <p class="reveal reveal-delay-1 mt-3 text-sm text-slate-500">
                 World-class experts dedicated to your success.
             </p>
         </div>
 
         <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="reveal group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="aspect-[4/5] overflow-hidden bg-slate-100">
                     <img
                         src="https://placehold.co/500x650/F1F5F9/0F172A?text=Mentor+1"
                         alt="Dr. Sarah Jenkins"
-                        class="h-full w-full object-cover">
+                        class="motion-image h-full w-full object-cover">
                 </div>
 
                 <div class="p-4">
@@ -30,12 +30,12 @@
                 </div>
             </div>
 
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="reveal reveal-delay-1 group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="aspect-[4/5] overflow-hidden bg-slate-100">
                     <img
                         src="https://placehold.co/500x650/E5E7EB/0F172A?text=Mentor+2"
                         alt="Marcus Thorne"
-                        class="h-full w-full object-cover">
+                        class="motion-image h-full w-full object-cover">
                 </div>
 
                 <div class="p-4">
@@ -49,12 +49,12 @@
                 </div>
             </div>
 
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="reveal reveal-delay-2 group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="aspect-[4/5] overflow-hidden bg-slate-100">
                     <img
                         src="https://placehold.co/500x650/F8FAFC/0F172A?text=Mentor+3"
                         alt="Elena Petrova"
-                        class="h-full w-full object-cover">
+                        class="motion-image h-full w-full object-cover">
                 </div>
 
                 <div class="p-4">
@@ -68,12 +68,12 @@
                 </div>
             </div>
 
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="reveal reveal-delay-3 group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="aspect-[4/5] overflow-hidden bg-slate-100">
                     <img
                         src="https://placehold.co/500x650/D1D5DB/0F172A?text=Mentor+4"
                         alt="David Chen"
-                        class="h-full w-full object-cover">
+                        class="motion-image h-full w-full object-cover">
                 </div>
 
                 <div class="p-4">
@@ -87,12 +87,12 @@
                 </div>
             </div>
 
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="reveal reveal-delay-4 group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="aspect-[4/5] overflow-hidden bg-slate-100">
                     <img
                         src="https://placehold.co/500x650/F8FAFC/0F172A?text=Mentor+5"
                         alt="Elena Petrova"
-                        class="h-full w-full object-cover">
+                        class="motion-image h-full w-full object-cover">
                 </div>
 
                 <div class="p-4">

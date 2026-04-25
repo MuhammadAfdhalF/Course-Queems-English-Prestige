@@ -1,11 +1,11 @@
 <section class="bg-white">
     <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
         <div class="max-w-2xl">
-            <h2 class="text-2xl font-bold leading-tight text-[var(--color-brand-blue)] md:text-3xl">
+            <h2 class="reveal text-2xl font-bold leading-tight text-[var(--color-brand-blue)] md:text-3xl">
                 The Beginning <span class="text-[var(--color-brand-gold)]">of Our Journey</span>
             </h2>
 
-            <div class="mt-6 space-y-5 text-sm leading-8 text-slate-600 md:text-base">
+            <div class="reveal reveal-delay-1 mt-6 space-y-5 text-sm leading-8 text-slate-600 md:text-base">
                 <p>
                     Queens English Prestige is built to make English learning clear, structured,
                     and accessible—both online and offline. Our platform combines a modern company
@@ -24,13 +24,12 @@
             </div>
         </div>
 
-        <div class="flex justify-center lg:justify-end">
-            <div class="w-full max-w-md rounded-none border border-slate-300 bg-white p-6 shadow-sm">
+        <div class="reveal reveal-delay-2 flex justify-center lg:justify-end">
+            <div class="motion-card w-full max-w-md rounded-none border border-slate-300 bg-white p-6 shadow-sm">
                 <img
                     src="{{ asset('images/logo-queens-english.png') }}"
                     alt="Queens English Prestige Logo"
-                    class="mx-auto h-auto w-full max-w-[320px] object-contain"
-                >
+                    class="motion-image mx-auto h-auto w-full max-w-[320px] object-contain">
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
 <section class="bg-white">
     <div class="mx-auto grid max-w-7xl gap-12 px-4 py-16 lg:grid-cols-2 lg:px-8">
-        <div>
+        <div class="reveal">
             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-gold)]">
                 Our Vision
             </p>
@@ -11,13 +11,13 @@
             </h2>
         </div>
 
-        <div>
+        <div class="reveal reveal-delay-1">
             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-gold)]">
                 Our Mission
             </p>
 
             <div class="mt-8 space-y-5">
-                <div class="flex items-start gap-3">
+                <div class="reveal flex items-start gap-3">
                     <div class="mt-1 flex h-5 w-5 items-center justify-center rounded-full border border-[var(--color-brand-gold)] text-[10px] text-[var(--color-brand-gold)]">
                         ✓
                     </div>
@@ -26,7 +26,7 @@
                     </p>
                 </div>
 
-                <div class="flex items-start gap-3">
+                <div class="reveal reveal-delay-1 flex items-start gap-3">
                     <div class="mt-1 flex h-5 w-5 items-center justify-center rounded-full border border-[var(--color-brand-gold)] text-[10px] text-[var(--color-brand-gold)]">
                         ✓
                     </div>
@@ -35,7 +35,7 @@
                     </p>
                 </div>
 
-                <div class="flex items-start gap-3">
+                <div class="reveal reveal-delay-2 flex items-start gap-3">
                     <div class="mt-1 flex h-5 w-5 items-center justify-center rounded-full border border-[var(--color-brand-gold)] text-[10px] text-[var(--color-brand-gold)]">
                         ✓
                     </div>
@@ -44,7 +44,7 @@
                     </p>
                 </div>
 
-                <div class="flex items-start gap-3">
+                <div class="reveal reveal-delay-3 flex items-start gap-3">
                     <div class="mt-1 flex h-5 w-5 items-center justify-center rounded-full border border-[var(--color-brand-gold)] text-[10px] text-[var(--color-brand-gold)]">
                         ✓
                     </div>
