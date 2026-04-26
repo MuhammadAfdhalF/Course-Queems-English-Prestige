@@ -40,6 +40,12 @@ $buttonClasses = match ($status) {
 'locked' => 'bg-slate-100 text-slate-400 cursor-not-allowed',
 default => 'border border-slate-300 bg-white text-slate-700',
 };
+
+$href = '#';
+
+if ($status === 'current') {
+$href = route('student.module-material');
+}
 @endphp
 
 <div class="rounded-[20px] border px-5 py-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md {{ $wrapperClasses }}">
@@ -98,7 +104,7 @@ default => 'border border-slate-300 bg-white text-slate-700',
             </button>
             @else
             <a
-                href="#"
+                href="{{ $href }}"
                 class="inline-flex h-12 min-w-[130px] items-center justify-center gap-2 rounded-xl px-6 text-base font-bold transition {{ $buttonClasses }}">
                 {{ $buttonText }}
 
