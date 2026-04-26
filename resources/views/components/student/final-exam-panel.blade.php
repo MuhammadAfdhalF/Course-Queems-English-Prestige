@@ -15,23 +15,22 @@
 
             <p class="mt-5 inline-flex items-center gap-2 text-base font-semibold text-[var(--color-brand-gold)]">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <rect x="6" y="10" width="12" height="10" rx="2" stroke-width="1.8" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10V8a4 4 0 118 0v2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Locked until all modules are completed
+                Ready to begin your final assessment
             </p>
         </div>
 
         <div class="shrink-0">
-            <button
-                type="button"
-                class="pointer-events-none inline-flex h-14 min-w-[240px] items-center justify-center gap-3 rounded-2xl bg-white/12 px-8 text-lg font-bold text-white/60 ring-1 ring-white/10 backdrop-blur-sm">
+            <a
+                href="{{ route('student.final-exam') }}"
+                class="inline-flex h-14 min-w-[240px] items-center justify-center gap-3 rounded-2xl bg-white px-8 text-lg font-bold text-[var(--color-brand-blue)] shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl">
                 Start Final Exam
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <rect x="5" y="3" width="14" height="18" rx="2" stroke-width="1.8" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7h8M8 11h8M8 15h5" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 5v14l11-7-11-7z" />
                 </svg>
-            </button>
+            </a>
         </div>
     </div>
 

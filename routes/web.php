@@ -24,4 +24,7 @@ Route::view('/student/my-courses/toefl-preparation-mastery/module-01', 'pages.st
 Route::view('/student/my-courses/toefl-preparation-mastery/module-01/practice', 'pages.student.module-practice')->name('student.module-practice');
 Route::view('/student/my-courses/toefl-preparation-mastery/module-01/completed', 'pages.student.module-completed')->name('student.module-completed');
 
+Route::view('/student/my-courses/toefl-preparation-mastery/final-exam', 'pages.student.final-exam')->name('student.final-exam');
+Route::view('/student/my-courses/toefl-preparation-mastery/final-exam/result', 'pages.student.final-exam-result')->name('student.final-exam-result');
+
 Route::view('/admin', 'pages.admin.dashboard')->name('admin.dashboard');
