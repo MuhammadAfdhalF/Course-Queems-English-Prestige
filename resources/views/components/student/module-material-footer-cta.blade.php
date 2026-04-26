@@ -29,7 +29,7 @@
             </a>
 
             <a
-                href="#"
+                href="{{ route('student.module-practice') }}"
                 class="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-[#F97316] px-8 text-lg font-bold text-white shadow-lg shadow-orange-200 transition hover:translate-y-[-1px] hover:opacity-95">
                 Go to Practice
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
