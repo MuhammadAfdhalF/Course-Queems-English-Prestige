@@ -19,5 +19,6 @@ Route::view('/register', 'pages.auth.register')->name('register');
 
 Route::view('/student', 'pages.student.dashboard')->name('student.dashboard');
 Route::view('/student/my-courses', 'pages.student.my-courses')->name('student.my-courses');
+Route::view('/student/my-courses/toefl-preparation-mastery', 'pages.student.learning-path')->name('student.learning-path');
 
 Route::view('/admin', 'pages.admin.dashboard')->name('admin.dashboard');

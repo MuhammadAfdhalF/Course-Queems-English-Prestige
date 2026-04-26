@@ -40,6 +40,14 @@ $secondaryButtonClasses = match ($status) {
 'pending' => 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900',
 default => 'border border-slate-300 bg-white text-slate-600',
 };
+
+$primaryHref = '#';
+
+if ($status === 'active') {
+$primaryHref = route('student.learning-path');
+} elseif ($status === 'completed') {
+$primaryHref = '#';
+}
 @endphp
 
 <div class="group overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
@@ -100,11 +108,19 @@ default => 'border border-slate-300 bg-white text-slate-600',
             </div>
 
             <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+                @if($status === 'pending')
                 <button
                     type="button"
-                    class="inline-flex h-12 items-center justify-center rounded-xl px-6 text-base font-bold transition {{ $primaryButtonClasses }} {{ $status === 'pending' ? 'pointer-events-none sm:min-w-[210px]' : 'sm:min-w-[210px]' }}">
+                    class="pointer-events-none inline-flex h-12 items-center justify-center rounded-xl px-6 text-base font-bold transition {{ $primaryButtonClasses }} sm:min-w-[210px]">
                     {{ $primaryButton }}
                 </button>
+                @else
+                <a
+                    href="{{ $primaryHref }}"
+                    class="inline-flex h-12 items-center justify-center rounded-xl px-6 text-base font-bold transition {{ $primaryButtonClasses }} sm:min-w-[210px]">
+                    {{ $primaryButton }}
+                </a>
+                @endif
 
                 <button
                     type="button"
