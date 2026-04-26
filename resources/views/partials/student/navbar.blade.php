@@ -13,13 +13,13 @@
             </div>
 
             <div class="hidden items-center gap-4 lg:flex">
-                <button class="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700" type="button">
+                <button class="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition" type="button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9" />
                     </svg>
                 </button>
 
-                <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2">
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 transition hover:shadow-sm">
                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-sm font-semibold text-amber-700">
                         AJ
                     </div>
@@ -42,12 +42,29 @@
 
         <div class="hidden border-t border-slate-200 lg:block">
             <nav class="flex items-center gap-8 py-4">
-                <a href="{{ route('student.dashboard') }}" class="border-b-2 border-[var(--color-brand-blue)] pb-3 text-sm font-semibold text-[var(--color-brand-blue)]">Home</a>
-                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">My Course</a>
-                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">All Course</a>
-                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">Testimoni</a>
-                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">Profile</a>
-                <a href="{{ route('home') }}" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">Back to Website</a>
+                <a href="{{ route('student.dashboard') }}" class="pb-3 text-sm font-medium {{ request()->routeIs('student.dashboard') ? 'border-b-2 border-[var(--color-brand-blue)] text-[var(--color-brand-blue)] font-semibold' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
+                    Home
+                </a>
+
+                <a href="{{ route('student.my-courses') }}" class="pb-3 text-sm font-medium {{ request()->routeIs('student.my-courses') ? 'border-b-2 border-[var(--color-brand-blue)] text-[var(--color-brand-blue)] font-semibold' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
+                    My Course
+                </a>
+
+                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">
+                    All Course
+                </a>
+
+                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">
+                    Testimoni
+                </a>
+
+                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">
+                    Profile
+                </a>
+
+                <a href="{{ route('home') }}" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">
+                    Back to Website
+                </a>
             </nav>
         </div>
     </div>
@@ -65,12 +82,29 @@
             </div>
 
             <nav class="space-y-1">
-                <a href="{{ route('student.dashboard') }}" class="block rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-[var(--color-brand-blue)]">Home</a>
-                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">My Course</a>
-                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">All Course</a>
-                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">Testimoni</a>
-                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">Profile</a>
-                <a href="{{ route('home') }}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">Back to Website</a>
+                <a href="{{ route('student.dashboard') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('student.dashboard') ? 'bg-blue-50 text-[var(--color-brand-blue)] font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                    Home
+                </a>
+
+                <a href="{{ route('student.my-courses') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('student.my-courses') ? 'bg-blue-50 text-[var(--color-brand-blue)] font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                    My Course
+                </a>
+
+                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    All Course
+                </a>
+
+                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    Testimoni
+                </a>
+
+                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    Profile
+                </a>
+
+                <a href="{{ route('home') }}" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    Back to Website
+                </a>
             </nav>
         </div>
     </div>
