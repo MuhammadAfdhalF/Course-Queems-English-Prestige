@@ -61,14 +61,14 @@
                 </a>
 
                 <a
-                    href="#"
-                    class="pb-3 text-sm font-medium text-slate-600 transition hover:text-[var(--color-brand-blue)]">
+                    href="{{ route('student.testimoni') }}"
+                    class="pb-3 text-sm font-medium transition {{ request()->routeIs('student.testimoni') ? 'border-b-2 border-[var(--color-brand-gold)] font-semibold text-[var(--color-brand-blue)]' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
                     Testimoni
                 </a>
 
                 <a
-                    href="#"
-                    class="pb-3 text-sm font-medium text-slate-600 transition hover:text-[var(--color-brand-blue)]">
+                    href="{{ route('student.profile') }}"
+                    class="pb-3 text-sm font-medium transition {{ request()->routeIs('student.profile') ? 'border-b-2 border-[var(--color-brand-gold)] font-semibold text-[var(--color-brand-blue)]' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
                     Profile
                 </a>
 
@@ -105,11 +105,11 @@
                 <a href="{{ route('student.all-courses') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('student.all-courses') ? 'bg-blue-50 text-[var(--color-brand-blue)] font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
                     All Course
                 </a>
-                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <a href="{{ route('student.testimoni') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('student.testimoni') ? 'bg-blue-50 text-[var(--color-brand-blue)] font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
                     Testimoni
                 </a>
 
-                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <a href="{{ route('student.profile') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('student.profile') ? 'bg-blue-50 text-[var(--color-brand-blue)] font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
                     Profile
                 </a>
 
