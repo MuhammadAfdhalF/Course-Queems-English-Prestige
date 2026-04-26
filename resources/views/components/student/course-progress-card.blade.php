@@ -5,9 +5,9 @@
 'image' => 'https://placehold.co/800x500',
 ])
 
-<div {{ $attributes->merge(['class' => 'overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm']) }}>
+<div {{ $attributes->merge(['class' => 'group overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md']) }}>
     <div class="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        <img src="{{ $image }}" alt="{{ $title }}" class="h-full w-full object-cover">
+        <img src="{{ $image }}" alt="{{ $title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
 
         <div class="absolute right-3 top-3">
             <span class="inline-flex items-center rounded-lg bg-[#D4A017] px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-sm">
@@ -29,7 +29,7 @@
 
             <div class="h-3 overflow-hidden rounded-full bg-slate-200">
                 <div
-                    class="h-full rounded-full bg-[#1847D1]"
+                    class="h-full rounded-full bg-[#1847D1] transition-all duration-700 ease-out"
                     style="width: {{ $progress }}%"></div>
             </div>
         </div>

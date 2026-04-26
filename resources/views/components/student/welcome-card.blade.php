@@ -5,8 +5,11 @@
 'buttonText' => 'Continue Learning',
 ])
 
-<div {{ $attributes->merge(['class' => 'rounded-[24px] bg-gradient-to-r from-[#1847D1] via-[#2457E6] to-[#4F78D8] p-7 text-white shadow-sm']) }}>
-    <div class="max-w-xl">
+<div {{ $attributes->merge(['class' => 'relative overflow-hidden rounded-[24px] bg-gradient-to-r from-[#1847D1] via-[#2457E6] to-[#4F78D8] p-7 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg']) }}>
+    <div class="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+    <div class="pointer-events-none absolute -bottom-8 left-10 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
+
+    <div class="relative max-w-xl">
         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
             {{ $status }}
         </p>

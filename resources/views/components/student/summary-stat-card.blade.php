@@ -37,7 +37,7 @@ $accentMap = [
 $style = $accentMap[$accent] ?? $accentMap['blue'];
 @endphp
 
-<div class="relative overflow-hidden rounded-[22px] border border-slate-200 bg-white p-5 shadow-sm">
+<div class="relative overflow-hidden rounded-[22px] border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
     <div class="absolute inset-y-0 left-0 w-1.5 {{ $style['bar'] }}"></div>
 
     <div class="flex items-start justify-between gap-4">
@@ -52,7 +52,7 @@ $style = $accentMap[$accent] ?? $accentMap['blue'];
             @endif
         </div>
 
-        <div class="flex h-11 w-11 items-center justify-center rounded-xl {{ $style['iconBg'] }} {{ $style['iconText'] }}">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 {{ $style['iconBg'] }} {{ $style['iconText'] }}">
             @if($icon === 'book')
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v11.494m-5.747-8.62h11.494" />
