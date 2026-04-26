@@ -42,27 +42,39 @@
 
         <div class="hidden border-t border-slate-200 lg:block">
             <nav class="flex items-center gap-8 py-4">
-                <a href="{{ route('student.dashboard') }}" class="pb-3 text-sm font-medium {{ request()->routeIs('student.dashboard') ? 'border-b-2 border-[var(--color-brand-blue)] text-[var(--color-brand-blue)] font-semibold' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
+                <a
+                    href="{{ route('student.dashboard') }}"
+                    class="pb-3 text-sm font-medium transition {{ request()->routeIs('student.dashboard') ? 'border-b-2 border-[var(--color-brand-gold)] font-semibold text-[var(--color-brand-blue)]' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
                     Home
                 </a>
 
-                <a href="{{ route('student.my-courses') }}" class="pb-3 text-sm font-medium {{ request()->routeIs('student.my-courses') ? 'border-b-2 border-[var(--color-brand-blue)] text-[var(--color-brand-blue)] font-semibold' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
+                <a
+                    href="{{ route('student.my-courses') }}"
+                    class="pb-3 text-sm font-medium transition {{ request()->routeIs('student.my-courses') || request()->routeIs('student.learning-path') || request()->routeIs('student.module-material') || request()->routeIs('student.module-practice') || request()->routeIs('student.module-completed') || request()->routeIs('student.final-exam') || request()->routeIs('student.final-exam-result') ? 'border-b-2 border-[var(--color-brand-gold)] font-semibold text-[var(--color-brand-blue)]' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
                     My Course
                 </a>
 
-                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">
+                <a
+                    href="{{ route('student.all-courses') }}"
+                    class="pb-3 text-sm font-medium transition {{ request()->routeIs('student.all-courses') ? 'border-b-2 border-[var(--color-brand-gold)] font-semibold text-[var(--color-brand-blue)]' : 'text-slate-600 hover:text-[var(--color-brand-blue)]' }}">
                     All Course
                 </a>
 
-                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">
+                <a
+                    href="#"
+                    class="pb-3 text-sm font-medium text-slate-600 transition hover:text-[var(--color-brand-blue)]">
                     Testimoni
                 </a>
 
-                <a href="#" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">
+                <a
+                    href="#"
+                    class="pb-3 text-sm font-medium text-slate-600 transition hover:text-[var(--color-brand-blue)]">
                     Profile
                 </a>
 
-                <a href="{{ route('home') }}" class="pb-3 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue)]">
+                <a
+                    href="{{ route('home') }}"
+                    class="pb-3 text-sm font-medium text-slate-600 transition hover:text-[var(--color-brand-blue)]">
                     Back to Website
                 </a>
             </nav>
@@ -90,10 +102,9 @@
                     My Course
                 </a>
 
-                <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <a href="{{ route('student.all-courses') }}" class="block rounded-xl px-4 py-3 text-sm font-medium {{ request()->routeIs('student.all-courses') ? 'bg-blue-50 text-[var(--color-brand-blue)] font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
                     All Course
                 </a>
-
                 <a href="#" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
                     Testimoni
                 </a>
