@@ -37,3 +37,4 @@ Route::view('/student/profile', 'pages.student.profile')->name('student.profile'
 
 // Admin Routes
 Route::view('/admin', 'pages.admin.dashboard')->name('admin.dashboard');
+Route::view('/admin/orders', 'pages.admin.orders.index')->name('admin.orders.index');

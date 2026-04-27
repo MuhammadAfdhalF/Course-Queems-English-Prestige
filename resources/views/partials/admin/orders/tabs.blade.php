@@ -1,0 +1,1 @@
+<x-admin.status-tabs :tabs="$tabs" />

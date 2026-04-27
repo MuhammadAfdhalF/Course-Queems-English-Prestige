@@ -29,7 +29,9 @@
                         Dashboard
                     </x-admin.sidebar-item>
 
-                    <x-admin.sidebar-item href="#">
+                    <x-admin.sidebar-item
+                        :href="route('admin.orders.index')"
+                        :active="request()->routeIs('admin.orders.*')">
                         <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8L5.4 5M7 13l-1.5 3m1.5-3l1.5 3m7-3l1.5 3M9 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm10 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
