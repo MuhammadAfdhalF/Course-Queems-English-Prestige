@@ -1,4 +1,7 @@
-@extends('layouts.admin')
+@extends('layouts.admin', [
+'pageTitle' => 'Dashboard',
+'pageSubtitle' => 'System Overview',
+])
 
 @section('content')
 <section class="space-y-8">

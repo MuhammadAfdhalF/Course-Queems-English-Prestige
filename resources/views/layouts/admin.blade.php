@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'Admin Panel - Queens English Prestige' }}</title>
+    <title>{{ $title ?? (($pageTitle ?? 'Admin Panel') . ' - Queens English Prestige') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -14,16 +14,22 @@
             x-show="adminSidebarOpen"
             x-transition.opacity
             @click="adminSidebarOpen = false"
-            class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden"></div>
+            class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden">
+        </div>
 
         @include('partials.admin.sidebar')
 
-        <div class="min-w-0 flex-1">
-            @include('partials.admin.topbar')
+        <div class="flex min-w-0 flex-1 flex-col">
+            @include('partials.admin.topbar', [
+            'pageTitle' => $pageTitle ?? 'Dashboard',
+            'pageSubtitle' => $pageSubtitle ?? 'Admin Panel',
+            ])
 
-            <main class="p-4 lg:p-8">
+            <main class="flex-1 p-4 lg:p-8">
                 @yield('content')
             </main>
+
+            @include('partials.admin.footer')
         </div>
     </div>
 </body>
