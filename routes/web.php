@@ -36,5 +36,9 @@ Route::view('/student/profile', 'pages.student.profile')->name('student.profile'
 
 
 // Admin Routes
+
 Route::view('/admin', 'pages.admin.dashboard')->name('admin.dashboard');
 Route::view('/admin/orders', 'pages.admin.orders.index')->name('admin.orders.index');
+
+// user management
+Route::view('/admin/students', 'pages.admin.students.index')->name('admin.students.index');

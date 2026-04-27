@@ -100,7 +100,9 @@
             <div>
                 <p class="mb-3 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">User Management</p>
                 <nav class="space-y-1">
-                    <x-admin.sidebar-item href="#">
+                    <x-admin.sidebar-item
+                        :href="route('admin.students.index')"
+                        :active="request()->routeIs('admin.students.*')">
                         <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20a4 4 0 00-8 0M9 7a4 4 0 118 0 4 4 0 01-8 0zM3 20a4 4 0 014-4" />
