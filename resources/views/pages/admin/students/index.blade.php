@@ -115,5 +115,6 @@ $students = [
     @include('partials.admin.students.filters')
     @include('partials.admin.students.table')
     @include('partials.admin.students.add-student-modal')
+    @include('partials.admin.students.student-detail-modal')
 </section>
 @endsection
