@@ -103,7 +103,7 @@ $orders = [
             this.orderModalOpen = false;
         }
     }"
-    class="space-y-6">
+    class="mx-auto max-w-7xl space-y-6">
     @include('partials.admin.orders.header')
     @include('partials.admin.orders.tabs')
     @include('partials.admin.orders.filters')
