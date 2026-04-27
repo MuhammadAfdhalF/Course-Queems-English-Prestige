@@ -21,14 +21,9 @@
         </div>
     </div>
 
-    <div class="reveal reveal-delay-1">
-        <x-student.testimonial-form-card />
-    </div>
-
-    <div class="reveal reveal-delay-2">
-        <x-student.testimonial-history-table />
-    </div>
-
+    @include('partials.student.testimoni.form')
+    @include('partials.student.testimoni.history')
+    
     <p class="reveal reveal-delay-3 text-center text-sm text-slate-500">
         Mengalami kendala teknis?
         <a href="#" class="font-semibold text-[var(--color-brand-blue)] hover:underline">
