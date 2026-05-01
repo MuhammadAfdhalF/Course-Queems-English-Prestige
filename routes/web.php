@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Admin\Cms\HomePageController;
+use App\Http\Controllers\Admin\Cms\HeroSectionController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -63,23 +64,20 @@ Route::prefix('student')
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-
 Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
         Route::view('/', 'pages.admin.dashboard')->name('dashboard');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Order & Payment
-        |--------------------------------------------------------------------------
-        */
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');
-
-        /*
-        |--------------------------------------------------------------------------
-        | Student Management
-        |--------------------------------------------------------------------------
-        */
         Route::view('/students', 'pages.admin.students.index')->name('students.index');
+
+        Route::prefix('cms')
+            ->name('cms.')
+            ->group(function () {
+                Route::get('/home', [HomePageController::class, 'index'])->name('home.index');
+
+                Route::resource('hero-sections', HeroSectionController::class)
+                    ->only(['index']);
+            });
     });

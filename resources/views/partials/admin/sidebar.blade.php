@@ -185,8 +185,9 @@
                 </p>
 
                 <nav class="space-y-1">
-                    <x-admin.sidebar-item href="#">
-                        <x-slot:icon>
+                    <x-admin.sidebar-item
+                        :href="route('admin.cms.home.index')"
+                        :active="request()->routeIs('admin.cms.home.*') || request()->routeIs('admin.cms.hero-sections.*')"> <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.8" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 9h18" />
