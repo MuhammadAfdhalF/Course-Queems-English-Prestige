@@ -78,6 +78,6 @@ Route::prefix('admin')
                 Route::get('/home', [HomePageController::class, 'index'])->name('home.index');
 
                 Route::resource('hero-sections', HeroSectionController::class)
-                    ->only(['index']);
+                    ->only(['index', 'store', 'update', 'destroy']);
             });
     });
