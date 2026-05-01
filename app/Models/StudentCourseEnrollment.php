@@ -53,4 +53,9 @@ class StudentCourseEnrollment extends Model
     {
         return $this->hasMany(StudentModuleProgress::class, 'enrollment_id');
     }
+
+    public function certificate()
+    {
+        return $this->hasOne(Certificate::class, 'enrollment_id');
+    }
 }

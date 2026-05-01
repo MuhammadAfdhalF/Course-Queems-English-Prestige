@@ -54,4 +54,14 @@ class CourseLevel extends Model
     {
         return $this->hasMany(StudentCourseEnrollment::class);
     }
+
+    public function finalExams(): HasMany
+    {
+        return $this->hasMany(FinalExam::class);
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
 }

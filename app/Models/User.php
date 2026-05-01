@@ -72,4 +72,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(ModulePracticeAttempt::class, 'student_id');
     }
+
+    public function finalExamAttempts(): HasMany
+    {
+        return $this->hasMany(FinalExamAttempt::class, 'student_id');
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class, 'student_id');
+    }
 }

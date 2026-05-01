@@ -22,4 +22,9 @@ class CourseProgram extends Model
     {
         return $this->hasMany(CourseLevel::class);
     }
+
+    public function certificateTemplates(): HasMany
+    {
+        return $this->hasMany(CertificateTemplate::class);
+    }
 }
