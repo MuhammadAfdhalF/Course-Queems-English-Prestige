@@ -40,4 +40,8 @@ class Module extends Model
     {
         return $this->hasMany(ModulePractice::class);
     }
+    public function studentProgress(): HasMany
+    {
+        return $this->hasMany(StudentModuleProgress::class);
+    }
 }

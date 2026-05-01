@@ -39,4 +39,19 @@ class CourseLevel extends Model
     {
         return $this->hasMany(Module::class);
     }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(StudentCourseEnrollment::class);
+    }
 }
