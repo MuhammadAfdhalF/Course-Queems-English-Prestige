@@ -35,4 +35,9 @@ class Module extends Model
     {
         return $this->hasMany(ModuleMaterial::class);
     }
+
+    public function practices(): HasMany
+    {
+        return $this->hasMany(ModulePractice::class);
+    }
 }
