@@ -64,4 +64,8 @@ class CourseLevel extends Model
     {
         return $this->hasMany(Certificate::class);
     }
+    public function testimonials(): HasMany
+    {
+        return $this->hasMany(Testimonial::class);
+    }
 }
