@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class VisionsMission extends Model
 {
-    protected $table = 'visions_missions';
-
     protected $fillable = [
         'vision',
         'mission',
@@ -17,4 +15,11 @@ class VisionsMission extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function missionItems()
+    {
+        return $this->hasMany(VisionMissionItem::class, 'visions_mission_id')
+            ->where('type', 'mission')
+            ->orderBy('sort_order');
+    }
 }

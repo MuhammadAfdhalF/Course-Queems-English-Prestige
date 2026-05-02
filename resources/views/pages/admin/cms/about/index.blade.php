@@ -31,8 +31,8 @@ $sections = [
 'title' => 'Vision & Mission',
 'description' => 'Manage the vision and mission statements of the institution.',
 'count' => $visionsMissionsCount,
-'href' => null,
-'status' => 'Coming Soon',
+'href' => route('admin.cms.vision-mission.index'),
+'status' => 'Manage',
 ],
 [
 'title' => 'Mentors',

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Cms\HeroSectionController;
 use App\Http\Controllers\Admin\Cms\FaqController;
 use App\Http\Controllers\Admin\Cms\WhyChooseUsController;
 use App\Http\Controllers\Admin\Cms\AboutPageController;
+use App\Http\Controllers\Admin\Cms\VisionsMissionController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -92,5 +93,11 @@ Route::prefix('admin')
                         'why-choose-us' => 'whyChooseUs',
                     ])
                     ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::get('/vision-mission', [VisionsMissionController::class, 'index'])
+                    ->name('vision-mission.index');
+
+                Route::post('/vision-mission', [VisionsMissionController::class, 'save'])
+                    ->name('vision-mission.save');
             });
     });
