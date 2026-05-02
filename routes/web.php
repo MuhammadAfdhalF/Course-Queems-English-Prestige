@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\Cms\FaqController;
 use App\Http\Controllers\Admin\Cms\WhyChooseUsController;
 use App\Http\Controllers\Admin\Cms\AboutPageController;
 use App\Http\Controllers\Admin\Cms\VisionsMissionController;
+use App\Http\Controllers\Admin\Cms\AboutUsController;
+use App\Http\Controllers\Admin\Cms\ProfileVideoController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -99,5 +101,17 @@ Route::prefix('admin')
 
                 Route::post('/vision-mission', [VisionsMissionController::class, 'save'])
                     ->name('vision-mission.save');
+
+                Route::get('/about-us', [AboutUsController::class, 'index'])
+                    ->name('about-us.index');
+
+                Route::post('/about-us', [AboutUsController::class, 'save'])
+                    ->name('about-us.save');
+
+                Route::resource('profile-videos', ProfileVideoController::class)
+                    ->parameters([
+                        'profile-videos' => 'profileVideo',
+                    ])
+                    ->only(['index', 'store', 'update', 'destroy']);
             });
     });
