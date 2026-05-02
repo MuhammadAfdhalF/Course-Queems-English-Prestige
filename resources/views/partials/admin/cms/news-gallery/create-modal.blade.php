@@ -6,8 +6,22 @@
     <form
         id="createInformationPostForm"
         x-data="{
-            linkType: '{{ old('_form_type') === 'create' ? old('link_type', 'internal') : 'internal' }}'
-        }"
+        linkType: '{{ old('_form_type') === 'create' ? old('link_type', 'internal') : 'internal' }}',
+        title: @js(old('_form_type') === 'create' ? old('title', '') : ''),
+        slug: @js(old('_form_type') === 'create' ? old('slug', '') : ''),
+        autoSlug: {{ old('_form_type') === 'create' && old('slug') ? 'false' : 'true' }},
+
+        syncSlug() {
+            if (this.autoSlug) {
+                this.slug = window.slugify(this.title);
+            }
+        },
+
+        markSlugManual() {
+            this.autoSlug = false;
+            this.slug = window.slugify(this.slug);
+        }
+    }"
         action="{{ route('admin.cms.news-gallery.store') }}"
         method="POST"
         enctype="multipart/form-data"
@@ -21,16 +35,18 @@
                 label="Title"
                 name="title"
                 id="create_title"
-                :value="old('_form_type') === 'create' ? old('title') : ''"
+                x-model="title"
+                @input="syncSlug()"
                 placeholder="Example: Queens English Graduation Moment"
                 :required="true" />
-
+                
             <x-admin.form.input
                 label="Slug"
                 name="slug"
                 id="create_slug"
-                :value="old('_form_type') === 'create' ? old('slug') : ''"
-                placeholder="Leave empty to auto-generate" />
+                x-model="slug"
+                @input="markSlugManual()"
+                placeholder="Auto-generated from title" />
 
             <x-admin.form.select
                 label="Type"

@@ -42,6 +42,7 @@
     'id' => $post->id,
     'title' => $post->title,
     'type' => $post->type,
+    'next_sort_order' => ((int) $post->images->max('sort_order')) + 1,
     'image_store_url' => route('admin.cms.news-gallery.images.store', $post),
     'images' => $post->images->map(fn ($image) => [
     'id' => $image->id,
@@ -127,6 +128,7 @@
 
         <td class="px-6 py-4">
             <div class="flex justify-center gap-2">
+                @if (! $post->external_url)
                 <button
                     type="button"
                     title="Manage Images"
@@ -134,6 +136,7 @@
                     class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 transition hover:bg-blue-100">
                     <x-admin.icon name="image" class="h-4 w-4" />
                 </button>
+                @endif
 
                 <button
                     type="button"

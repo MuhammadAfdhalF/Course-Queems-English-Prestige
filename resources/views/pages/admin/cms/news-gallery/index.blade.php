@@ -10,11 +10,12 @@
         editModalOpen: {{ $errors->any() && old('_form_type') === 'edit' ? 'true' : 'false' }},
         deleteModalOpen: false,
         imagePreviewModalOpen: false,
-
+        imageSortOrder: 1,
         imageModalOpen: false,
         selectedPostImages: null,
         openImageModal(post) {
             this.selectedPostImages = post;
+            this.imageSortOrder = post.next_sort_order || 1;
             this.imageModalOpen = true;
         },
         selectedPost: null,

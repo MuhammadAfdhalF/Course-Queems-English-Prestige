@@ -56,6 +56,10 @@ class InformationPostController extends Controller
             $validated['external_url'] = null;
         }
 
+        if ($validated['link_type'] === 'external') {
+            $validated['content'] = null;
+        }
+
         unset($validated['link_type']);
 
         $validated['is_published'] = $request->boolean('is_published');
@@ -104,6 +108,10 @@ class InformationPostController extends Controller
 
         if ($validated['link_type'] === 'internal') {
             $validated['external_url'] = null;
+        }
+
+        if ($validated['link_type'] === 'external') {
+            $validated['content'] = null;
         }
 
         unset($validated['link_type']);
@@ -162,7 +170,9 @@ class InformationPostController extends Controller
         ]);
 
         $validated['image'] = $request->file('image')->store('information-posts/images', 'public');
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+
+        $validated['sort_order'] = $validated['sort_order']
+            ?? ((int) $informationPost->images()->max('sort_order') + 1);
 
         $informationPost->images()->create($validated);
 
@@ -170,7 +180,6 @@ class InformationPostController extends Controller
             ->route('admin.cms.news-gallery.index')
             ->with('success', 'Post image has been uploaded successfully.');
     }
-
     public function destroyImage(InformationPostImage $informationPostImage)
     {
         if ($informationPostImage->image) {

@@ -43,7 +43,7 @@
                     id="post_image_sort_order"
                     type="number"
                     min="0"
-                    value="0" />
+                    x-model="imageSortOrder" />
             </form>
 
             <div class="space-y-3">
