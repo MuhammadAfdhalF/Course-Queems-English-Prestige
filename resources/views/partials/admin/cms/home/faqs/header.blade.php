@@ -1,6 +1,6 @@
-<x-admin.page-header
-    title="FAQ"
-    description="Manage frequently asked questions displayed on the website.">
+<x-admin.page-toolbar
+    :back-url="route('admin.cms.home.index')"
+    back-label="Back to Home Page">
     <x-slot:actions>
         <button
             type="button"
@@ -10,4 +10,4 @@
             <span>Add FAQ</span>
         </button>
     </x-slot:actions>
-</x-admin.page-header>
+</x-admin.page-toolbar>

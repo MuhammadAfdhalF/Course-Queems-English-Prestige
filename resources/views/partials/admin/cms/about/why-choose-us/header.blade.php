@@ -1,6 +1,6 @@
-<x-admin.page-header
-    title="Why Choose Us"
-    description="Manage the reasons and advantages displayed on the About page.">
+<x-admin.page-toolbar
+    :back-url="route('admin.cms.about.index')"
+    back-label="Back to About Page">
     <x-slot:actions>
         <button
             type="button"
@@ -10,4 +10,4 @@
             <span>Add Item</span>
         </button>
     </x-slot:actions>
-</x-admin.page-header>
+</x-admin.page-toolbar>
