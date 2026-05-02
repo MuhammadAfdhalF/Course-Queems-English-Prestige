@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Cms\HomePageController;
 use App\Http\Controllers\Admin\Cms\HeroSectionController;
+use App\Http\Controllers\Admin\Cms\FaqController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -78,6 +79,9 @@ Route::prefix('admin')
                 Route::get('/home', [HomePageController::class, 'index'])->name('home.index');
 
                 Route::resource('hero-sections', HeroSectionController::class)
+                    ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::resource('faqs', FaqController::class)
                     ->only(['index', 'store', 'update', 'destroy']);
             });
     });
