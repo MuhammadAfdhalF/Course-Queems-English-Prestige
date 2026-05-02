@@ -45,7 +45,7 @@ class HeroSectionController extends Controller
 
         return redirect()
             ->route('admin.cms.hero-sections.index')
-            ->with('success', 'Hero section berhasil ditambahkan.');
+            ->with('success', 'Hero section has been added successfully.');
     }
 
     public function update(Request $request, HeroSection $heroSection)
@@ -73,7 +73,7 @@ class HeroSectionController extends Controller
 
         return redirect()
             ->route('admin.cms.hero-sections.index')
-            ->with('success', 'Hero section berhasil diperbarui.');
+            ->with('success', 'Hero section has been updated successfully.');
     }
 
     public function destroy(HeroSection $heroSection)
@@ -86,6 +86,6 @@ class HeroSectionController extends Controller
 
         return redirect()
             ->route('admin.cms.hero-sections.index')
-            ->with('success', 'Hero section berhasil dihapus.');
+            ->with('success', 'Hero section has been deleted successfully.');
     }
 }

@@ -12,9 +12,15 @@
         imagePreviewModalOpen: false,
 
         selectedHero: null,
+
+        selectedItem: {
+            title: '',
+            delete_url: '#'
+        },
+
         previewImage: {
             title: '',
-            url: '',
+            url: ''
         },
 
         openEditModal(hero) {
@@ -22,8 +28,8 @@
             this.editModalOpen = true;
         },
 
-        openDeleteModal(hero) {
-            this.selectedHero = hero;
+        openDeleteModal(item) {
+            this.selectedItem = item;
             this.deleteModalOpen = true;
         },
 
@@ -33,16 +39,26 @@
         }
     }"
     class="mx-auto max-w-7xl space-y-6">
-
     @include('partials.admin.cms.home.hero-sections.header')
-    @include('partials.admin.cms.home.hero-sections.alerts')
+
+    <x-admin.flash-message />
+
     @include('partials.admin.cms.home.hero-sections.table')
     @include('partials.admin.cms.home.hero-sections.create-modal')
     @include('partials.admin.cms.home.hero-sections.edit-modal')
-    @include('partials.admin.cms.home.hero-sections.delete-modal')
+
+    <x-admin.confirm-delete-modal
+        model="deleteModalOpen"
+        title="Delete Hero Section"
+        subtitle="This action cannot be undone."
+        item-name="selectedItem.title"
+        form-id="deleteHeroSectionForm"
+        form-action="selectedItem.delete_url"
+        message="Are you sure you want to delete this hero section?" />
+
     <x-admin.image-preview-modal
         model="imagePreviewModalOpen"
         title="Image Preview"
-        subtitle="Preview gambar hero section." />
+        subtitle="Preview hero section image." />
 </section>
 @endsection
