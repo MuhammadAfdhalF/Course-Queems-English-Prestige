@@ -98,10 +98,9 @@
         </td>
     </tr>
     @empty
-    <tr>
-        <td colspan="6" class="px-6 py-12 text-center text-sm text-slate-500">
-            Belum ada hero section.
-        </td>
-    </tr>
+    <x-admin.empty-state
+        colspan="6"
+        title="No hero sections yet"
+        description="Create your first hero section to display it on the website home page." />
     @endforelse
 </x-admin.data-table>

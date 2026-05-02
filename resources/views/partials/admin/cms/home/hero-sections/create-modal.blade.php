@@ -51,18 +51,9 @@
     </form>
 
     <x-slot:footer>
-        <button
-            type="button"
-            @click="createModalOpen = false"
-            class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
-            Cancel
-        </button>
-
-        <button
-            type="submit"
-            form="createHeroSectionForm"
-            class="inline-flex items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:opacity-90">
-            Save Hero Section
-        </button>
+        <x-admin.modal-actions
+            cancel-action="createModalOpen = false"
+            submit-form="createHeroSectionForm"
+            submit-label="Save Hero Section" />
     </x-slot:footer>
 </x-admin.modal>
