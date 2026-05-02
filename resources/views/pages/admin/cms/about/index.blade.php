@@ -1,5 +1,5 @@
 @extends('layouts.admin', [
-'pageTitle' => 'Home Page',
+'pageTitle' => 'About Page',
 'pageSubtitle' => 'Website CMS',
 ])
 
@@ -7,23 +7,37 @@
 @php
 $sections = [
 [
-'title' => 'Hero Sections',
-'description' => 'Manage the main banner displayed on the home page.',
-'count' => $heroSectionsCount,
-'href' => route('admin.cms.hero-sections.index'),
+'title' => 'About Us',
+'description' => 'Manage the main profile and introduction of Queens English Prestige.',
+'count' => $aboutUsCount,
+'href' => null,
+'status' => 'Coming Soon',
+],
+[
+'title' => 'Profile Videos',
+'description' => 'Manage profile videos and thumbnails displayed on the about page.',
+'count' => $profileVideosCount,
+'href' => null,
+'status' => 'Coming Soon',
+],
+[
+'title' => 'Why Choose Us',
+'description' => 'Manage reasons and advantages displayed on the about page.',
+'count' => $whyChooseUsCount,
+'href' => route('admin.cms.why-choose-us.index'),
 'status' => 'Manage',
 ],
 [
-'title' => 'FAQ',
-'description' => 'Manage frequently asked questions displayed on the website.',
-'count' => $faqsCount,
-'href' => route('admin.cms.faqs.index'),
-'status' => 'Manage',
+'title' => 'Vision & Mission',
+'description' => 'Manage the vision and mission statements of the institution.',
+'count' => $visionsMissionsCount,
+'href' => null,
+'status' => 'Coming Soon',
 ],
 [
-'title' => 'Featured Testimonials',
-'description' => 'Manage selected testimonials displayed on the home page.',
-'count' => $featuredTestimonialsCount,
+'title' => 'Mentors',
+'description' => 'Manage mentor profiles, photos, positions, and expertise.',
+'count' => $mentorsCount,
 'href' => null,
 'status' => 'Coming Soon',
 ],
@@ -32,8 +46,8 @@ $sections = [
 
 <section class="mx-auto max-w-7xl space-y-6">
     <x-admin.page-header
-        title="Home Page CMS"
-        description="Manage content displayed on the website home page.">
+        title="About Page CMS"
+        description="Manage content displayed on the website about page.">
     </x-admin.page-header>
 
     <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

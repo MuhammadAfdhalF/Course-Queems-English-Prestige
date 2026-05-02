@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Cms\HomePageController;
 use App\Http\Controllers\Admin\Cms\HeroSectionController;
 use App\Http\Controllers\Admin\Cms\FaqController;
+use App\Http\Controllers\Admin\Cms\WhyChooseUsController;
+use App\Http\Controllers\Admin\Cms\AboutPageController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -77,11 +79,18 @@ Route::prefix('admin')
             ->name('cms.')
             ->group(function () {
                 Route::get('/home', [HomePageController::class, 'index'])->name('home.index');
+                Route::get('/about', [AboutPageController::class, 'index'])->name('about.index');
 
                 Route::resource('hero-sections', HeroSectionController::class)
                     ->only(['index', 'store', 'update', 'destroy']);
 
                 Route::resource('faqs', FaqController::class)
+                    ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::resource('why-choose-us', WhyChooseUsController::class)
+                    ->parameters([
+                        'why-choose-us' => 'whyChooseUs',
+                    ])
                     ->only(['index', 'store', 'update', 'destroy']);
             });
     });
