@@ -1,7 +1,7 @@
 <x-admin.modal
     model="editModalOpen"
     title="Edit Hero Section"
-    subtitle="Perbarui banner utama halaman beranda."
+    subtitle="Update the selected home page banner."
     size="lg">
     <template x-if="selectedHero">
         <form
@@ -15,103 +15,62 @@
 
             <input type="hidden" name="_form_type" value="edit">
 
-            <div>
-                <label for="edit_title" class="mb-2 block text-sm font-bold text-slate-700">
-                    Title
-                </label>
-                <input
-                    id="edit_title"
-                    name="title"
-                    type="text"
-                    x-model="selectedHero.title"
-                    class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-brand-blue)] focus:ring-4 focus:ring-blue-100">
+            <x-admin.form.input
+                label="Title"
+                name="title"
+                id="edit_title"
+                x-model="selectedHero.title"
+                :required="true" />
 
-                @if (old('_form_type') === 'edit')
-                @error('title')
-                <p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>
-                @enderror
-                @endif
-            </div>
-
-            <div>
-                <label for="edit_subtitle" class="mb-2 block text-sm font-bold text-slate-700">
-                    Subtitle
-                </label>
-                <input
-                    id="edit_subtitle"
-                    name="subtitle"
-                    type="text"
-                    x-model="selectedHero.subtitle"
-                    class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-brand-blue)] focus:ring-4 focus:ring-blue-100">
-
-                @if (old('_form_type') === 'edit')
-                @error('subtitle')
-                <p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>
-                @enderror
-                @endif
-            </div>
+            <x-admin.form.input
+                label="Subtitle"
+                name="subtitle"
+                id="edit_subtitle"
+                x-model="selectedHero.subtitle" />
 
             <div x-show="selectedHero.image_url">
                 <label class="mb-2 block text-sm font-bold text-slate-700">
                     Current Image
                 </label>
-                <img
-                    :src="selectedHero.image_url"
-                    :alt="selectedHero.title"
-                    class="h-28 w-48 rounded-xl object-cover">
+
+                <button
+                    type="button"
+                    @click="openImagePreview({
+                        title: selectedHero.title,
+                        url: selectedHero.image_url
+                    })"
+                    class="group relative overflow-hidden rounded-xl">
+                    <img
+                        :src="selectedHero.image_url"
+                        :alt="selectedHero.title"
+                        class="h-28 w-48 rounded-xl object-cover transition duration-200 group-hover:scale-105">
+
+                    <span class="absolute inset-0 flex items-center justify-center bg-slate-900/0 text-white transition group-hover:bg-slate-900/40">
+                        <x-admin.icon name="eye" class="h-5 w-5 opacity-0 transition group-hover:opacity-100" />
+                    </span>
+                </button>
             </div>
 
-            <div>
-                <label for="edit_image" class="mb-2 block text-sm font-bold text-slate-700">
-                    Replace Image
-                </label>
-                <input
-                    id="edit_image"
-                    name="image"
-                    type="file"
-                    accept="image/*"
-                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-bold file:text-slate-700 hover:file:bg-slate-200">
+            <x-admin.form.file
+                label="Replace Image"
+                name="image"
+                id="edit_image"
+                accept="image/*"
+                hint="Leave empty if you do not want to replace the current image." />
 
-                @if (old('_form_type') === 'edit')
-                @error('image')
-                <p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>
-                @enderror
-                @endif
-            </div>
+            <x-admin.form.input
+                label="Sort Order"
+                name="sort_order"
+                id="edit_sort_order"
+                type="number"
+                min="0"
+                x-model="selectedHero.sort_order" />
 
-            <div>
-                <label for="edit_sort_order" class="mb-2 block text-sm font-bold text-slate-700">
-                    Sort Order
-                </label>
-                <input
-                    id="edit_sort_order"
-                    name="sort_order"
-                    type="number"
-                    min="0"
-                    x-model="selectedHero.sort_order"
-                    class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-brand-blue)] focus:ring-4 focus:ring-blue-100">
-
-                @if (old('_form_type') === 'edit')
-                @error('sort_order')
-                <p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>
-                @enderror
-                @endif
-            </div>
-
-            <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <input type="hidden" name="is_active" value="0">
-
-                <input
-                    type="checkbox"
-                    name="is_active"
-                    value="1"
-                    x-model="selectedHero.is_active"
-                    class="h-5 w-5 rounded border-slate-300 text-[var(--color-brand-blue)] focus:ring-[var(--color-brand-blue)]">
-
-                <span class="text-sm font-semibold text-slate-700">
-                    Active
-                </span>
-            </label>
+            <x-admin.form.checkbox
+                label="Active"
+                name="is_active"
+                id="edit_is_active"
+                x-model="selectedHero.is_active" />
         </form>
     </template>
 
