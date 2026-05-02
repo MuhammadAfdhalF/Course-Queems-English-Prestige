@@ -9,6 +9,11 @@ use App\Http\Controllers\Admin\Cms\AboutPageController;
 use App\Http\Controllers\Admin\Cms\VisionsMissionController;
 use App\Http\Controllers\Admin\Cms\AboutUsController;
 use App\Http\Controllers\Admin\Cms\ProfileVideoController;
+use App\Http\Controllers\Admin\Cms\MentorController;
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -112,6 +117,9 @@ Route::prefix('admin')
                     ->parameters([
                         'profile-videos' => 'profileVideo',
                     ])
+                    ->only(['index', 'store', 'update', 'destroy']);
+                    
+                Route::resource('mentors', MentorController::class)
                     ->only(['index', 'store', 'update', 'destroy']);
             });
     });

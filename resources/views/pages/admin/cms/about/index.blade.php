@@ -38,8 +38,8 @@ $sections = [
 'title' => 'Mentors',
 'description' => 'Manage mentor profiles, photos, positions, and expertise.',
 'count' => $mentorsCount,
-'href' => null,
-'status' => 'Coming Soon',
+'href' => route('admin.cms.mentors.index'),
+'status' => 'Manage',
 ],
 ];
 @endphp
