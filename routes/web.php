@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\Cms\VisionsMissionController;
 use App\Http\Controllers\Admin\Cms\AboutUsController;
 use App\Http\Controllers\Admin\Cms\ProfileVideoController;
 use App\Http\Controllers\Admin\Cms\MentorController;
-
+use App\Http\Controllers\Admin\Cms\ContactPageController;
 
 
 
@@ -118,8 +118,23 @@ Route::prefix('admin')
                         'profile-videos' => 'profileVideo',
                     ])
                     ->only(['index', 'store', 'update', 'destroy']);
-                    
+
                 Route::resource('mentors', MentorController::class)
                     ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::get('/contact', [ContactPageController::class, 'index'])
+                    ->name('contact.index');
+
+                Route::post('/contact', [ContactPageController::class, 'save'])
+                    ->name('contact.save');
+
+                Route::post('/contact/social-links', [ContactPageController::class, 'storeSocialLink'])
+                    ->name('contact.social-links.store');
+
+                Route::put('/contact/social-links/{contactSocialLink}', [ContactPageController::class, 'updateSocialLink'])
+                    ->name('contact.social-links.update');
+
+                Route::delete('/contact/social-links/{contactSocialLink}', [ContactPageController::class, 'destroySocialLink'])
+                    ->name('contact.social-links.destroy');
             });
     });
