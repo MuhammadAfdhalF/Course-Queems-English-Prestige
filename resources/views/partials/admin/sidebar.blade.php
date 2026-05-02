@@ -219,7 +219,9 @@
                         Contact Page
                     </x-admin.sidebar-item>
 
-                    <x-admin.sidebar-item href="#">
+                    <x-admin.sidebar-item
+                        :href="route('admin.cms.news-gallery.index')"
+                        :active="request()->routeIs('admin.cms.news-gallery.*')">
                         <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.8" />

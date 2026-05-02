@@ -11,7 +11,7 @@ use App\Http\Controllers\Admin\Cms\AboutUsController;
 use App\Http\Controllers\Admin\Cms\ProfileVideoController;
 use App\Http\Controllers\Admin\Cms\MentorController;
 use App\Http\Controllers\Admin\Cms\ContactPageController;
-
+use App\Http\Controllers\Admin\Cms\InformationPostController;
 
 
 /*
@@ -136,5 +136,17 @@ Route::prefix('admin')
 
                 Route::delete('/contact/social-links/{contactSocialLink}', [ContactPageController::class, 'destroySocialLink'])
                     ->name('contact.social-links.destroy');
+
+                Route::resource('news-gallery', InformationPostController::class)
+                    ->parameters([
+                        'news-gallery' => 'informationPost',
+                    ])
+                    ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::post('/news-gallery/{informationPost}/images', [InformationPostController::class, 'storeImage'])
+                    ->name('news-gallery.images.store');
+
+                Route::delete('/news-gallery/images/{informationPostImage}', [InformationPostController::class, 'destroyImage'])
+                    ->name('news-gallery.images.destroy');
             });
     });
