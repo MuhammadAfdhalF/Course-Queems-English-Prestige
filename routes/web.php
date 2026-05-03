@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Cms\ContactPageController;
 use App\Http\Controllers\Admin\Cms\InformationPostController;
 use App\Http\Controllers\Admin\Cms\FreeTestController;
 use App\Http\Controllers\Admin\Cms\FreeTestCategoryController;
+use App\Http\Controllers\Admin\Cms\FreeTestQuestionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -161,5 +162,17 @@ Route::prefix('admin')
                         'free-test-categories' => 'freeTestCategory',
                     ])
                     ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::get('/free-tests/{freeTest}/questions', [FreeTestQuestionController::class, 'index'])
+                    ->name('free-tests.questions.index');
+
+                Route::post('/free-tests/{freeTest}/questions', [FreeTestQuestionController::class, 'store'])
+                    ->name('free-tests.questions.store');
+
+                Route::put('/free-tests/questions/{freeTestQuestion}', [FreeTestQuestionController::class, 'update'])
+                    ->name('free-tests.questions.update');
+
+                Route::delete('/free-tests/questions/{freeTestQuestion}', [FreeTestQuestionController::class, 'destroy'])
+                    ->name('free-tests.questions.destroy');
             });
     });
