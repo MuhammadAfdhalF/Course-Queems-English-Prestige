@@ -12,7 +12,8 @@ use App\Http\Controllers\Admin\Cms\ProfileVideoController;
 use App\Http\Controllers\Admin\Cms\MentorController;
 use App\Http\Controllers\Admin\Cms\ContactPageController;
 use App\Http\Controllers\Admin\Cms\InformationPostController;
-
+use App\Http\Controllers\Admin\Cms\FreeTestController;
+use App\Http\Controllers\Admin\Cms\FreeTestCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -148,5 +149,17 @@ Route::prefix('admin')
 
                 Route::delete('/news-gallery/images/{informationPostImage}', [InformationPostController::class, 'destroyImage'])
                     ->name('news-gallery.images.destroy');
+
+                Route::resource('free-tests', FreeTestController::class)
+                    ->parameters([
+                        'free-tests' => 'freeTest',
+                    ])
+                    ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::resource('free-test-categories', FreeTestCategoryController::class)
+                    ->parameters([
+                        'free-test-categories' => 'freeTestCategory',
+                    ])
+                    ->only(['index', 'store', 'update', 'destroy']);
             });
     });
