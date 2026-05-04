@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\Cms\FreeTestCategoryController;
 use App\Http\Controllers\Admin\Cms\FreeTestQuestionController;
 use App\Http\Controllers\Admin\CourseManagement\CourseProgramController;
 use App\Http\Controllers\Admin\RichTextUploadController;
+use App\Http\Controllers\Admin\CourseManagement\CourseLevelController;
 
 
 /*
@@ -97,7 +98,26 @@ Route::prefix('admin')
                         'programs' => 'courseProgram',
                     ])
                     ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::get('/programs/{courseProgram}/levels', [CourseLevelController::class, 'index'])
+                    ->name('programs.levels.index');
+
+                Route::get('/programs/{courseProgram}/levels/create', [CourseLevelController::class, 'create'])
+                    ->name('programs.levels.create');
+
+                Route::post('/programs/{courseProgram}/levels', [CourseLevelController::class, 'store'])
+                    ->name('programs.levels.store');
+
+                Route::get('/levels/{courseLevel}/edit', [CourseLevelController::class, 'edit'])
+                    ->name('levels.edit');
+
+                Route::put('/levels/{courseLevel}', [CourseLevelController::class, 'update'])
+                    ->name('levels.update');
+
+                Route::delete('/levels/{courseLevel}', [CourseLevelController::class, 'destroy'])
+                    ->name('levels.destroy');
             });
+
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');
         Route::view('/students', 'pages.admin.students.index')->name('students.index');
 

@@ -61,7 +61,7 @@
         <td class="px-6 py-4">
             <div class="flex justify-center gap-2">
                 <a
-                    href="#"
+                    href="{{ route('admin.course-management.programs.levels.index', $program) }}"
                     title="Manage Levels"
                     class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 transition hover:bg-blue-100">
                     <x-admin.icon name="eye" class="h-4 w-4" />
