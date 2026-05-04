@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\Cms\InformationPostController;
 use App\Http\Controllers\Admin\Cms\FreeTestController;
 use App\Http\Controllers\Admin\Cms\FreeTestCategoryController;
 use App\Http\Controllers\Admin\Cms\FreeTestQuestionController;
+use App\Http\Controllers\Admin\CourseManagement\CourseProgramController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +83,15 @@ Route::prefix('admin')
     ->group(function () {
         Route::view('/', 'pages.admin.dashboard')->name('dashboard');
 
+        Route::prefix('course-management')
+            ->name('course-management.')
+            ->group(function () {
+                Route::resource('programs', CourseProgramController::class)
+                    ->parameters([
+                        'programs' => 'courseProgram',
+                    ])
+                    ->only(['index', 'store', 'update', 'destroy']);
+            });
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');
         Route::view('/students', 'pages.admin.students.index')->name('students.index');
 

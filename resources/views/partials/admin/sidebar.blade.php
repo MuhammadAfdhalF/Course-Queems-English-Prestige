@@ -57,26 +57,27 @@
                     Course Management
                 </p>
 
-                <nav class="space-y-1">
-                    <x-admin.sidebar-item href="#">
-                        <x-slot:icon>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 5.25h15A2.25 2.25 0 0121.75 7.5v9A2.25 2.25 0 0119.5 18.75h-15A2.25 2.25 0 012.25 16.5v-9A2.25 2.25 0 014.5 5.25z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 9h10M7 13h6" />
-                            </svg>
-                        </x-slot:icon>
-                        Course Programs
-                    </x-admin.sidebar-item>
+                <x-admin.sidebar-item
+                    :href="route('admin.course-management.programs.index')"
+                    :active="request()->routeIs('admin.course-management.programs.*')">
+                    <x-slot:icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <rect x="4" y="5" width="16" height="14" rx="2" stroke-width="1.8" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 9h8M8 13h5" />
+                        </svg>
+                    </x-slot:icon>
+                    Course Programs
+                </x-admin.sidebar-item>
 
-                    <x-admin.sidebar-item href="#">
-                        <x-slot:icon>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v11.494m-5.747-8.62h11.494" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 5.25h15A2.25 2.25 0 0121.75 7.5v9A2.25 2.25 0 0119.5 18.75h-15A2.25 2.25 0 012.25 16.5v-9A2.25 2.25 0 014.5 5.25z" />
-                            </svg>
-                        </x-slot:icon>
-                        Course Levels
-                    </x-admin.sidebar-item>
+                <x-admin.sidebar-item href="#">
+                    <x-slot:icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v11.494m-5.747-8.62h11.494" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 5.25h15A2.25 2.25 0 0121.75 7.5v9A2.25 2.25 0 0119.5 18.75h-15A2.25 2.25 0 012.25 16.5v-9A2.25 2.25 0 014.5 5.25z" />
+                        </svg>
+                    </x-slot:icon>
+                    Course Levels
+                </x-admin.sidebar-item>
                 </nav>
             </div>
 
