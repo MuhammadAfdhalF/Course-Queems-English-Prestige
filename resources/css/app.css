@@ -100,7 +100,12 @@
     }
 
     .focus-brand {
-        @apply transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-blue-100;
+        transition: all 0.2s ease-out;
+    }
+
+    .focus-brand:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #dbeafe;
     }
 }
 
@@ -127,4 +132,108 @@
         opacity: 1 !important;
         transform: none !important;
     }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Rich text editor content styles
+|--------------------------------------------------------------------------
+*/
+
+.rich-text-content {
+    color: #0f172a;
+    line-height: 1.75;
+}
+
+.rich-text-content h2 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 800;
+}
+
+.rich-text-content h3 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 800;
+}
+
+.rich-text-content h4 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+}
+
+.rich-text-content p {
+    margin-bottom: 1rem;
+}
+
+.rich-text-content ul {
+    margin-bottom: 1rem;
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+
+.rich-text-content ol {
+    margin-bottom: 1rem;
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+}
+
+.rich-text-content li {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.rich-text-content blockquote {
+    margin: 1rem 0;
+    border-left: 4px solid #cbd5e1;
+    background: #f8fafc;
+    padding: 0.75rem 1rem;
+    color: #475569;
+}
+
+.rich-text-content img {
+    margin: 1rem 0;
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+}
+
+.rich-text-content img.rich-image-small {
+    width: 240px;
+}
+
+.rich-text-content img.rich-image-medium {
+    width: 420px;
+}
+
+.rich-text-content img.rich-image-large {
+    width: 680px;
+}
+
+.rich-text-content img.rich-image-full {
+    width: 100%;
+}
+
+.rich-text-content table {
+    margin: 1rem 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rich-text-content th,
+.rich-text-content td {
+    border: 1px solid #cbd5e1;
+    padding: 0.75rem;
+}
+
+.rich-text-content a {
+    color: #2563eb;
+    text-decoration: underline;
 }

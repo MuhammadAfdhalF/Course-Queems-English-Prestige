@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\Cms\FreeTestController;
 use App\Http\Controllers\Admin\Cms\FreeTestCategoryController;
 use App\Http\Controllers\Admin\Cms\FreeTestQuestionController;
 use App\Http\Controllers\Admin\CourseManagement\CourseProgramController;
+use App\Http\Controllers\Admin\RichTextUploadController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +84,10 @@ Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
         Route::view('/', 'pages.admin.dashboard')->name('dashboard');
+
+
+        Route::post('/rich-text/upload-image', [RichTextUploadController::class, 'uploadImage'])
+            ->name('rich-text.upload-image');
 
         Route::prefix('course-management')
             ->name('course-management.')

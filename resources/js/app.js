@@ -1,7 +1,6 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 
-// slugify function adapted 
 window.slugify = function (value) {
     return String(value || '')
         .toLowerCase()
@@ -11,15 +10,15 @@ window.slugify = function (value) {
         .replace(/^-+|-+$/g, '')
         .replace(/-+/g, '-');
 };
+
 window.Alpine = Alpine;
-Alpine.start();
-
-
 
 document.addEventListener('DOMContentLoaded', () => {
     const revealElements = document.querySelectorAll('.reveal');
 
-    if (!revealElements.length) return;
+    if (!revealElements.length) {
+        return;
+    }
 
     const observer = new IntersectionObserver(
         (entries) => {
@@ -29,7 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     observer.unobserve(entry.target);
                 }
             });
-        }, {
+        },
+        {
             threshold: 0.12,
             rootMargin: '0px 0px -40px 0px',
         }
@@ -39,3 +39,5 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(element);
     });
 });
+
+Alpine.start();
