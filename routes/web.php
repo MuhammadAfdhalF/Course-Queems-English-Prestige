@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\Cms\FreeTestQuestionController;
 use App\Http\Controllers\Admin\CourseManagement\CourseProgramController;
 use App\Http\Controllers\Admin\RichTextUploadController;
 use App\Http\Controllers\Admin\CourseManagement\CourseLevelController;
+use App\Http\Controllers\Admin\CourseManagement\ModuleController;
 
 
 /*
@@ -93,6 +94,8 @@ Route::prefix('admin')
         Route::prefix('course-management')
             ->name('course-management.')
             ->group(function () {
+
+                // Course Programs
                 Route::resource('programs', CourseProgramController::class)
                     ->parameters([
                         'programs' => 'courseProgram',
@@ -108,6 +111,7 @@ Route::prefix('admin')
                 Route::post('/programs/{courseProgram}/levels', [CourseLevelController::class, 'store'])
                     ->name('programs.levels.store');
 
+                // Course Levels 
                 Route::get('/levels/{courseLevel}/edit', [CourseLevelController::class, 'edit'])
                     ->name('levels.edit');
 
@@ -116,6 +120,19 @@ Route::prefix('admin')
 
                 Route::delete('/levels/{courseLevel}', [CourseLevelController::class, 'destroy'])
                     ->name('levels.destroy');
+
+                // Modules
+                Route::get('/levels/{courseLevel}/modules', [ModuleController::class, 'index'])
+                    ->name('levels.modules.index');
+
+                Route::post('/levels/{courseLevel}/modules', [ModuleController::class, 'store'])
+                    ->name('levels.modules.store');
+
+                Route::put('/modules/{module}', [ModuleController::class, 'update'])
+                    ->name('modules.update');
+
+                Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])
+                    ->name('modules.destroy');
             });
 
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');
