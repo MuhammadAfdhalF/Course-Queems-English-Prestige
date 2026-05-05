@@ -138,6 +138,9 @@ Route::prefix('admin')
                 Route::get('/modules/{module}/materials', [ModuleMaterialController::class, 'index'])
                     ->name('modules.materials.index');
 
+                Route::get('/modules/{module}/materials/preview', [ModuleMaterialController::class, 'preview'])
+                    ->name('modules.materials.preview');
+                    
                 Route::get('/modules/{module}/materials/create', [ModuleMaterialController::class, 'create'])
                     ->name('modules.materials.create');
 

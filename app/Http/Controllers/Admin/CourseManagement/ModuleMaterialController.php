@@ -25,6 +25,21 @@ class ModuleMaterialController extends Controller
         ));
     }
 
+    public function preview(Module $module)
+    {
+        $module->load('courseLevel.courseProgram');
+
+        $materials = $module->materials()
+            ->orderBy('sort_order')
+            ->latest()
+            ->get();
+
+        return view('pages.admin.course-management.materials.preview', compact(
+            'module',
+            'materials'
+        ));
+    }
+    
     public function create(Module $module)
     {
         $module->load('courseLevel.courseProgram');
