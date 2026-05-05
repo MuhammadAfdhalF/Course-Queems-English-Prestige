@@ -4,7 +4,7 @@
 ])
 
 @section('content')
-<section class="mx-auto max-w-5xl space-y-6">
+<section class="mx-auto max-w-6xl space-y-6">
     <x-admin.page-toolbar
         :back-url="route('admin.course-management.modules.materials.index', $module)"
         back-label="Back to Materials" />
@@ -13,7 +13,7 @@
         <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
             <div>
                 <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
-                    Module Content Preview
+                    Module Preview
                 </p>
 
                 <h2 class="mt-2 text-2xl font-bold text-slate-900">
@@ -25,12 +25,6 @@
                     —
                     {{ $module->courseLevel->name }}
                 </p>
-
-                @if ($module->short_description)
-                <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-                    {{ $module->short_description }}
-                </p>
-                @endif
             </div>
 
             <div class="flex flex-wrap gap-2 md:justify-end">
@@ -79,14 +73,34 @@
         </a>
     </x-admin.table-card>
     @else
-    <div class="space-y-6">
-        @foreach ($materials as $material)
-        @include('partials.admin.course-management.materials.preview-block', [
-        'material' => $material,
-        'loopIndex' => $loop->iteration,
-        ])
-        @endforeach
-    </div>
+    <article class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm md:p-10">
+        <header class="border-b border-slate-200 pb-8">
+            <p class="text-sm font-bold text-[var(--color-brand-blue)]">
+                {{ $module->courseLevel->courseProgram->name }}
+                —
+                {{ $module->courseLevel->name }}
+            </p>
+
+            <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 md:text-4xl">
+                {{ $module->title }}
+            </h1>
+
+            @if ($module->short_description)
+            <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600">
+                {{ $module->short_description }}
+            </p>
+            @endif
+        </header>
+
+        <div class="mt-8 space-y-10">
+            @foreach ($materials as $material)
+            @include('partials.admin.course-management.materials.preview-block', [
+            'material' => $material,
+            'loopIndex' => $loop->iteration,
+            ])
+            @endforeach
+        </div>
+    </article>
     @endif
 </section>
 @endsection
