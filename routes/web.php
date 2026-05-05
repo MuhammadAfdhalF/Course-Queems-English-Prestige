@@ -19,7 +19,7 @@ use App\Http\Controllers\Admin\CourseManagement\CourseProgramController;
 use App\Http\Controllers\Admin\RichTextUploadController;
 use App\Http\Controllers\Admin\CourseManagement\CourseLevelController;
 use App\Http\Controllers\Admin\CourseManagement\ModuleController;
-
+use App\Http\Controllers\Admin\CourseManagement\ModuleMaterialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -133,6 +133,25 @@ Route::prefix('admin')
 
                 Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])
                     ->name('modules.destroy');
+
+                // Module Materials
+                Route::get('/modules/{module}/materials', [ModuleMaterialController::class, 'index'])
+                    ->name('modules.materials.index');
+
+                Route::get('/modules/{module}/materials/create', [ModuleMaterialController::class, 'create'])
+                    ->name('modules.materials.create');
+
+                Route::post('/modules/{module}/materials', [ModuleMaterialController::class, 'store'])
+                    ->name('modules.materials.store');
+
+                Route::get('/materials/{moduleMaterial}/edit', [ModuleMaterialController::class, 'edit'])
+                    ->name('materials.edit');
+
+                Route::put('/materials/{moduleMaterial}', [ModuleMaterialController::class, 'update'])
+                    ->name('materials.update');
+
+                Route::delete('/materials/{moduleMaterial}', [ModuleMaterialController::class, 'destroy'])
+                    ->name('materials.destroy');
             });
 
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');
