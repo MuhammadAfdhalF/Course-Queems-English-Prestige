@@ -22,6 +22,13 @@
         back-label="Back to Practice">
         <x-slot:actions>
             <a
+                href="{{ route('admin.course-management.practices.preview', $modulePractice) }}"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                <x-admin.icon name="eye" class="h-5 w-5" />
+                <span>Preview Practice</span>
+            </a>
+
+            <a
                 href="{{ route('admin.course-management.practices.questions.create', $modulePractice) }}"
                 class="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:opacity-90">
                 <x-admin.icon name="plus" class="h-5 w-5" />

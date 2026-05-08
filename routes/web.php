@@ -195,6 +195,9 @@ Route::prefix('admin')
 
                 Route::delete('/practice-questions/{modulePracticeQuestion}', [ModulePracticeQuestionController::class, 'destroy'])
                     ->name('practice-questions.destroy');
+
+                Route::get('/practices/{modulePractice}/preview', [ModulePracticeQuestionController::class, 'preview'])
+                    ->name('practices.preview');
             });
 
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');

@@ -137,4 +137,20 @@ class ModulePracticeQuestionController extends Controller
             );
         }
     }
+
+    public function preview(ModulePractice $modulePractice)
+    {
+        $modulePractice->load('module.courseLevel.courseProgram');
+
+        $questions = $modulePractice->questions()
+            ->with('options')
+            ->orderBy('sort_order')
+            ->latest()
+            ->get();
+
+        return view('pages.admin.course-management.practice-questions.preview', compact(
+            'modulePractice',
+            'questions'
+        ));
+    }
 }

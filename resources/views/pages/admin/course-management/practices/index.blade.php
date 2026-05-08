@@ -153,6 +153,13 @@
                 </a>
 
                 <a
+                    href="{{ route('admin.course-management.practices.preview', $practice) }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                    <x-admin.icon name="eye" class="h-4 w-4" />
+                    <span>Preview Practice</span>
+                </a>
+
+                <a
                     href="{{ route('admin.course-management.practices.questions.index', $practice) }}"
                     class="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:opacity-90">
                     <x-admin.icon name="eye" class="h-4 w-4" />
