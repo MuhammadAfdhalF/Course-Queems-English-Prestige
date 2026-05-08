@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\CourseManagement\ModuleController;
 use App\Http\Controllers\Admin\CourseManagement\ModuleMaterialController;
 use App\Http\Controllers\Admin\CourseManagement\ModulePracticeController;
 use App\Http\Controllers\Admin\CourseManagement\ModulePracticeQuestionController;
-
+use App\Http\Controllers\Admin\CourseManagement\FinalExamController;
 
 
 
@@ -116,7 +116,7 @@ Route::prefix('admin')
                 Route::post('/programs/{courseProgram}/levels', [CourseLevelController::class, 'store'])
                     ->name('programs.levels.store');
 
-                // Course Levels 
+                // Course Levels
                 Route::get('/levels/{courseLevel}/edit', [CourseLevelController::class, 'edit'])
                     ->name('levels.edit');
 
@@ -198,6 +198,23 @@ Route::prefix('admin')
 
                 Route::get('/practices/{modulePractice}/preview', [ModulePracticeQuestionController::class, 'preview'])
                     ->name('practices.preview');
+
+
+                // final exam
+                Route::get('/levels/{courseLevel}/final-exam', [FinalExamController::class, 'index'])
+                    ->name('levels.final-exam.index');
+
+                Route::get('/levels/{courseLevel}/final-exam/create', [FinalExamController::class, 'create'])
+                    ->name('levels.final-exam.create');
+
+                Route::post('/levels/{courseLevel}/final-exam', [FinalExamController::class, 'store'])
+                    ->name('levels.final-exam.store');
+
+                Route::get('/final-exams/{finalExam}/edit', [FinalExamController::class, 'edit'])
+                    ->name('final-exams.edit');
+
+                Route::put('/final-exams/{finalExam}', [FinalExamController::class, 'update'])
+                    ->name('final-exams.update');
             });
 
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');

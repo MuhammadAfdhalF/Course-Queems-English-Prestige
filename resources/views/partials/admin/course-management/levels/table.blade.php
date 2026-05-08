@@ -115,6 +115,14 @@
                 </a>
 
                 <a
+                    href="{{ route('admin.course-management.levels.final-exam.index', $level) }}"
+                    title="Manage Final Exam"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 transition hover:bg-amber-100">
+                    <x-admin.icon name="check" class="h-4 w-4" />
+                </a>
+
+
+                <a
                     href="{{ route('admin.course-management.levels.edit', $level) }}"
                     title="Edit"
                     class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 transition hover:bg-slate-200">
