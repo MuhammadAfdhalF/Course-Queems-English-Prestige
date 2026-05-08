@@ -131,7 +131,7 @@
                 </a>
 
                 <a
-                    href="#"
+                    href="{{ route('admin.course-management.modules.practice.index', $module) }}"
                     title="Manage Practice"
                     class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 transition hover:bg-amber-100">
                     <x-admin.icon name="check" class="h-4 w-4" />

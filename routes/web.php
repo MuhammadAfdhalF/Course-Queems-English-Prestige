@@ -20,6 +20,11 @@ use App\Http\Controllers\Admin\RichTextUploadController;
 use App\Http\Controllers\Admin\CourseManagement\CourseLevelController;
 use App\Http\Controllers\Admin\CourseManagement\ModuleController;
 use App\Http\Controllers\Admin\CourseManagement\ModuleMaterialController;
+use App\Http\Controllers\Admin\CourseManagement\ModulePracticeController;
+use App\Http\Controllers\Admin\CourseManagement\ModulePracticeQuestionController;
+
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -140,7 +145,7 @@ Route::prefix('admin')
 
                 Route::get('/modules/{module}/materials/preview', [ModuleMaterialController::class, 'preview'])
                     ->name('modules.materials.preview');
-                    
+
                 Route::get('/modules/{module}/materials/create', [ModuleMaterialController::class, 'create'])
                     ->name('modules.materials.create');
 
@@ -155,6 +160,22 @@ Route::prefix('admin')
 
                 Route::delete('/materials/{moduleMaterial}', [ModuleMaterialController::class, 'destroy'])
                     ->name('materials.destroy');
+
+                // practices
+                Route::get('/modules/{module}/practice', [ModulePracticeController::class, 'index'])
+                    ->name('modules.practice.index');
+
+                Route::get('/modules/{module}/practice/create', [ModulePracticeController::class, 'create'])
+                    ->name('modules.practice.create');
+
+                Route::post('/modules/{module}/practice', [ModulePracticeController::class, 'store'])
+                    ->name('modules.practice.store');
+
+                Route::get('/practices/{modulePractice}/edit', [ModulePracticeController::class, 'edit'])
+                    ->name('practices.edit');
+
+                Route::put('/practices/{modulePractice}', [ModulePracticeController::class, 'update'])
+                    ->name('practices.update');
             });
 
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');
