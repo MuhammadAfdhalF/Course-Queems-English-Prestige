@@ -1,0 +1,78 @@
+@extends('layouts.admin', [
+'pageTitle' => 'Practice Questions',
+'pageSubtitle' => $modulePractice->title,
+])
+
+@section('content')
+<section
+    x-data="{
+        deleteModalOpen: false,
+        selectedItem: {
+            title: '',
+            delete_url: '#'
+        },
+        openDeleteModal(item) {
+            this.selectedItem = item;
+            this.deleteModalOpen = true;
+        }
+    }"
+    class="mx-auto max-w-7xl space-y-6">
+    <x-admin.page-toolbar
+        :back-url="route('admin.course-management.modules.practice.index', $modulePractice->module)"
+        back-label="Back to Practice">
+        <x-slot:actions>
+            <a
+                href="{{ route('admin.course-management.practices.questions.create', $modulePractice) }}"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:opacity-90">
+                <x-admin.icon name="plus" class="h-5 w-5" />
+                <span>Add Question</span>
+            </a>
+        </x-slot:actions>
+    </x-admin.page-toolbar>
+
+    <x-admin.flash-message />
+
+    <x-admin.table-card class="p-6">
+        <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                    Practice
+                </p>
+
+                <h2 class="mt-2 text-2xl font-bold text-slate-900">
+                    {{ $modulePractice->title }}
+                </h2>
+
+                <p class="mt-2 text-sm text-slate-500">
+                    {{ $modulePractice->module->courseLevel->courseProgram->name }}
+                    —
+                    {{ $modulePractice->module->courseLevel->name }}
+                    —
+                    {{ $modulePractice->module->title }}
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-2 md:justify-end">
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                    {{ $questions->count() }} questions
+                </span>
+
+                <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                    {{ ucfirst($modulePractice->grading_method) }}
+                </span>
+            </div>
+        </div>
+    </x-admin.table-card>
+
+    @include('partials.admin.course-management.practice-questions.table')
+
+    <x-admin.confirm-delete-modal
+        model="deleteModalOpen"
+        title="Delete Question"
+        subtitle="This action cannot be undone."
+        item-name="selectedItem.title"
+        form-id="deletePracticeQuestionForm"
+        form-action="selectedItem.delete_url"
+        message="Are you sure you want to delete this question?" />
+</section>
+@endsection

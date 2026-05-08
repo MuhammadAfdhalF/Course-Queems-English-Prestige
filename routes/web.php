@@ -176,6 +176,25 @@ Route::prefix('admin')
 
                 Route::put('/practices/{modulePractice}', [ModulePracticeController::class, 'update'])
                     ->name('practices.update');
+
+                // manage practice questions
+                Route::get('/practices/{modulePractice}/questions', [ModulePracticeQuestionController::class, 'index'])
+                    ->name('practices.questions.index');
+
+                Route::get('/practices/{modulePractice}/questions/create', [ModulePracticeQuestionController::class, 'create'])
+                    ->name('practices.questions.create');
+
+                Route::post('/practices/{modulePractice}/questions', [ModulePracticeQuestionController::class, 'store'])
+                    ->name('practices.questions.store');
+
+                Route::get('/practice-questions/{modulePracticeQuestion}/edit', [ModulePracticeQuestionController::class, 'edit'])
+                    ->name('practice-questions.edit');
+
+                Route::put('/practice-questions/{modulePracticeQuestion}', [ModulePracticeQuestionController::class, 'update'])
+                    ->name('practice-questions.update');
+
+                Route::delete('/practice-questions/{modulePracticeQuestion}', [ModulePracticeQuestionController::class, 'destroy'])
+                    ->name('practice-questions.destroy');
             });
 
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');
