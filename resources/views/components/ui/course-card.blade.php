@@ -10,9 +10,11 @@
 ])
 
 @php
-$modeClasses = $mode === 'Offline'
-? 'bg-[#CFE2D7] text-[var(--color-brand-blue)]'
-: 'bg-[#58E19A] text-[var(--color-brand-blue)]';
+$modeClasses = match ($mode) {
+'Offline' => 'bg-[#CFE2D7] text-[var(--color-brand-blue)]',
+'Hybrid' => 'bg-yellow-100 text-[var(--color-brand-blue)]',
+default => 'bg-[#58E19A] text-[var(--color-brand-blue)]',
+};
 
 $levelClasses = 'bg-[#D4A017] text-white';
 @endphp
