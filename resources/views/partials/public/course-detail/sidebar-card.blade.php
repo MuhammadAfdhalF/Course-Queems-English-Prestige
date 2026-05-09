@@ -1,11 +1,34 @@
+@php
+$learningModeLabel = match ($courseLevel->learning_mode) {
+'offline' => 'Offline',
+'hybrid' => 'Hybrid',
+default => 'Online',
+};
+
+$accessLabel = $courseLevel->access_type === 'limited'
+? ($courseLevel->access_duration_days . ' days access')
+: 'Lifetime access';
+
+$thumbnailUrl = $courseLevel->thumbnail_file
+? asset('storage/' . $courseLevel->thumbnail_file)
+: 'https://placehold.co/800x500/EEF3FF/2457E6?text=Queens+English';
+@endphp
+
 <aside class="reveal lg:sticky lg:top-24">
     <div class="motion-card rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm">
         <div class="overflow-hidden rounded-[18px] bg-slate-100">
+            @if ($courseLevel->thumbnail_file && $courseLevel->thumbnail_type === 'video')
+            <video
+                src="{{ $thumbnailUrl }}"
+                controls
+                class="motion-image h-[165px] w-full bg-slate-900 object-cover">
+            </video>
+            @else
             <img
-                src="https://placehold.co/800x500/EAE5DD/1E293B?text=Academic+Writing"
-                alt="Academic Writing"
-                class="motion-image h-[165px] w-full object-cover"
-            >
+                src="{{ $thumbnailUrl }}"
+                alt="{{ $courseLevel->name }}"
+                class="motion-image h-[165px] w-full object-cover">
+            @endif
         </div>
 
         <div class="mt-4">
@@ -13,13 +36,9 @@
                 Course Tuition
             </p>
 
-            <div class="mt-2 flex items-end justify-between gap-3">
+            <div class="mt-2">
                 <p class="text-[34px] font-bold leading-[0.95] text-[#D4A017] lg:text-[38px]">
-                    Rp 12.500.000
-                </p>
-
-                <p class="pb-1 text-xs text-slate-400 line-through lg:text-sm">
-                    Rp 15.000.000
+                    Rp {{ number_format((float) $courseLevel->price, 0, ',', '.') }}
                 </p>
             </div>
         </div>
@@ -32,7 +51,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7h8M8 11h8M8 15h5" />
                     </svg>
                 </div>
-                <span class="text-[14px] font-semibold">Unlimited</span>
+                <span class="text-[14px] font-semibold">
+                    {{ $accessLabel }}
+                </span>
             </div>
 
             <div class="reveal reveal-delay-1 flex items-center gap-3 text-slate-700">
@@ -42,23 +63,33 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4z" />
                     </svg>
                 </div>
-                <span class="text-[14px] font-semibold">International Certificate</span>
+                <span class="text-[14px] font-semibold">
+                    Structured learning modules
+                </span>
             </div>
 
             <div class="reveal reveal-delay-2 flex items-center gap-3 text-slate-700">
                 <div class="flex h-4 w-4 items-center justify-center text-[#2457E6]">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        @if ($courseLevel->learning_mode === 'offline')
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 10.5h15M5.25 6.75h13.5A1.5 1.5 0 0120.25 8.25v7.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-7.5a1.5 1.5 0 011.5-1.5z" />
+                        @else
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.111 16.404a5 5 0 017.778 0M5.636 13.929a8.5 8.5 0 0112.728 0M3.161 11.454a12 12 0 0117.678 0M12 20h.01" />
+                        @endif
                     </svg>
                 </div>
-                <span class="text-[14px] font-semibold">Payment Via Online</span>
+                <span class="text-[14px] font-semibold">
+                    {{ $learningModeLabel }} learning
+                </span>
             </div>
         </div>
 
         <div class="reveal reveal-delay-3 mt-6">
-            <x-ui.button class="w-full justify-center px-5 py-3 text-sm font-bold">
-                Pesan Sekarang
-            </x-ui.button>
+            <a href="{{ route('contact') }}">
+                <x-ui.button class="w-full justify-center px-5 py-3 text-sm font-bold">
+                    Pesan Sekarang
+                </x-ui.button>
+            </a>
         </div>
 
         <p class="reveal reveal-delay-4 mx-auto mt-4 max-w-[250px] text-center text-xs leading-6 text-slate-500">

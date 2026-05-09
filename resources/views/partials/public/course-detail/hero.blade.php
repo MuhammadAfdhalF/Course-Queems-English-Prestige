@@ -1,7 +1,15 @@
+@php
+$learningModeLabel = match ($courseLevel->learning_mode) {
+'offline' => 'Offline',
+'hybrid' => 'Hybrid',
+default => 'Online',
+};
+@endphp
+
 <section>
     <div class="max-w-3xl">
         <h1 class="reveal text-4xl font-bold leading-[1.05] text-[#2457E6] md:text-5xl lg:text-[52px]">
-            Academic Writing for Professionals
+            {{ $courseLevel->name }}
         </h1>
 
         <div class="reveal reveal-delay-1 mt-5 flex flex-wrap items-center gap-3">
@@ -10,14 +18,20 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4z" />
                 </svg>
-                Advanced
+
+                {{ $courseLevel->courseProgram?->name ?? 'Course Program' }}
             </span>
 
             <span class="inline-flex items-center gap-2 rounded-xl bg-[#72E4A3] px-3.5 py-2 text-xs font-bold text-[var(--color-brand-blue)]">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    @if ($courseLevel->learning_mode === 'offline')
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 10.5h15M5.25 6.75h13.5A1.5 1.5 0 0120.25 8.25v7.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-7.5a1.5 1.5 0 011.5-1.5z" />
+                    @else
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.111 16.404a5 5 0 017.778 0M5.636 13.929a8.5 8.5 0 0112.728 0M3.161 11.454a12 12 0 0117.678 0M12 20h.01" />
+                    @endif
                 </svg>
-                Online
+
+                {{ $learningModeLabel }}
             </span>
         </div>
 

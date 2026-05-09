@@ -68,7 +68,15 @@ class CourseController extends Controller
     {
         abort_unless($courseLevel->is_active, 404);
 
-        $courseLevel->load('courseProgram');
+        $courseLevel->load([
+            'courseProgram',
+            'modules' => function ($query) {
+                $query
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->orderBy('title');
+            },
+        ]);
 
         abort_if(
             ! $courseLevel->courseProgram || ! $courseLevel->courseProgram->is_active,
