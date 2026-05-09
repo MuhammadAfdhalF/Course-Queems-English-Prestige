@@ -12,7 +12,7 @@
         <h1 class="reveal mt-2 text-4xl font-bold leading-tight text-[var(--color-brand-blue)] md:text-5xl lg:text-6xl">
             News <br>
             <span class="text-[var(--color-brand-blue)]">&</span> <br>
-            <span class="text-[var(--color-brand-gold)]">Information</span>
+            <span class="text-[var(--color-brand-gold)]">Gallery</span>
         </h1>
 
         <p class="reveal reveal-delay-1 mx-auto mt-5 max-w-3xl text-base leading-8 text-slate-500 md:text-lg">
