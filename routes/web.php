@@ -27,8 +27,7 @@ use App\Http\Controllers\Admin\CourseManagement\FinalExamQuestionController;
 use App\Http\Controllers\Public\CourseController as PublicCourseController;
 use App\Http\Controllers\Public\ContactController as PublicContactController;
 use App\Http\Controllers\Public\AboutController as PublicAboutController;
-
-
+use App\Http\Controllers\Public\InformationController as PublicInformationController;
 
 
 /*
@@ -47,7 +46,9 @@ Route::view('/free-test', 'pages.public.free-test')->name('free-test');
 Route::view('/free-test/grammar', 'pages.public.free-test-runner')->name('free-test.show');
 Route::view('/free-test/grammar/result', 'pages.public.free-test-result')->name('free-test.result');
 
-Route::view('/news', 'pages.public.news')->name('news');
+Route::get('/news', [PublicInformationController::class, 'index'])->name('news');
+Route::get('/news/{informationPost:slug}', [PublicInformationController::class, 'show'])->name('news.show');
+
 Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
 
 /*

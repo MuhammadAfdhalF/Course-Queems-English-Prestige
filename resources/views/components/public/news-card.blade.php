@@ -5,10 +5,18 @@
 'excerpt' => 'Short article summary goes here.',
 'image' => 'https://placehold.co/800x500/e8eef8/1e293b?text=News',
 'href' => '#',
+'target' => null,
+'rel' => null,
+'buttonText' => 'Read More',
+'isExternal' => false,
 ])
 
 <div {{ $attributes->merge(['class' => 'group motion-card overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md']) }}>
-    <a href="{{ $href }}" class="block">
+    <a
+        href="{{ $href }}"
+        @if ($target) target="{{ $target }}" @endif
+        @if ($rel) rel="{{ $rel }}" @endif
+        class="block">
         <div class="aspect-[4/2.35] overflow-hidden bg-slate-100">
             <img
                 src="{{ $image }}"
@@ -28,14 +36,25 @@
             </span>
         </div>
 
+        @if ($isExternal)
+        <div class="mt-3">
+            <span class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#2457E6]">
+                External
+            </span>
+        </div>
+        @endif
+
         <div class="mt-4">
-            <a href="{{ $href }}">
+            <a
+                href="{{ $href }}"
+                @if ($target) target="{{ $target }}" @endif
+                @if ($rel) rel="{{ $rel }}" @endif>
                 <h3 class="text-[22px] font-bold leading-tight text-slate-900 transition hover:text-[var(--color-brand-blue)]">
                     {{ $title }}
                 </h3>
             </a>
 
-            <p class="mt-4 text-sm leading-7 text-slate-500">
+            <p class="mt-4 line-clamp-3 text-sm leading-7 text-slate-500">
                 {{ $excerpt }}
             </p>
         </div>
@@ -43,10 +62,16 @@
         <div class="mt-5">
             <a
                 href="{{ $href }}"
+                @if ($target) target="{{ $target }}" @endif
+                @if ($rel) rel="{{ $rel }}" @endif
                 class="inline-flex items-center gap-2 text-sm font-bold text-[#2457E6]">
-                <span>Read More</span>
+                <span>{{ $buttonText }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="motion-link-arrow h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    @if ($isExternal)
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H9M17 7v8" />
+                    @else
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 5l7 7-7 7" />
+                    @endif
                 </svg>
             </a>
         </div>
