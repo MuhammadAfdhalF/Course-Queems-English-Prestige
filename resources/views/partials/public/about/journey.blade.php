@@ -15,8 +15,8 @@ $aboutImage = $aboutUs?->image
 
             <div class="reveal reveal-delay-1 mt-6 space-y-5 text-sm leading-8 text-slate-600 md:text-base">
                 @if (filled($aboutDescription))
-                <div class="rich-text-content">
-                    {!! $aboutDescription !!}
+                <div class="whitespace-pre-line">
+                    {{ $aboutDescription }}
                 </div>
                 @else
                 <p>

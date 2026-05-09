@@ -7,26 +7,32 @@ $fallbackBenefits = collect([
 [
 'title' => 'Online & Offline Options',
 'description' => 'Learn through online modules or join guided offline sessions.',
+'icon' => null,
 ],
 [
 'title' => 'Speaking-Focused Practice',
 'description' => 'Practical drills to build fluency, pronunciation, and confidence.',
+'icon' => null,
 ],
 [
 'title' => 'Structured Learning Path',
 'description' => 'Clear levels, milestones, and a step-by-step curriculum.',
+'icon' => null,
 ],
 [
 'title' => 'Exercises & Progress Tracking',
 'description' => 'Practice after each lesson with measurable progress.',
+'icon' => null,
 ],
 [
 'title' => 'Final Assessment & Certificate',
 'description' => 'Complete the course, pass the exam, and earn your certificate.',
+'icon' => null,
 ],
 [
 'title' => 'Easy Enrollment via WhatsApp',
 'description' => 'Fast confirmation for online or offline orders and scheduling.',
+'icon' => null,
 ],
 ]);
 
@@ -38,14 +44,14 @@ $benefitItems = ($whyChooseUsItems ?? collect())->isNotEmpty()
 <section class="bg-white">
     <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 lg:grid-cols-[1.05fr_1fr] lg:px-8">
         <div class="max-w-xl">
-            <h2 class="reveal text-2xl font-bold leading-tight text-[var(--color-brand-navy)] md:text-3xl">
+            <x-public.section-title class="reveal text-2xl md:text-3xl">
                 {{ $aboutTitle }}
-            </h2>
+            </x-public.section-title>
 
             <div class="reveal reveal-delay-1 mt-5 space-y-5 text-sm leading-8 text-slate-600 md:text-base">
                 @if (filled($aboutDescription))
-                <div class="rich-text-content">
-                    {!! $aboutDescription !!}
+                <div class="whitespace-pre-line">
+                    {{ $aboutDescription }}
                 </div>
                 @else
                 <p>
@@ -84,15 +90,13 @@ $benefitItems = ($whyChooseUsItems ?? collect())->isNotEmpty()
 
             $title = is_array($item) ? $item['title'] : $item->title;
             $description = is_array($item) ? $item['description'] : $item->description;
+            $icon = is_array($item) ? ($item['icon'] ?? null) : $item->icon;
             @endphp
 
             <div class="reveal {{ $delayClass }} flex items-start gap-3">
-                <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--color-brand-blue-soft)] text-[var(--color-brand-blue)]">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4z" />
-                    </svg>
-                </div>
+                <x-public.why-icon
+                    :icon="$icon"
+                    class="mt-0.5 h-8 w-8 rounded-md" />
 
                 <div>
                     <h3 class="text-sm font-bold text-[var(--color-brand-navy)] md:text-base">

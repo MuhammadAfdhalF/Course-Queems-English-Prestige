@@ -7,6 +7,7 @@ use App\Models\AboutUs;
 use App\Models\Mentor;
 use App\Models\ProfileVideo;
 use App\Models\VisionsMission;
+use App\Models\WhyChooseUs;
 
 class AboutController extends Controller
 {
@@ -35,11 +36,19 @@ class AboutController extends Controller
             ->orderBy('name')
             ->get();
 
+        $whyChooseUsItems = WhyChooseUs::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->latest()
+            ->limit(4)
+            ->get();
+
         return view('pages.public.about', compact(
             'aboutUs',
             'visionMission',
             'profileVideo',
-            'mentors'
+            'mentors',
+            'whyChooseUsItems'
         ));
     }
 }
