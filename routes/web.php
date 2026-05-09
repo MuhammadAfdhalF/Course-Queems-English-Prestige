@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\CourseManagement\ModulePracticeQuestionController
 use App\Http\Controllers\Admin\CourseManagement\FinalExamController;
 use App\Http\Controllers\Admin\CourseManagement\FinalExamQuestionController;
 use App\Http\Controllers\Public\CourseController as PublicCourseController;
+use App\Http\Controllers\Public\ContactController as PublicContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,14 +39,13 @@ Route::view('/about-us', 'pages.public.about')->name('about');
 
 Route::get('/courses', [PublicCourseController::class, 'index'])->name('courses');
 Route::get('/courses/{courseLevel:slug}', [PublicCourseController::class, 'show'])->name('courses.show');
-    
+
 Route::view('/free-test', 'pages.public.free-test')->name('free-test');
 Route::view('/free-test/grammar', 'pages.public.free-test-runner')->name('free-test.show');
 Route::view('/free-test/grammar/result', 'pages.public.free-test-result')->name('free-test.result');
 
 Route::view('/news', 'pages.public.news')->name('news');
-Route::view('/contact', 'pages.public.contact')->name('contact');
-
+Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
 
 /*
 |--------------------------------------------------------------------------

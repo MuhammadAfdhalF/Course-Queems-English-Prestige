@@ -18,12 +18,12 @@ $iconClasses = $featured
 : 'bg-[#eef4ff] text-[var(--color-brand-blue)]';
 
 $valueClasses = $isEmail
-? 'text-[14px] leading-6'
+? 'text-[14px] leading-6 break-all'
 : 'text-[15px] leading-7';
 @endphp
 
 <a
-    href="{{ $href }}"
+    href="{{ $href ?: '#' }}"
     target="_blank"
     rel="noopener noreferrer"
     {{ $attributes->merge(['class' => 'group motion-card relative block min-h-[210px] rounded-[22px] border p-6 transition duration-200 hover:-translate-y-1 ' . $cardClasses]) }}>
@@ -48,16 +48,9 @@ $valueClasses = $isEmail
         </p>
 
         @if($value)
-        @if($isEmail)
-        <div class="mt-6 font-bold text-[var(--color-brand-blue)] group-hover:underline {{ $valueClasses }}">
-            <span class="block">hello@queensenglish</span>
-            <span class="block">prestige.com</span>
-        </div>
-        @else
         <p class="mt-6 font-bold text-[var(--color-brand-blue)] group-hover:underline {{ $valueClasses }}">
             {{ $value }}
         </p>
-        @endif
         @endif
 
         @if($secondaryValue)
