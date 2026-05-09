@@ -243,6 +243,11 @@
     padding-top: 2.5rem;
 }
 
+.final-exam-preview-question+.final-exam-preview-question {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 2.5rem;
+}
+
 .module-preview-material+.module-preview-material {
     border-top: 1px solid #e2e8f0;
     padding-top: 2.5rem;

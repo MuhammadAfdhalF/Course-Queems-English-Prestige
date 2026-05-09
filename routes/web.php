@@ -23,7 +23,7 @@ use App\Http\Controllers\Admin\CourseManagement\ModuleMaterialController;
 use App\Http\Controllers\Admin\CourseManagement\ModulePracticeController;
 use App\Http\Controllers\Admin\CourseManagement\ModulePracticeQuestionController;
 use App\Http\Controllers\Admin\CourseManagement\FinalExamController;
-
+use App\Http\Controllers\Admin\CourseManagement\FinalExamQuestionController;
 
 
 /*
@@ -215,6 +215,29 @@ Route::prefix('admin')
 
                 Route::put('/final-exams/{finalExam}', [FinalExamController::class, 'update'])
                     ->name('final-exams.update');
+
+
+                // manage final exam questions
+                Route::get('/final-exams/{finalExam}/questions', [FinalExamQuestionController::class, 'index'])
+                    ->name('final-exams.questions.index');
+
+                Route::get('/final-exams/{finalExam}/questions/create', [FinalExamQuestionController::class, 'create'])
+                    ->name('final-exams.questions.create');
+
+                Route::post('/final-exams/{finalExam}/questions', [FinalExamQuestionController::class, 'store'])
+                    ->name('final-exams.questions.store');
+
+                Route::get('/final-exam-questions/{finalExamQuestion}/edit', [FinalExamQuestionController::class, 'edit'])
+                    ->name('final-exam-questions.edit');
+
+                Route::put('/final-exam-questions/{finalExamQuestion}', [FinalExamQuestionController::class, 'update'])
+                    ->name('final-exam-questions.update');
+
+                Route::delete('/final-exam-questions/{finalExamQuestion}', [FinalExamQuestionController::class, 'destroy'])
+                    ->name('final-exam-questions.destroy');
+
+                Route::get('/final-exams/{finalExam}/preview', [FinalExamQuestionController::class, 'preview'])
+                    ->name('final-exams.preview');
             });
 
         Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');

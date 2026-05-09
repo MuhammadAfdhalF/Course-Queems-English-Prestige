@@ -133,19 +133,28 @@
             </div>
 
             <div class="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
-                <a
-                    href="{{ route('admin.course-management.final-exams.edit', $finalExam) }}"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                    <x-admin.icon name="pencil" class="h-4 w-4" />
-                    <span>Edit Final Exam</span>
-                </a>
+                <div class="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
+                    <a
+                        href="{{ route('admin.course-management.final-exams.edit', $finalExam) }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                        <x-admin.icon name="pencil" class="h-4 w-4" />
+                        <span>Edit Final Exam</span>
+                    </a>
 
-                <a
-                    href="#"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:opacity-90">
-                    <x-admin.icon name="eye" class="h-4 w-4" />
-                    <span>Manage Questions</span>
-                </a>
+                    <a
+                        href="{{ route('admin.course-management.final-exams.preview', $finalExam) }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                        <x-admin.icon name="eye" class="h-4 w-4" />
+                        <span>Preview Final Exam</span>
+                    </a>
+
+                    <a
+                        href="{{ route('admin.course-management.final-exams.questions.index', $finalExam) }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:opacity-90">
+                        <x-admin.icon name="check" class="h-4 w-4" />
+                        <span>Manage Questions</span>
+                    </a>
+                </div>
             </div>
         </div>
     </x-admin.table-card>
