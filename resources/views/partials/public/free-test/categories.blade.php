@@ -6,9 +6,10 @@ $availableTests = $freeTests ?? collect();
     <div class="mx-auto max-w-7xl px-4 py-16 lg:px-8">
         <div class="flex flex-col gap-3 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <h2 class="reveal text-3xl font-bold text-slate-900 md:text-4xl">
-                    Available Free Tests
-                </h2>
+                <x-public.section-title class="reveal text-3xl md:text-4xl">
+                    Available Free [gold]Tests[/gold]
+                </x-public.section-title>
+
                 <p class="reveal reveal-delay-1 mt-2 text-sm text-slate-500">
                     Pick a test to begin your assessment.
                 </p>
@@ -16,7 +17,7 @@ $availableTests = $freeTests ?? collect();
         </div>
 
         @if ($availableTests->isNotEmpty())
-        <div class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div class="mt-8 grid max-w-5xl items-stretch gap-6 md:grid-cols-2 xl:grid-cols-4">
             @foreach ($availableTests as $index => $freeTest)
             @php
             $delayClass = match ($index % 4) {
@@ -31,12 +32,17 @@ $availableTests = $freeTests ?? collect();
             : 'Flexible';
 
             $questionCount = $freeTest->questions_count ?: $freeTest->total_questions;
+
+            $category = $freeTest->categoryRelation?->name;
             @endphp
 
             <div class="reveal {{ $delayClass }}">
                 <x-public.test-card
                     :title="$freeTest->title"
                     :description="$freeTest->description ?: 'Take this free assessment and discover your current English level.'"
+                    :duration="$duration"
+                    :questions="$questionCount"
+                    :category="$category"
                     :href="route('free-test.show', $freeTest)">
                     <x-slot:icon>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,22 +51,6 @@ $availableTests = $freeTests ?? collect();
                         </svg>
                     </x-slot:icon>
                 </x-public.test-card>
-
-                <div class="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-500">
-                    <span class="rounded-full bg-slate-100 px-3 py-1">
-                        {{ $duration }}
-                    </span>
-
-                    <span class="rounded-full bg-slate-100 px-3 py-1">
-                        {{ $questionCount }} Questions
-                    </span>
-
-                    @if ($freeTest->categoryRelation)
-                    <span class="rounded-full bg-blue-50 px-3 py-1 text-[var(--color-brand-blue)]">
-                        {{ $freeTest->categoryRelation->name }}
-                    </span>
-                    @endif
-                </div>
             </div>
             @endforeach
         </div>

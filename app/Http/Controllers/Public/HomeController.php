@@ -11,6 +11,7 @@ use App\Models\FreeTestCategory;
 use App\Models\HeroSection;
 use App\Models\InformationPost;
 use App\Models\WhyChooseUs;
+use App\Models\FreeTest;
 
 class HomeController extends Controller
 {
@@ -86,6 +87,18 @@ class HomeController extends Controller
             ->latest()
             ->first();
 
+        $freeTests = FreeTest::query()
+            ->where('is_active', true)
+            ->with('categoryRelation')
+            ->withCount([
+                'questions' => function ($query) {
+                    $query->where('is_active', true);
+                },
+            ])
+            ->orderBy('id')
+            ->limit(4)
+            ->get();
+
         return view('pages.public.home', compact(
             'heroSection',
             'aboutUs',
@@ -93,6 +106,7 @@ class HomeController extends Controller
             'featuredCourses',
             'freeTestCategories',
             'latestPosts',
+            'freeTests',
             'faqs',
             'contact'
         ));
