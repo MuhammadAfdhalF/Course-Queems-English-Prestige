@@ -17,6 +17,7 @@ class CourseLevel extends Model
         'short_description',
         'description',
         'price',
+        'learning_mode',
         'access_type',
         'access_duration_days',
         'sort_order',

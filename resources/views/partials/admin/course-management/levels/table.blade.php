@@ -2,6 +2,7 @@
     <x-slot:head>
         <th class="px-6 py-4">Level</th>
         <th class="px-6 py-4">Price</th>
+        <th class="px-6 py-4">Mode</th>
         <th class="px-6 py-4">Access</th>
         <th class="px-6 py-4">Modules</th>
         <th class="px-6 py-4">Order</th>
@@ -69,6 +70,27 @@
 
         <td class="px-6 py-4">
             Rp {{ number_format((float) $level->price, 0, ',', '.') }}
+        </td>
+
+
+        <td class="px-6 py-4">
+            @php
+            $learningModeLabel = match ($level->learning_mode) {
+            'offline' => 'Offline',
+            'hybrid' => 'Hybrid',
+            default => 'Online',
+            };
+
+            $learningModeClass = match ($level->learning_mode) {
+            'offline' => 'bg-slate-100 text-slate-700',
+            'hybrid' => 'bg-amber-50 text-amber-700',
+            default => 'bg-emerald-50 text-emerald-700',
+            };
+            @endphp
+
+            <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold {{ $learningModeClass }}">
+                {{ $learningModeLabel }}
+            </span>
         </td>
 
         <td class="px-6 py-4">
@@ -141,7 +163,7 @@
     </tr>
     @empty
     <x-admin.empty-state
-        colspan="7"
+        colspan="8"
         title="No course levels yet"
         description="Create the first level for this course program." />
     @endforelse

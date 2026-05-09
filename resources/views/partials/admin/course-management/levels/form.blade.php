@@ -10,6 +10,7 @@
 @php
 $isEdit = filled($courseLevel);
 $currentAccessType = old('access_type', $courseLevel?->access_type ?? 'lifetime');
+$currentLearningMode = old('learning_mode', $courseLevel?->learning_mode ?? 'online');
 $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? 'image');
 @endphp
 
@@ -142,7 +143,7 @@ $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? '
                 Pricing & Access
             </h2>
             <p class="mt-1 text-sm text-slate-500">
-                Set course level price and access duration.
+                Set course level price, learning mode, and access duration.
             </p>
         </div>
 
@@ -156,6 +157,18 @@ $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? '
                 step="1000"
                 :value="old('price', $courseLevel?->price ?? 0)"
                 placeholder="Example: 500000"
+                :required="true" />
+
+            <x-admin.form.select
+                label="Learning Mode"
+                name="learning_mode"
+                id="learning_mode"
+                :value="$currentLearningMode"
+                :options="[
+                    'online' => 'Online',
+                    'offline' => 'Offline',
+                    'hybrid' => 'Hybrid',
+                ]"
                 :required="true" />
 
             <x-admin.form.select
