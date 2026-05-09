@@ -29,6 +29,7 @@ use App\Http\Controllers\Public\ContactController as PublicContactController;
 use App\Http\Controllers\Public\AboutController as PublicAboutController;
 use App\Http\Controllers\Public\InformationController as PublicInformationController;
 use App\Http\Controllers\Public\HomeController as PublicHomeController;
+use App\Http\Controllers\Public\FreeTestController as PublicFreeTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,9 +43,10 @@ Route::get('/about-us', [PublicAboutController::class, 'index'])->name('about');
 Route::get('/courses', [PublicCourseController::class, 'index'])->name('courses');
 Route::get('/courses/{courseLevel:slug}', [PublicCourseController::class, 'show'])->name('courses.show');
 
-Route::view('/free-test', 'pages.public.free-test')->name('free-test');
-Route::view('/free-test/grammar', 'pages.public.free-test-runner')->name('free-test.show');
-Route::view('/free-test/grammar/result', 'pages.public.free-test-result')->name('free-test.result');
+Route::get('/free-test', [PublicFreeTestController::class, 'index'])->name('free-test');
+Route::get('/free-test/{freeTest}', [PublicFreeTestController::class, 'show'])->name('free-test.show');
+Route::post('/free-test/{freeTest}/submit', [PublicFreeTestController::class, 'submit'])->name('free-test.submit');
+Route::get('/free-test/result/{freeTestResult}', [PublicFreeTestController::class, 'result'])->name('free-test.result');
 
 Route::get('/news', [PublicInformationController::class, 'index'])->name('news');
 Route::get('/news/{informationPost:slug}', [PublicInformationController::class, 'show'])->name('news.show');
