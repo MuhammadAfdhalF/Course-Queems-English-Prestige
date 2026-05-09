@@ -1,5 +1,28 @@
 @php
-$homePrograms = [
+$courseItems = ($featuredCourses ?? collect())->map(function ($courseLevel) {
+$thumbnail = $courseLevel->thumbnail_file
+? asset('storage/' . $courseLevel->thumbnail_file)
+: 'https://placehold.co/600x400/e7d8c7/1e293b?text=' . urlencode($courseLevel->name);
+
+$mode = match ($courseLevel->learning_mode ?? 'online') {
+'offline' => 'Offline',
+'hybrid' => 'Hybrid',
+default => 'Online',
+};
+
+return [
+'title' => $courseLevel->name,
+'level' => $courseLevel->courseProgram?->name ?? 'Program',
+'mode' => $mode,
+'price' => 'Rp ' . number_format((float) $courseLevel->price, 0, ',', '.'),
+'description' => $courseLevel->short_description ?: 'Explore this program and start building your English skills with Queens English Prestige.',
+'image' => $thumbnail,
+'href' => route('courses.show', $courseLevel),
+];
+});
+
+if ($courseItems->isEmpty()) {
+$courseItems = collect([
 [
 'title' => 'Executive Communication',
 'level' => 'Advanced',
@@ -7,7 +30,7 @@ $homePrograms = [
 'price' => 'Rp. 180.000',
 'description' => 'Short description about this course.',
 'image' => 'https://placehold.co/600x400/e7d8c7/1e293b?text=Executive+Communication',
-'href' => route('courses.show'),
+'href' => route('courses'),
 ],
 [
 'title' => 'Academic Writing Mastery',
@@ -16,7 +39,7 @@ $homePrograms = [
 'price' => 'Rp. 180.000',
 'description' => 'Short description about this course.',
 'image' => 'https://placehold.co/600x400/cfd8cf/1e293b?text=Academic+Writing',
-'href' => route('courses.show'),
+'href' => route('courses'),
 ],
 [
 'title' => 'IELTS Masterclass 8.0+',
@@ -25,7 +48,7 @@ $homePrograms = [
 'price' => 'Rp. 100.000',
 'description' => 'Short description about this course.',
 'image' => 'https://placehold.co/600x400/f4e7d3/1e293b?text=IELTS+Masterclass',
-'href' => route('courses.show'),
+'href' => route('courses'),
 ],
 [
 'title' => 'Grammar & Speaking Fundamentals',
@@ -34,9 +57,10 @@ $homePrograms = [
 'price' => 'Rp. 100.000',
 'description' => 'Short description about this course.',
 'image' => 'https://placehold.co/600x400/f8edcf/1e293b?text=Grammar+%26+Speaking',
-'href' => route('courses.show'),
+'href' => route('courses'),
 ],
-];
+]);
+}
 @endphp
 
 <section class="bg-slate-50">
@@ -60,7 +84,7 @@ $homePrograms = [
         </div>
 
         <div class="mt-10">
-            <x-public.course-grid :courses="$homePrograms" />
+            <x-public.course-grid :courses="$courseItems->toArray()" />
         </div>
     </div>
 </section>

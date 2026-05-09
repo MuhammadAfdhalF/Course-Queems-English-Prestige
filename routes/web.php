@@ -28,7 +28,7 @@ use App\Http\Controllers\Public\CourseController as PublicCourseController;
 use App\Http\Controllers\Public\ContactController as PublicContactController;
 use App\Http\Controllers\Public\AboutController as PublicAboutController;
 use App\Http\Controllers\Public\InformationController as PublicInformationController;
-
+use App\Http\Controllers\Public\HomeController as PublicHomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ use App\Http\Controllers\Public\InformationController as PublicInformationContro
 |--------------------------------------------------------------------------
 */
 
-Route::view('/', 'pages.public.home')->name('home');
+Route::get('/', [PublicHomeController::class, 'index'])->name('home');
 Route::get('/about-us', [PublicAboutController::class, 'index'])->name('about');
 
 Route::get('/courses', [PublicCourseController::class, 'index'])->name('courses');
