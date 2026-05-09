@@ -42,29 +42,31 @@ $benefitItems = ($whyChooseUsItems ?? collect())->isNotEmpty()
 @endphp
 
 <section class="bg-white">
-    <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 lg:grid-cols-[1.05fr_1fr] lg:px-8">
+    <div class="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 lg:grid-cols-[1.02fr_0.98fr] lg:px-8">
         <div class="max-w-xl">
             <x-public.section-title class="reveal text-2xl md:text-3xl">
                 {{ $aboutTitle }}
             </x-public.section-title>
 
-            <div class="reveal reveal-delay-1 mt-5 space-y-5 text-sm leading-8 text-slate-600 md:text-base">
+            <div class="reveal reveal-delay-1 mt-5 text-sm leading-8 text-slate-600 md:text-base">
                 @if (filled($aboutDescription))
                 <div class="whitespace-pre-line">
                     {{ $aboutDescription }}
                 </div>
                 @else
-                <p>
-                    Queens English Prestige provides premium English learning through
-                    online courses and offline sessions, designed for learners who want
-                    real progress in speaking, grammar, and test preparation.
-                </p>
+                <div class="space-y-5">
+                    <p>
+                        Queens English Prestige provides premium English learning through
+                        online courses and offline sessions, designed for learners who want
+                        real progress in speaking, grammar, and test preparation.
+                    </p>
 
-                <p>
-                    Choose your program, select Online or Offline, and complete your order
-                    through our website. Our team will confirm the details via WhatsApp
-                    to get you started quickly.
-                </p>
+                    <p>
+                        Choose your program, select Online or Offline, and complete your order
+                        through our website. Our team will confirm the details via WhatsApp
+                        to get you started quickly.
+                    </p>
+                </div>
                 @endif
             </div>
 
@@ -77,8 +79,8 @@ $benefitItems = ($whyChooseUsItems ?? collect())->isNotEmpty()
             </div>
         </div>
 
-        <div class="grid gap-x-10 gap-y-8 sm:grid-cols-2">
-            @foreach ($benefitItems as $index => $item)
+        <div class="grid gap-x-12 gap-y-10 sm:grid-cols-2 lg:place-self-center">
+            @foreach ($benefitItems->take(6) as $index => $item)
             @php
             $delayClass = match ($index % 5) {
             1 => 'reveal-delay-1',
@@ -98,12 +100,12 @@ $benefitItems = ($whyChooseUsItems ?? collect())->isNotEmpty()
                     :icon="$icon"
                     class="mt-0.5 h-8 w-8 rounded-md" />
 
-                <div>
-                    <h3 class="text-sm font-bold text-[var(--color-brand-navy)] md:text-base">
+                <div class="min-w-0">
+                    <h3 class="text-sm font-bold leading-snug text-[var(--color-brand-navy)] md:text-[15px]">
                         {{ $title }}
                     </h3>
 
-                    <p class="mt-1 text-xs leading-6 text-slate-500 md:text-sm">
+                    <p class="mt-1.5 line-clamp-2 text-xs leading-6 text-slate-500 md:text-sm md:leading-6">
                         {{ $description }}
                     </p>
                 </div>
