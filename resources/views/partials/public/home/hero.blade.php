@@ -7,9 +7,19 @@ $heroImage = $heroSection?->image
 ? asset('storage/' . $heroSection->image)
 : asset('images/hero-queens.png');
 
-$normalizedHeroTitle = trim(strtolower($heroTitle));
+$cleanHeroTitle = trim($heroTitle);
+$normalizedHeroTitle = strtolower(preg_replace('/\s+/', ' ', $cleanHeroTitle));
 
-$useDefaultTitleLayout = $normalizedHeroTitle === 'master english for global communication';
+if ($normalizedHeroTitle === 'master english for global communication') {
+$heroTitle = 'Master English[br]for [gold]Global[/gold][br][gold]Communication[/gold]';
+}
+
+$formattedHeroTitle = e($heroTitle);
+$formattedHeroTitle = str_replace('[br]', '<br>', $formattedHeroTitle);
+$formattedHeroTitle = str_replace('[gold]', '<span class="text-[var(--color-brand-gold)]">', $formattedHeroTitle);
+    $formattedHeroTitle = str_replace('[/gold]', '</span>', $formattedHeroTitle);
+
+$heroAltText = strip_tags(str_replace(['[br]', '[gold]', '[/gold]'], [' ', '', ''], $heroTitle));
 @endphp
 
 <section class="relative overflow-hidden bg-white">
@@ -21,15 +31,7 @@ $useDefaultTitleLayout = $normalizedHeroTitle === 'master english for global com
             </div>
 
             <h1 class="reveal reveal-delay-1 mt-6 text-4xl font-extrabold leading-[1.05] text-slate-900 md:text-5xl lg:text-[72px]">
-                @if ($useDefaultTitleLayout)
-                <span class="block">Master English</span>
-                <span class="block">
-                    for <span class="text-[var(--color-brand-gold)]">Global</span>
-                </span>
-                <span class="block text-[var(--color-brand-gold)]">Communication</span>
-                @else
-                {{ $heroTitle }}
-                @endif
+                {!! $formattedHeroTitle !!}
             </h1>
 
             <p class="reveal reveal-delay-2 mt-6 max-w-xl text-base leading-8 text-slate-600">
@@ -50,11 +52,14 @@ $useDefaultTitleLayout = $normalizedHeroTitle === 'master english for global com
                 </a>
             </div>
 
-            <div class="reveal reveal-delay-4 mt-5 flex items-start gap-2 text-sm text-slate-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-5 w-5 text-[var(--color-brand-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="reveal reveal-delay-4 mt-5 flex items-center gap-2 text-sm text-slate-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-[var(--color-brand-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11 5.176-.71 9-5.409 9-11 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                <p>Payment confirmation via WhatsApp. Course access unlocks after approval.</p>
+
+                <p class="leading-6">
+                    Payment confirmation via WhatsApp. Course access unlocks after approval.
+                </p>
             </div>
         </div>
 
@@ -67,7 +72,7 @@ $useDefaultTitleLayout = $normalizedHeroTitle === 'master english for global com
                 <div class="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 ring-1 ring-slate-200">
                     <img
                         src="{{ $heroImage }}"
-                        alt="{{ $heroTitle }}"
+                        alt="{{ $heroAltText }}"
                         class="motion-image h-full w-full object-contain"
                         onerror="this.src='https://placehold.co/800x600/f8fafc/1e293b?text=Queens+English+Prestige';">
                 </div>
@@ -75,14 +80,24 @@ $useDefaultTitleLayout = $normalizedHeroTitle === 'master english for global com
                 <div class="reveal reveal-delay-4 absolute bottom-8 left-0 hidden w-56 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg lg:block">
                     <div class="flex items-center gap-3">
                         <div class="flex -space-x-2">
-                            <div class="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-blue-100 text-xs font-semibold text-blue-700">Q</div>
-                            <div class="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-amber-100 text-xs font-semibold text-amber-700">E</div>
-                            <div class="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-emerald-100 text-xs font-semibold text-emerald-700">P</div>
+                            <div class="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-blue-100 text-xs font-semibold text-blue-700">
+                                Q
+                            </div>
+                            <div class="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-amber-100 text-xs font-semibold text-amber-700">
+                                E
+                            </div>
+                            <div class="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-emerald-100 text-xs font-semibold text-emerald-700">
+                                P
+                            </div>
                         </div>
 
                         <div>
-                            <p class="text-sm font-bold text-slate-900">Premium Learning</p>
-                            <p class="text-xs text-slate-500">Online & offline programs</p>
+                            <p class="text-sm font-bold text-slate-900">
+                                Premium Learning
+                            </p>
+                            <p class="text-xs text-slate-500">
+                                Online & offline programs
+                            </p>
                         </div>
                     </div>
                 </div>

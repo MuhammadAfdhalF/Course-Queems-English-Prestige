@@ -9,9 +9,9 @@ $aboutImage = $aboutUs?->image
 <section class="bg-white">
     <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
         <div class="max-w-2xl">
-            <h2 class="reveal text-2xl font-bold leading-tight text-[var(--color-brand-blue)] md:text-3xl">
+            <x-public.section-title class="reveal text-2xl md:text-3xl">
                 {{ $aboutTitle }}
-            </h2>
+            </x-public.section-title>
 
             <div class="reveal reveal-delay-1 mt-6 space-y-5 text-sm leading-8 text-slate-600 md:text-base">
                 @if (filled($aboutDescription))
