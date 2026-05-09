@@ -19,18 +19,21 @@
             </h1>
 
             <p class="reveal reveal-delay-2 mt-5 max-w-lg text-base leading-8 text-slate-600">
-                “Premium English learning—online modules and offline sessions—built for
-                real communication skills and measurable progress.”
+                {{ $aboutUs?->title ?: 'Premium English learning—online modules and offline sessions—built for real communication skills and measurable progress.' }}
             </p>
 
             <div class="reveal reveal-delay-3 mt-8 flex flex-col gap-3 sm:flex-row">
-                <x-ui.button class="px-6 py-3">
-                    Explore Courses
-                </x-ui.button>
+                <a href="{{ route('courses') }}">
+                    <x-ui.button class="px-6 py-3">
+                        Explore Courses
+                    </x-ui.button>
+                </a>
 
-                <x-ui.button variant="outline" class="px-6 py-3">
-                    Contact Us
-                </x-ui.button>
+                <a href="{{ route('contact') }}">
+                    <x-ui.button variant="outline" class="px-6 py-3">
+                        Contact Us
+                    </x-ui.button>
+                </a>
             </div>
         </div>
     </div>

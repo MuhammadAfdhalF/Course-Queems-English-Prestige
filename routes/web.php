@@ -26,6 +26,10 @@ use App\Http\Controllers\Admin\CourseManagement\FinalExamController;
 use App\Http\Controllers\Admin\CourseManagement\FinalExamQuestionController;
 use App\Http\Controllers\Public\CourseController as PublicCourseController;
 use App\Http\Controllers\Public\ContactController as PublicContactController;
+use App\Http\Controllers\Public\AboutController as PublicAboutController;
+
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -34,8 +38,7 @@ use App\Http\Controllers\Public\ContactController as PublicContactController;
 */
 
 Route::view('/', 'pages.public.home')->name('home');
-Route::view('/about-us', 'pages.public.about')->name('about');
-
+Route::get('/about-us', [PublicAboutController::class, 'index'])->name('about');
 
 Route::get('/courses', [PublicCourseController::class, 'index'])->name('courses');
 Route::get('/courses/{courseLevel:slug}', [PublicCourseController::class, 'show'])->name('courses.show');

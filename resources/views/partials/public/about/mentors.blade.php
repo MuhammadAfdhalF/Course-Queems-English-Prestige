@@ -10,101 +10,62 @@
             </p>
         </div>
 
+        @if (($mentors ?? collect())->isNotEmpty())
         <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-            <div class="reveal group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            @foreach ($mentors as $mentor)
+            @php
+            $delayClass = match ($loop->index % 5) {
+            1 => 'reveal-delay-1',
+            2 => 'reveal-delay-2',
+            3 => 'reveal-delay-3',
+            4 => 'reveal-delay-4',
+            default => '',
+            };
+
+            $mentorPhoto = $mentor->photo
+            ? asset('storage/' . $mentor->photo)
+            : 'https://placehold.co/500x650/F1F5F9/0F172A?text=' . urlencode($mentor->name);
+            @endphp
+
+            <div class="reveal {{ $delayClass }} group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="aspect-[4/5] overflow-hidden bg-slate-100">
                     <img
-                        src="https://placehold.co/500x650/F1F5F9/0F172A?text=Mentor+1"
-                        alt="Dr. Sarah Jenkins"
+                        src="{{ $mentorPhoto }}"
+                        alt="{{ $mentor->name }}"
                         class="motion-image h-full w-full object-cover">
                 </div>
 
                 <div class="p-4">
-                    <h3 class="text-base font-bold text-slate-900">Dr. Sarah Jenkins</h3>
+                    <h3 class="text-base font-bold text-slate-900">
+                        {{ $mentor->name }}
+                    </h3>
+
                     <p class="mt-1 text-xs font-semibold text-[var(--color-brand-blue)]">
-                        Senior IELTS Mentor
+                        {{ $mentor->position ?: $mentor->expertise ?: 'Mentor' }}
                     </p>
+
+                    @if ($mentor->expertise && $mentor->position)
+                    <p class="mt-1 text-[11px] font-semibold text-[var(--color-brand-gold)]">
+                        {{ $mentor->expertise }}
+                    </p>
+                    @endif
+
                     <p class="mt-3 text-xs leading-6 text-slate-500">
-                        Former examiner with 15+ years experience in high-stakes testing.
+                        {{ $mentor->description ?: 'Dedicated mentor committed to helping learners grow with confidence.' }}
                     </p>
                 </div>
             </div>
-
-            <div class="reveal reveal-delay-1 group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="aspect-[4/5] overflow-hidden bg-slate-100">
-                    <img
-                        src="https://placehold.co/500x650/E5E7EB/0F172A?text=Mentor+2"
-                        alt="Marcus Thorne"
-                        class="motion-image h-full w-full object-cover">
-                </div>
-
-                <div class="p-4">
-                    <h3 class="text-base font-bold text-slate-900">Marcus Thorne</h3>
-                    <p class="mt-1 text-xs font-semibold text-[var(--color-brand-blue)]">
-                        Executive Communications Coach
-                    </p>
-                    <p class="mt-3 text-xs leading-6 text-slate-500">
-                        Specialist in corporate negotiation and public speaking for CEOs.
-                    </p>
-                </div>
-            </div>
-
-            <div class="reveal reveal-delay-2 group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="aspect-[4/5] overflow-hidden bg-slate-100">
-                    <img
-                        src="https://placehold.co/500x650/F8FAFC/0F172A?text=Mentor+3"
-                        alt="Elena Petrova"
-                        class="motion-image h-full w-full object-cover">
-                </div>
-
-                <div class="p-4">
-                    <h3 class="text-base font-bold text-slate-900">Elena Petrova</h3>
-                    <p class="mt-1 text-xs font-semibold text-[var(--color-brand-blue)]">
-                        Academic Writing Lead
-                    </p>
-                    <p class="mt-3 text-xs leading-6 text-slate-500">
-                        PhD in Linguistics, specializing in scholarly publication and research tone.
-                    </p>
-                </div>
-            </div>
-
-            <div class="reveal reveal-delay-3 group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="aspect-[4/5] overflow-hidden bg-slate-100">
-                    <img
-                        src="https://placehold.co/500x650/D1D5DB/0F172A?text=Mentor+4"
-                        alt="David Chen"
-                        class="motion-image h-full w-full object-cover">
-                </div>
-
-                <div class="p-4">
-                    <h3 class="text-base font-bold text-slate-900">David Chen</h3>
-                    <p class="mt-1 text-xs font-semibold text-[var(--color-brand-blue)]">
-                        Business English Strategist
-                    </p>
-                    <p class="mt-3 text-xs leading-6 text-slate-500">
-                        MBA graduate focused on cross-cultural professional dynamics.
-                    </p>
-                </div>
-            </div>
-
-            <div class="reveal reveal-delay-4 group motion-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="aspect-[4/5] overflow-hidden bg-slate-100">
-                    <img
-                        src="https://placehold.co/500x650/F8FAFC/0F172A?text=Mentor+5"
-                        alt="Elena Petrova"
-                        class="motion-image h-full w-full object-cover">
-                </div>
-
-                <div class="p-4">
-                    <h3 class="text-base font-bold text-slate-900">Elena Petrova</h3>
-                    <p class="mt-1 text-xs font-semibold text-[var(--color-brand-blue)]">
-                        Academic Writing Lead
-                    </p>
-                    <p class="mt-3 text-xs leading-6 text-slate-500">
-                        PhD in Linguistics, specializing in scholarly publication and research tone.
-                    </p>
-                </div>
-            </div>
+            @endforeach
         </div>
+        @else
+        <div class="reveal mt-10 rounded-[24px] border border-slate-200 bg-white px-6 py-12 text-center shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900">
+                Mentor profiles will be available soon.
+            </h3>
+            <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-500">
+                Our team is preparing mentor information to help you get to know the experts behind Queens English Prestige.
+            </p>
+        </div>
+        @endif
     </div>
 </section>

@@ -20,6 +20,7 @@ class VisionsMission extends Model
     {
         return $this->hasMany(VisionMissionItem::class, 'visions_mission_id')
             ->where('type', 'mission')
+            ->where('is_active', true)
             ->orderBy('sort_order');
     }
 }
