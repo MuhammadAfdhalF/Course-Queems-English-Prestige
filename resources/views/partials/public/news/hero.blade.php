@@ -1,4 +1,4 @@
-<section class="relative overflow-hidden border-b border-slate-200 bg-[#F7FAFD]">
+<section class="relative overflow-hidden bg-[#F7FAFD]">
     <div class="absolute inset-0">
         <img
             src="{{ asset('images/about-hero-bg.png') }}"

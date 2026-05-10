@@ -1,5 +1,5 @@
 <section class="bg-[#f8f8f6]">
-    <div class="mx-auto max-w-7xl px-4 py-10 lg:px-8 lg:py-12">
+    <div class="mx-auto max-w-7xl px-4 pb-16 pt-8 lg:px-8 lg:pb-20 lg:pt-10">
         @if (($posts ?? collect())->isNotEmpty())
         <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             @foreach ($posts as $index => $post)
@@ -35,7 +35,7 @@
             $buttonText = $isExternal ? 'Visit Link' : 'Read More';
             @endphp
 
-            <div class="reveal {{ $delayClass }}">
+            <div class="reveal {{ $delayClass }} h-full">
                 <x-public.news-card
                     :title="$post->title"
                     :category="$categoryLabel"
