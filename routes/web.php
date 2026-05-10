@@ -30,6 +30,8 @@ use App\Http\Controllers\Public\AboutController as PublicAboutController;
 use App\Http\Controllers\Public\InformationController as PublicInformationController;
 use App\Http\Controllers\Public\HomeController as PublicHomeController;
 use App\Http\Controllers\Public\FreeTestController as PublicFreeTestController;
+use App\Http\Controllers\Admin\Cms\FreeTestResultController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -322,6 +324,9 @@ Route::prefix('admin')
                         'free-tests' => 'freeTest',
                     ])
                     ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::get('/free-test-results', [FreeTestResultController::class, 'index'])
+                    ->name('free-test-results.index');
 
                 Route::resource('free-test-categories', FreeTestCategoryController::class)
                     ->parameters([

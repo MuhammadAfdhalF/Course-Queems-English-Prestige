@@ -252,6 +252,19 @@
                         </x-slot:icon>
                         Free Tests
                     </x-admin.sidebar-item>
+
+                    <x-admin.sidebar-item
+                        :href="route('admin.cms.free-test-results.index')"
+                        :active="request()->routeIs('admin.cms.free-test-results.*')">
+                        <x-slot:icon>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4" />
+                                <rect x="4" y="4" width="16" height="16" rx="2" stroke-width="1.8" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 8h8M8 16h5" />
+                            </svg>
+                        </x-slot:icon>
+                        Free Test Results
+                    </x-admin.sidebar-item>
                 </nav>
             </div>
         </div>
