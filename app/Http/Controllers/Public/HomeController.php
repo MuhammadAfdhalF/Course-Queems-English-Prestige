@@ -31,10 +31,10 @@ class HomeController extends Controller
         $whyChooseUsItems = WhyChooseUs::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->latest()
-            ->limit(6)
+            ->orderBy('id')
+            ->limit(10)
             ->get();
-
+            
         $featuredCourses = CourseLevel::query()
             ->where('is_active', true)
             ->with('courseProgram')

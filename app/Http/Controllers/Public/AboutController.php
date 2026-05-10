@@ -39,8 +39,8 @@ class AboutController extends Controller
         $whyChooseUsItems = WhyChooseUs::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->latest()
-            ->limit(4)
+            ->orderBy('id')
+            ->limit(6)
             ->get();
 
         return view('pages.public.about', compact(
