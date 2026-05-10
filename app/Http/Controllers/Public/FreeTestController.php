@@ -4,13 +4,34 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\FreeTest;
+use App\Models\FreeTestCategory;
 use App\Models\FreeTestResult;
 use Illuminate\Http\Request;
 
 class FreeTestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $selectedCategory = $request->query('category');
+
+        $freeTestCategories = FreeTestCategory::query()
+            ->where('is_active', true)
+            ->withCount([
+                'freeTests' => function ($query) {
+                    $query->where('is_active', true);
+                },
+            ])
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        if (
+            filled($selectedCategory)
+            && ! $freeTestCategories->contains('slug', $selectedCategory)
+        ) {
+            $selectedCategory = null;
+        }
+
         $freeTests = FreeTest::query()
             ->where('is_active', true)
             ->with('categoryRelation')
@@ -19,6 +40,11 @@ class FreeTestController extends Controller
                     $query->where('is_active', true);
                 },
             ])
+            ->when(filled($selectedCategory), function ($query) use ($selectedCategory) {
+                $query->whereHas('categoryRelation', function ($categoryQuery) use ($selectedCategory) {
+                    $categoryQuery->where('slug', $selectedCategory);
+                });
+            })
             ->orderBy('id')
             ->get();
 
@@ -26,7 +52,9 @@ class FreeTestController extends Controller
 
         return view('pages.public.free-test', compact(
             'freeTests',
-            'firstFreeTest'
+            'firstFreeTest',
+            'freeTestCategories',
+            'selectedCategory'
         ));
     }
 
