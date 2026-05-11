@@ -38,4 +38,14 @@
         class="rounded-full border px-6 py-2.5 text-sm font-semibold transition-all duration-200">
         Completed
     </button>
+
+    <button
+        type="button"
+        @click="activeTab = 'rejected'"
+        :class="activeTab === 'rejected'
+            ? 'bg-[var(--color-brand-blue)] text-white border-[var(--color-brand-blue)] shadow-sm'
+            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'"
+        class="rounded-full border px-6 py-2.5 text-sm font-semibold transition-all duration-200">
+        Rejected
+    </button>
 </div>

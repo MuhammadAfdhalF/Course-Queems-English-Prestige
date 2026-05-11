@@ -5,7 +5,11 @@
         </h1>
 
         <p class="mt-2 text-lg text-slate-500">
-            You have 3 active courses this semester.
+            @if ($totalCourseCount > 0)
+            You have {{ $activeCourseCount }} active {{ Str::plural('course', $activeCourseCount) }}.
+            @else
+            Your approved courses and pending orders will appear here.
+            @endif
         </p>
     </div>
 

@@ -16,7 +16,10 @@
 $statusClasses = match ($status) {
 'active' => 'border-emerald-200 bg-emerald-50 text-emerald-600',
 'completed' => 'border-blue-200 bg-blue-50 text-[var(--color-brand-blue)]',
-'pending' => 'border-slate-200 bg-slate-100 text-slate-500',
+'pending' => 'border-yellow-200 bg-yellow-50 text-[var(--color-brand-gold)]',
+'rejected' => 'border-rose-200 bg-rose-50 text-rose-600',
+'expired' => 'border-orange-200 bg-orange-50 text-orange-600',
+'cancelled' => 'border-slate-200 bg-slate-100 text-slate-500',
 default => 'border-slate-200 bg-slate-100 text-slate-500',
 };
 
@@ -24,13 +27,16 @@ $progressBarClasses = match ($status) {
 'active' => 'bg-[var(--color-brand-gold)]',
 'completed' => 'bg-[var(--color-brand-blue)]',
 'pending' => 'bg-slate-300',
+'rejected' => 'bg-rose-300',
+'expired' => 'bg-orange-300',
+'cancelled' => 'bg-slate-300',
 default => 'bg-[var(--color-brand-blue)]',
 };
 
 $primaryButtonClasses = match ($status) {
 'active' => 'bg-[var(--color-brand-blue)] text-white hover:opacity-95',
 'completed' => 'border border-[var(--color-brand-blue)] bg-white text-[var(--color-brand-blue)] hover:bg-blue-50',
-'pending' => 'bg-slate-200 text-slate-500 cursor-not-allowed',
+'pending', 'rejected', 'expired', 'cancelled' => 'bg-slate-200 text-slate-500 cursor-not-allowed',
 default => 'bg-[var(--color-brand-blue)] text-white',
 };
 
@@ -38,6 +44,8 @@ $secondaryButtonClasses = match ($status) {
 'active' => 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900',
 'completed' => 'border border-slate-300 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900',
 'pending' => 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900',
+'rejected' => 'border border-rose-200 bg-white text-rose-600 hover:bg-rose-50',
+'expired', 'cancelled' => 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900',
 default => 'border border-slate-300 bg-white text-slate-600',
 };
 
@@ -48,6 +56,8 @@ $primaryHref = route('student.learning-path');
 } elseif ($status === 'completed') {
 $primaryHref = '#';
 }
+
+$isPrimaryDisabled = in_array($status, ['pending', 'rejected', 'expired', 'cancelled'], true);
 @endphp
 
 <div class="group overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
@@ -87,7 +97,7 @@ $primaryHref = '#';
                     </div>
                 </div>
 
-                @if($status !== 'pending')
+                @if(in_array($status, ['active', 'completed'], true))
                 <div class="mt-7 space-y-2">
                     <div class="flex items-center justify-between text-[13px] font-bold uppercase tracking-[0.08em] text-slate-600">
                         <span>{{ $progressLabel }}</span>
@@ -108,7 +118,7 @@ $primaryHref = '#';
             </div>
 
             <div class="mt-7 flex flex-col gap-3 sm:flex-row">
-                @if($status === 'pending')
+                @if($isPrimaryDisabled)
                 <button
                     type="button"
                     class="pointer-events-none inline-flex h-12 items-center justify-center rounded-xl px-6 text-base font-bold transition {{ $primaryButtonClasses }} sm:min-w-[210px]">
