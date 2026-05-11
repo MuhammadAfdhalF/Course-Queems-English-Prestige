@@ -31,7 +31,10 @@ use App\Http\Controllers\Public\InformationController as PublicInformationContro
 use App\Http\Controllers\Public\HomeController as PublicHomeController;
 use App\Http\Controllers\Public\FreeTestController as PublicFreeTestController;
 use App\Http\Controllers\Admin\Cms\FreeTestResultController;
+use App\Http\Controllers\Auth\AuthController;
 
+// sementara logout
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
 /*
 |--------------------------------------------------------------------------
@@ -61,9 +64,17 @@ Route::get('/contact', [PublicContactController::class, 'index'])->name('contact
 |--------------------------------------------------------------------------
 */
 
-Route::view('/login', 'pages.auth.login')->name('login');
-Route::view('/register', 'pages.auth.register')->name('register');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.store');
 
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.store');
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
 
 /*
 |--------------------------------------------------------------------------
@@ -71,7 +82,8 @@ Route::view('/register', 'pages.auth.register')->name('register');
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('student')
+Route::middleware(['auth', 'role:student'])
+    ->prefix('student')
     ->name('student.')
     ->group(function () {
         Route::view('/', 'pages.student.dashboard')->name('dashboard');
@@ -97,7 +109,8 @@ Route::prefix('student')
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
     ->name('admin.')
     ->group(function () {
         Route::view('/', 'pages.admin.dashboard')->name('dashboard');

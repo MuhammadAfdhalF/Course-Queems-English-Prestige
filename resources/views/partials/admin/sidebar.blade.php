@@ -282,15 +282,22 @@
                 Admin Profile
             </x-admin.sidebar-item>
 
-            <x-admin.sidebar-item href="#" class="text-rose-600 hover:bg-rose-50 hover:text-rose-600">
-                <x-slot:icon>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H9" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 20H6a2 2 0 01-2-2V6a2 2 0 012-2h7" />
-                    </svg>
-                </x-slot:icon>
-                Logout
-            </x-admin.sidebar-item>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+
+                <button
+                    type="submit"
+                    class="motion-button flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-600">
+                    <span class="shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H9" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 20H6a2 2 0 01-2-2V6a2 2 0 012-2h7" />
+                        </svg>
+                    </span>
+
+                    <span>Logout</span>
+                </button>
+            </form>
         </div>
     </div>
 </aside>

@@ -20,7 +20,8 @@
             </p>
         </div>
     </footer>
-    </div>
+
+    @stack('scripts')
 </body>
 
-</html>
+</html>resources/views/partials/auth/login-form.blade.php

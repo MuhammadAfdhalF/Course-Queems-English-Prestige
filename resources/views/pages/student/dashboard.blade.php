@@ -2,6 +2,7 @@
 
 @section('content')
 <section class="mx-auto max-w-7xl space-y-8">
+    
     @include('partials.student.dashboard.pending-banner-section')
     @include('partials.student.dashboard.header')
     @include('partials.student.dashboard.hero-cards')
