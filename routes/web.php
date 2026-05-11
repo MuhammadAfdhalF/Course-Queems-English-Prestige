@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\CourseManagement\ModulePracticeQuestionController
 use App\Http\Controllers\Admin\CourseManagement\FinalExamController;
 use App\Http\Controllers\Admin\CourseManagement\FinalExamQuestionController;
 use App\Http\Controllers\Public\CourseController as PublicCourseController;
+use App\Http\Controllers\Public\CourseOrderController as PublicCourseOrderController;
 use App\Http\Controllers\Public\ContactController as PublicContactController;
 use App\Http\Controllers\Public\AboutController as PublicAboutController;
 use App\Http\Controllers\Public\InformationController as PublicInformationController;
@@ -47,6 +48,14 @@ Route::get('/about-us', [PublicAboutController::class, 'index'])->name('about');
 
 Route::get('/courses', [PublicCourseController::class, 'index'])->name('courses');
 Route::get('/courses/{courseLevel:slug}', [PublicCourseController::class, 'show'])->name('courses.show');
+
+Route::middleware(['auth', 'role:student'])->group(function () {
+    Route::get('/courses/{courseLevel:slug}/order', [PublicCourseOrderController::class, 'create'])
+        ->name('courses.order.create');
+
+    Route::post('/courses/{courseLevel:slug}/order', [PublicCourseOrderController::class, 'store'])
+        ->name('courses.order.store');
+});
 
 Route::get('/free-test', [PublicFreeTestController::class, 'index'])->name('free-test');
 Route::get('/free-test/{freeTest}', [PublicFreeTestController::class, 'show'])->name('free-test.show');

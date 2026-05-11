@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\CourseLevel;
 use App\Models\CourseProgram;
+use App\Models\Order;
+use App\Models\StudentCourseEnrollment;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
@@ -83,7 +85,30 @@ class CourseController extends Controller
             404
         );
 
-        return view('pages.public.course-detail', compact('courseLevel'));
+        $hasPendingOrder = false;
+        $hasActiveEnrollment = false;
+
+        if (auth()->check() && auth()->user()->isStudent()) {
+            $studentId = auth()->id();
+
+            $hasPendingOrder = Order::query()
+                ->where('student_id', $studentId)
+                ->where('course_level_id', $courseLevel->id)
+                ->where('status', 'pending')
+                ->exists();
+
+            $hasActiveEnrollment = StudentCourseEnrollment::query()
+                ->where('student_id', $studentId)
+                ->where('course_level_id', $courseLevel->id)
+                ->where('status', 'active')
+                ->exists();
+        }
+
+        return view('pages.public.course-detail', compact(
+            'courseLevel',
+            'hasPendingOrder',
+            'hasActiveEnrollment'
+        ));
     }
 
     private function formatLearningMode(?string $learningMode): string
