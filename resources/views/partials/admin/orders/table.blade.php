@@ -9,7 +9,7 @@
         <th class="px-6 py-4 text-center">Action</th>
     </x-slot:head>
 
-    <template x-for="order in orders" :key="order.id">
+    <template x-for="order in orders" :key="order.databaseId">
         <tr
             x-show="matches(order)"
             x-transition.opacity.duration.200ms
@@ -18,7 +18,7 @@
                 <button
                     type="button"
                     @click="openOrder(order)"
-                    class="max-w-[78px] text-left text-base font-extrabold leading-tight text-slate-900 transition hover:text-[var(--color-brand-blue)]"
+                    class="max-w-[120px] text-left text-base font-extrabold leading-tight text-slate-900 transition hover:text-[var(--color-brand-blue)]"
                     x-text="order.id">
                 </button>
             </td>
@@ -38,8 +38,9 @@
                 </div>
             </td>
 
-            <td class="max-w-[190px] px-6 py-5">
+            <td class="max-w-[230px] px-6 py-5">
                 <p class="text-base font-bold leading-6 text-slate-700" x-text="order.course"></p>
+                <p class="mt-1 text-xs font-semibold text-slate-400" x-text="order.program"></p>
             </td>
 
             <td class="whitespace-nowrap px-6 py-5 text-base font-extrabold text-slate-900" x-text="order.price"></td>
@@ -50,7 +51,8 @@
                     :class="{
                         'bg-yellow-50 text-[var(--color-brand-gold)] ring-1 ring-yellow-100': order.status === 'pending',
                         'bg-blue-50 text-[var(--color-brand-blue)] ring-1 ring-blue-100': order.status === 'approved',
-                        'bg-rose-50 text-rose-600 ring-1 ring-rose-100': order.status === 'rejected'
+                        'bg-rose-50 text-rose-600 ring-1 ring-rose-100': order.status === 'rejected',
+                        'bg-slate-100 text-slate-600 ring-1 ring-slate-200': order.status === 'cancelled'
                     }"
                     x-text="order.statusLabel">
                 </span>
@@ -79,6 +81,6 @@
     </tr>
 
     <x-slot:footer>
-        <x-admin.pagination text="Showing 1-10 of 910 orders" />
+        <x-admin.pagination text="Showing {{ $orderCount }} course orders" />
     </x-slot:footer>
 </x-admin.data-table>

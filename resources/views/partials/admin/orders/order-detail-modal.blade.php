@@ -21,7 +21,8 @@
                         :class="{
                             'bg-yellow-50 text-[var(--color-brand-gold)] ring-1 ring-yellow-100': selectedOrder.status === 'pending',
                             'bg-blue-50 text-[var(--color-brand-blue)] ring-1 ring-blue-100': selectedOrder.status === 'approved',
-                            'bg-rose-50 text-rose-600 ring-1 ring-rose-100': selectedOrder.status === 'rejected'
+                            'bg-rose-50 text-rose-600 ring-1 ring-rose-100': selectedOrder.status === 'rejected',
+                            'bg-slate-100 text-slate-600 ring-1 ring-slate-200': selectedOrder.status === 'cancelled'
                         }"
                         x-text="selectedOrder.statusLabel">
                     </span>
@@ -51,6 +52,13 @@
 
                     <div>
                         <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                            Program
+                        </p>
+                        <p class="mt-1 text-sm font-bold text-slate-900" x-text="selectedOrder.program"></p>
+                    </div>
+
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
                             Price
                         </p>
                         <p class="mt-1 text-sm font-extrabold text-slate-900" x-text="selectedOrder.price"></p>
@@ -62,6 +70,24 @@
                         </p>
                         <p class="mt-1 text-sm font-bold text-slate-900" x-text="selectedOrder.orderDate"></p>
                     </div>
+
+                    <template x-if="selectedOrder.approvedAt">
+                        <div>
+                            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                                Approved At
+                            </p>
+                            <p class="mt-1 text-sm font-bold text-slate-900" x-text="selectedOrder.approvedAt"></p>
+                        </div>
+                    </template>
+
+                    <template x-if="selectedOrder.rejectedAt">
+                        <div>
+                            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                                Rejected At
+                            </p>
+                            <p class="mt-1 text-sm font-bold text-slate-900" x-text="selectedOrder.rejectedAt"></p>
+                        </div>
+                    </template>
                 </div>
             </div>
 
@@ -81,7 +107,7 @@
                             </h3>
 
                             <p class="mt-1 text-sm leading-6 text-slate-500">
-                                Confirm payment with the student before approving this order.
+                                Confirm payment or enrollment details with the student before approving this order.
                             </p>
 
                             <p class="mt-2 text-base font-extrabold text-emerald-700" x-text="selectedOrder.whatsapp"></p>
@@ -110,32 +136,42 @@
                 </div>
             </div>
 
+            {{-- STUDENT NOTE --}}
+            <template x-if="selectedOrder.note">
+                <div class="rounded-2xl border border-slate-200 bg-white p-5">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                        Current Note
+                    </p>
+
+                    <p class="mt-2 text-sm font-medium leading-6 text-slate-600" x-text="selectedOrder.note"></p>
+                </div>
+            </template>
+
             {{-- ADMIN NOTE --}}
-            <div>
+            <div x-show="selectedOrder.status === 'pending'">
                 <label class="mb-2 block text-sm font-extrabold text-slate-900">
                     Admin Note
+                    <span class="font-semibold text-slate-400">(optional)</span>
                 </label>
 
                 <textarea
+                    x-model="adminNote"
                     rows="3"
                     placeholder="Enter internal notes here..."
                     class="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-blue-100"></textarea>
             </div>
 
-            {{-- REJECT REASON --}}
-            <div>
-                <label class="mb-2 block text-sm font-extrabold text-slate-900">
-                    Reject Reason
-                    <span class="font-semibold text-slate-400">(if applicable)</span>
-                </label>
+            {{-- FINAL STATUS INFO --}}
+            <div
+                x-show="selectedOrder.status !== 'pending'"
+                class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h3 class="text-sm font-extrabold text-slate-900">
+                    Order Already Processed
+                </h3>
 
-                <select class="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 outline-none transition focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-blue-100">
-                    <option>Select a reason...</option>
-                    <option>Payment not confirmed</option>
-                    <option>Student cancelled order</option>
-                    <option>Invalid enrollment data</option>
-                    <option>Duplicate order</option>
-                </select>
+                <p class="mt-2 text-sm leading-6 text-slate-500">
+                    This order has already been processed. Approve and reject actions are only available for pending orders.
+                </p>
             </div>
         </div>
     </template>
@@ -143,23 +179,39 @@
     <x-slot:footer>
         <button
             type="button"
-            @click="orderModalOpen = false"
+            @click="closeOrder()"
             class="h-11 rounded-xl px-5 text-sm font-extrabold text-slate-500 transition hover:text-slate-700">
-            Cancel
+            Close
         </button>
 
-        <button
-            type="button"
-            @click="rejectOrder()"
-            class="h-11 rounded-xl border border-rose-200 bg-white px-5 text-sm font-extrabold text-rose-600 transition hover:bg-rose-50">
-            Reject Order
-        </button>
+        <template x-if="selectedOrder && selectedOrder.status === 'pending'">
+            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+                <form :action="selectedOrder.rejectUrl" method="POST">
+                    @csrf
+                    @method('PUT')
 
-        <button
-            type="button"
-            @click="approveOrder()"
-            class="h-11 rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-extrabold text-white shadow-md transition hover:opacity-95">
-            Approve Order
-        </button>
+                    <input type="hidden" name="note" :value="adminNote">
+
+                    <button
+                        type="submit"
+                        class="h-11 rounded-xl border border-rose-200 bg-white px-5 text-sm font-extrabold text-rose-600 transition hover:bg-rose-50">
+                        Reject Order
+                    </button>
+                </form>
+
+                <form :action="selectedOrder.approveUrl" method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    <input type="hidden" name="note" :value="adminNote">
+
+                    <button
+                        type="submit"
+                        class="h-11 rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-extrabold text-white shadow-md transition hover:opacity-95">
+                        Approve Order
+                    </button>
+                </form>
+            </div>
+        </template>
     </x-slot:footer>
 </x-admin.modal>

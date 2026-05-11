@@ -1,23 +1,9 @@
 <div class="pt-1">
-    <x-admin.filter-bar class="lg:grid-cols-[minmax(0,2fr)_220px_220px]">
+    <x-admin.filter-bar class="lg:grid-cols-[minmax(0,1fr)]">
         <div>
             <x-admin.filter-search
                 x-model="search"
-                placeholder="Search by Order ID, student, or course..." />
+                placeholder="Search by order code, student, email, course, or program..." />
         </div>
-
-        <x-ui.select>
-            <option>Date Range</option>
-            <option>Today</option>
-            <option>This Week</option>
-            <option>This Month</option>
-        </x-ui.select>
-
-        <x-ui.select>
-            <option>All Courses</option>
-            <option>Advanced IELTS Prep</option>
-            <option>Business English Elite</option>
-            <option>General English 101</option>
-        </x-ui.select>
     </x-admin.filter-bar>
 </div>

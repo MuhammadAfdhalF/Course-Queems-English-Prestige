@@ -2,11 +2,11 @@
     title="Course Orders"
     description="Review and process student enrollment requests for prestige courses.">
     <x-slot:actions>
-        <x-ui.button variant="outline" class="px-5 py-3">
-            Export CSV
-        </x-ui.button>
-
-        <x-ui.button class="px-5 py-3">
+        <x-ui.button
+            type="button"
+            variant="outline"
+            class="px-5 py-3"
+            @click="activeTab = 'pending'">
             View Pending Orders
         </x-ui.button>
     </x-slot:actions>

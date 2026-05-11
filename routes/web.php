@@ -33,6 +33,7 @@ use App\Http\Controllers\Public\HomeController as PublicHomeController;
 use App\Http\Controllers\Public\FreeTestController as PublicFreeTestController;
 use App\Http\Controllers\Admin\Cms\FreeTestResultController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Admin\Order\CourseOrderController;
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -272,7 +273,15 @@ Route::middleware(['auth', 'role:admin'])
                     ->name('final-exams.preview');
             });
 
-        Route::view('/orders', 'pages.admin.orders.index')->name('orders.index');
+        Route::get('/orders', [CourseOrderController::class, 'index'])
+            ->name('orders.index');
+
+        Route::put('/orders/{order}/approve', [CourseOrderController::class, 'approve'])
+            ->name('orders.approve');
+
+        Route::put('/orders/{order}/reject', [CourseOrderController::class, 'reject'])
+            ->name('orders.reject');
+
         Route::view('/students', 'pages.admin.students.index')->name('students.index');
 
         Route::prefix('cms')
