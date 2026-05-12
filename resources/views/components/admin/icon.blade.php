@@ -77,8 +77,8 @@ $baseClass = $attributes->get('class', 'h-5 w-5');
 @case('book')
 @case('module')
 <svg {{ $attributes->merge(['class' => $baseClass]) }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 5.25h6.75A2.25 2.25 0 0113.5 7.5v11.25a2.25 2.25 0 00-2.25-2.25H4.5A1.5 1.5 0 013 15V6.75a1.5 1.5 0 011.5-1.5z" />
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 5.25h-6.75A2.25 2.25 0 0010.5 7.5v11.25a2.25 2.25 0 012.25-2.25h6.75A1.5 1.5 0 0021 15V6.75a1.5 1.5 0 00-1.5-1.5z" />
+    <rect x="4" y="5" width="16" height="14" rx="2" stroke-width="2" />
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9h8M8 13h5M8 17h4" />
 </svg>
 @break
 
