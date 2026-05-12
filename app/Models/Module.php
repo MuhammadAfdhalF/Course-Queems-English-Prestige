@@ -13,8 +13,6 @@ class Module extends Model
         'title',
         'slug',
         'short_description',
-        'opening_media_type',
-        'opening_media_file',
         'sort_order',
         'is_preview',
         'is_active',
@@ -40,6 +38,7 @@ class Module extends Model
     {
         return $this->hasMany(ModulePractice::class);
     }
+
     public function studentProgress(): HasMany
     {
         return $this->hasMany(StudentModuleProgress::class);

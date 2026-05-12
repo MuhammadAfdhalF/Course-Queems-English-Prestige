@@ -9,18 +9,12 @@
         createModalOpen: {{ $errors->any() && old('_form_type') === 'create' ? 'true' : 'false' }},
         editModalOpen: {{ $errors->any() && old('_form_type') === 'edit' ? 'true' : 'false' }},
         deleteModalOpen: false,
-        imagePreviewModalOpen: false,
 
         selectedModule: null,
 
         selectedItem: {
             title: '',
             delete_url: '#'
-        },
-
-        previewImage: {
-            title: '',
-            url: '',
         },
 
         openEditModal(item) {
@@ -31,11 +25,6 @@
         openDeleteModal(item) {
             this.selectedItem = item;
             this.deleteModalOpen = true;
-        },
-
-        openImagePreview(image) {
-            this.previewImage = image;
-            this.imagePreviewModalOpen = true;
         }
     }"
     class="mx-auto max-w-7xl space-y-6">
@@ -55,10 +44,5 @@
         form-id="deleteModuleForm"
         form-action="selectedItem.delete_url"
         message="Are you sure you want to delete this module?" />
-
-    <x-admin.image-preview-modal
-        model="imagePreviewModalOpen"
-        title="Opening Media Preview"
-        subtitle="Preview module opening image." />
 </section>
 @endsection

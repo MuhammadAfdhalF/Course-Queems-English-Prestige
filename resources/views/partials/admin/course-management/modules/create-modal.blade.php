@@ -9,7 +9,6 @@
             title: @js(old('_form_type') === 'create' ? old('title', '') : ''),
             slug: @js(old('_form_type') === 'create' ? old('slug', '') : ''),
             autoSlug: {{ old('_form_type') === 'create' && old('slug') ? 'false' : 'true' }},
-            openingMediaType: @js(old('_form_type') === 'create' ? old('opening_media_type', 'image') : 'image'),
 
             syncSlug() {
                 if (this.autoSlug) {
@@ -24,7 +23,6 @@
         }"
         action="{{ route('admin.course-management.levels.modules.store', $courseLevel) }}"
         method="POST"
-        enctype="multipart/form-data"
         class="space-y-6">
         @csrf
 
@@ -56,26 +54,6 @@
             :value="old('_form_type') === 'create' ? old('short_description') : ''"
             placeholder="Write a short summary for this module..."
             rows="3" />
-
-        <div class="grid gap-6 md:grid-cols-2">
-            <x-admin.form.select
-                label="Opening Media Type"
-                name="opening_media_type"
-                id="create_opening_media_type"
-                x-model="openingMediaType"
-                :options="[
-                    'image' => 'Image',
-                    'video' => 'Video',
-                ]"
-                :required="true" />
-
-            <x-admin.form.file
-                label="Opening Media File"
-                name="opening_media_file"
-                id="create_opening_media_file"
-                accept="image/*,video/*"
-                hint="Image max 4MB. Video max 20MB." />
-        </div>
 
         <div class="grid gap-6 md:grid-cols-3">
             <x-admin.form.input

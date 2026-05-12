@@ -28,24 +28,7 @@
             </p>
             @endif
         </div>
-
-        {{-- OPENING MEDIA --}}
-        @if ($module->opening_media_file)
-        <div class="border-b border-slate-200 bg-slate-50 px-4 py-4 lg:px-6 lg:py-6">
-            @if ($module->opening_media_type === 'video')
-            <video
-                src="{{ asset('storage/' . $module->opening_media_file) }}"
-                controls
-                class="w-full rounded-2xl bg-slate-900 shadow-sm">
-            </video>
-            @else
-            <img
-                src="{{ asset('storage/' . $module->opening_media_file) }}"
-                alt="{{ $module->title }}"
-                class="w-full rounded-2xl object-cover shadow-sm">
-            @endif
-        </div>
-        @endif
+  
 
         {{-- LESSON CONTENT --}}
         <div class="px-6 py-7 lg:px-9 lg:py-8">

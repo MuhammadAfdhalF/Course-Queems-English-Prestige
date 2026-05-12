@@ -11,19 +11,11 @@
 
     @forelse ($modules as $module)
     @php
-    $mediaPayload = [
-    'title' => $module->title,
-    'url' => $module->opening_media_file ? asset('storage/' . $module->opening_media_file) : null,
-    ];
-
     $editPayload = [
     'id' => $module->id,
     'title' => $module->title,
     'slug' => $module->slug,
     'short_description' => $module->short_description,
-    'opening_media_type' => $module->opening_media_type,
-    'opening_media_file' => $module->opening_media_file,
-    'opening_media_url' => $module->opening_media_file ? asset('storage/' . $module->opening_media_file) : null,
     'sort_order' => $module->sort_order,
     'is_preview' => (bool) $module->is_preview,
     'is_active' => (bool) $module->is_active,
@@ -39,31 +31,10 @@
 
     <tr class="text-sm text-slate-700">
         <td class="max-w-xl px-6 py-4">
-            <div class="flex items-center gap-3">
-                @if ($module->opening_media_file && $module->opening_media_type === 'image')
-                <button
-                    type="button"
-                    title="Preview Opening Image"
-                    @click='openImagePreview(@json($mediaPayload))'
-                    class="group relative h-14 w-24 shrink-0 overflow-hidden rounded-xl">
-                    <img
-                        src="{{ asset('storage/' . $module->opening_media_file) }}"
-                        alt="{{ $module->title }}"
-                        class="h-full w-full object-cover transition duration-200 group-hover:scale-105">
-
-                    <span class="absolute inset-0 flex items-center justify-center bg-slate-900/0 text-white transition group-hover:bg-slate-900/40">
-                        <x-admin.icon name="eye" class="h-5 w-5 opacity-0 transition group-hover:opacity-100" />
-                    </span>
-                </button>
-                @elseif ($module->opening_media_file && $module->opening_media_type === 'video')
-                <div class="flex h-14 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white">
-                    <x-admin.icon name="play" class="h-5 w-5" />
+            <div class="flex items-start gap-3">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[var(--color-brand-blue)]">
+                    <x-admin.icon name="book" class="h-5 w-5" />
                 </div>
-                @else
-                <div class="flex h-14 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-                    <x-admin.icon name="image" class="h-5 w-5" />
-                </div>
-                @endif
 
                 <div class="min-w-0">
                     <p class="font-semibold text-slate-900">
