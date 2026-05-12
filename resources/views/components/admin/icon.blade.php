@@ -74,6 +74,29 @@ $baseClass = $attributes->get('class', 'h-5 w-5');
 </svg>
 @break
 
+@case('book')
+@case('module')
+<svg {{ $attributes->merge(['class' => $baseClass]) }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 5.25h6.75A2.25 2.25 0 0113.5 7.5v11.25a2.25 2.25 0 00-2.25-2.25H4.5A1.5 1.5 0 013 15V6.75a1.5 1.5 0 011.5-1.5z" />
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 5.25h-6.75A2.25 2.25 0 0010.5 7.5v11.25a2.25 2.25 0 012.25-2.25h6.75A1.5 1.5 0 0021 15V6.75a1.5 1.5 0 00-1.5-1.5z" />
+</svg>
+@break
+
+@case('materials')
+@case('clipboard')
+<svg {{ $attributes->merge(['class' => $baseClass]) }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <rect x="6" y="3" width="12" height="18" rx="2.2" stroke-width="2" />
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6M9 12h6M9 16h4" />
+</svg>
+@break
+
+@case('practice')
+<svg {{ $attributes->merge(['class' => $baseClass]) }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <rect x="4" y="4" width="16" height="16" rx="2" stroke-width="1.8" />
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 8h8M8 12h5M9 16l1.5 1.5L15 13" />
+</svg>
+@break
+
 @default
 <svg {{ $attributes->merge(['class' => $baseClass]) }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <circle cx="12" cy="12" r="9" stroke-width="1.8" />
