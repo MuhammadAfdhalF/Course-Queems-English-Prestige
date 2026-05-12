@@ -27,8 +27,7 @@ class LearningController extends Controller
                                 ->orderBy('title');
                         },
                         'practices' => function ($practiceQuery) {
-                            $practiceQuery
-                                ->where('is_active', true);
+                            $practiceQuery->where('is_active', true);
                         },
                     ])
                     ->orderBy('sort_order')
@@ -40,8 +39,11 @@ class LearningController extends Controller
         ]);
 
         $courseLevel = $enrollment->courseLevel;
-        $modulesCollection = $courseLevel?->modules ?? collect();
-        $finalExam = $courseLevel?->finalExams?->first();
+
+        abort_unless($courseLevel, 404);
+
+        $modulesCollection = $courseLevel->modules ?? collect();
+        $finalExam = $courseLevel->finalExams?->first();
 
         $modules = $modulesCollection
             ->values()
@@ -68,7 +70,7 @@ class LearningController extends Controller
             'modules' => $modules,
             'modulesCount' => count($modules),
             'finalExam' => $finalExam,
-            'continueHref' => $modules[0]['href'] ?? '#',
+            'continueHref' => $modules[0]['href'] ?? route('student.my-courses'),
         ]);
     }
 
@@ -77,6 +79,8 @@ class LearningController extends Controller
         $this->authorizeEnrollment($enrollment);
 
         $enrollment->load('courseLevel.courseProgram');
+
+        abort_unless($enrollment->courseLevel, 404);
 
         abort_unless(
             $module->course_level_id === $enrollment->course_level_id,
