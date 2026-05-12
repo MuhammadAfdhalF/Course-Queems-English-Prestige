@@ -36,6 +36,8 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\Order\CourseOrderController;
 use App\Http\Controllers\Student\MyCourseController;
 use App\Http\Controllers\Student\DashboardController;
+use App\Http\Controllers\Student\LearningController;
+
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -100,12 +102,15 @@ Route::middleware(['auth', 'role:student'])
     ->group(function () {
         Route::get('/', [DashboardController::class, 'index'])
             ->name('dashboard');
-            
+
         Route::get('/my-courses', [MyCourseController::class, 'index'])
             ->name('my-courses');
-        Route::view('/my-courses/toefl-preparation-mastery', 'pages.student.learning-path')->name('learning-path');
+        Route::get('/my-courses/{enrollment}', [LearningController::class, 'show'])
+            ->name('learning-path');
 
-        Route::view('/my-courses/toefl-preparation-mastery/module-01', 'pages.student.module-material')->name('module-material');
+        Route::get('/my-courses/{enrollment}/modules/{module}', [LearningController::class, 'module'])
+            ->name('module-material');
+
         Route::view('/my-courses/toefl-preparation-mastery/module-01/practice', 'pages.student.module-practice')->name('module-practice');
         Route::view('/my-courses/toefl-preparation-mastery/module-01/completed', 'pages.student.module-completed')->name('module-completed');
 

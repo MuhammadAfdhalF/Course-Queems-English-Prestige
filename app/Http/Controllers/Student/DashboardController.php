@@ -44,6 +44,7 @@ class DashboardController extends Controller
             ->with('courseLevel.courseProgram')
             ->where('student_id', $student->id)
             ->where('status', 'active')
+            ->whereHas('courseLevel')
             ->latest('enrolled_at')
             ->latest()
             ->limit(4)
@@ -56,6 +57,7 @@ class DashboardController extends Controller
                     'level' => $courseLevel?->courseProgram?->name ?? 'Course Program',
                     'progress' => (int) $enrollment->progress_percentage,
                     'image' => $this->courseImage($courseLevel),
+                    'href' => route('student.learning-path', $enrollment),
                 ];
             })
             ->all();

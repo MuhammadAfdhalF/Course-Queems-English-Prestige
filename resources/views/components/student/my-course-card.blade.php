@@ -10,6 +10,8 @@
 'image' => 'https://placehold.co/800x600',
 'primaryButton' => 'Continue Learning',
 'secondaryButton' => 'Chat Admin',
+'primaryHref' => '#',
+
 ])
 
 @php
@@ -49,13 +51,7 @@ $secondaryButtonClasses = match ($status) {
 default => 'border border-slate-300 bg-white text-slate-600',
 };
 
-$primaryHref = '#';
-
-if ($status === 'active') {
-$primaryHref = route('student.learning-path');
-} elseif ($status === 'completed') {
-$primaryHref = '#';
-}
+$primaryHrefValue = $primaryHref;
 
 $isPrimaryDisabled = in_array($status, ['pending', 'rejected', 'expired', 'cancelled'], true);
 @endphp
@@ -126,7 +122,7 @@ $isPrimaryDisabled = in_array($status, ['pending', 'rejected', 'expired', 'cance
                 </button>
                 @else
                 <a
-                    href="{{ $primaryHref }}"
+                    href="{{ $primaryHrefValue }}"
                     class="inline-flex h-12 items-center justify-center rounded-xl px-6 text-base font-bold transition {{ $primaryButtonClasses }} sm:min-w-[210px]">
                     {{ $primaryButton }}
                 </a>

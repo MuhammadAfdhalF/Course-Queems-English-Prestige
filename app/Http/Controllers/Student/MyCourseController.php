@@ -42,6 +42,8 @@ class MyCourseController extends Controller
                         ? 'View Certificate'
                         : 'Continue Learning',
                     'secondaryButton' => 'Chat Admin',
+                    'primaryHref' => route('student.learning-path', $enrollment),
+
                 ];
             });
 
@@ -89,6 +91,7 @@ class MyCourseController extends Controller
                     'image' => $this->courseImage($courseLevel),
                     'primaryButton' => 'Module Locked',
                     'secondaryButton' => 'Chat Admin',
+                    'primaryHref' => '#',
                 ];
             });
 

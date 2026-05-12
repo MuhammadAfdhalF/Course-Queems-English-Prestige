@@ -3,9 +3,46 @@
 'level' => 'B1 Intermediate',
 'progress' => 75,
 'image' => 'https://placehold.co/800x500',
+'href' => null,
 ])
 
-<div {{ $attributes->merge(['class' => 'group overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md']) }}>
+@php
+$cardClasses = 'group block overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md';
+@endphp
+
+@if ($href)
+<a href="{{ $href }}" {{ $attributes->merge(['class' => $cardClasses]) }}>
+    <div class="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        <img src="{{ $image }}" alt="{{ $title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+
+        <div class="absolute right-3 top-3">
+            <span class="inline-flex items-center rounded-lg bg-[#D4A017] px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-sm">
+                {{ $level }}
+            </span>
+        </div>
+    </div>
+
+    <div class="space-y-4 p-5">
+        <h3 class="text-[30px] font-bold leading-tight text-slate-900">
+            {{ $title }}
+        </h3>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between text-base text-slate-500">
+                <span>Progress</span>
+                <span class="font-semibold text-slate-500">{{ $progress }}%</span>
+            </div>
+
+            <div class="h-3 overflow-hidden rounded-full bg-slate-200">
+                <div
+                    class="h-full rounded-full bg-[#1847D1] transition-all duration-700 ease-out"
+                    style="width: {{ $progress }}%"></div>
+            </div>
+        </div>
+    </div>
+</a>
+@else
+<div {{ $attributes->merge(['class' => $cardClasses]) }}>
     <div class="relative aspect-[4/3] overflow-hidden bg-slate-100">
         <img src="{{ $image }}" alt="{{ $title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
 
@@ -35,3 +72,4 @@
         </div>
     </div>
 </div>
+@endif

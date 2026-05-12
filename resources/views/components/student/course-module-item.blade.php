@@ -4,6 +4,7 @@
 'status' => 'completed', // completed | current | locked
 'buttonText' => 'Review',
 'note' => '',
+'href' => '#',
 ])
 
 @php
@@ -41,11 +42,7 @@ $buttonClasses = match ($status) {
 default => 'border border-slate-300 bg-white text-slate-700',
 };
 
-$href = '#';
 
-if ($status === 'current') {
-$href = route('student.module-material');
-}
 @endphp
 
 <div class="rounded-[20px] border px-5 py-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md {{ $wrapperClasses }}">

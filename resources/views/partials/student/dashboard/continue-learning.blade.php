@@ -34,7 +34,8 @@
                 :title="$course['title']"
                 :level="$course['level']"
                 :progress="$course['progress']"
-                :image="$course['image']" />
+                :image="$course['image']"
+                :href="$course['href'] ?? null" />
         </div>
         @endforeach
     </div>

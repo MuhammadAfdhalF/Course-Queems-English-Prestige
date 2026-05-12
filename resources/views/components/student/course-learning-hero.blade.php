@@ -1,8 +1,9 @@
 @props([
-'title' => 'TOEFL Preparation Mastery',
-'level' => 'Intermediate (B1)',
-'progress' => 33,
-'modulesCompleted' => '2 of 6 modules',
+'title' => 'Course Title',
+'level' => 'Course Program',
+'progress' => 0,
+'modulesCompleted' => '0 of 0 modules',
+'continueHref' => '#',
 ])
 
 <div class="rounded-[24px] border border-slate-200 bg-white px-6 py-6 shadow-sm lg:px-8">
@@ -40,7 +41,7 @@
 
         <div class="shrink-0">
             <a
-                href="#"
+                href="{{ $continueHref }}"
                 class="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-8 text-lg font-bold text-white shadow-md transition hover:opacity-95">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 5v14l11-7-11-7z" />

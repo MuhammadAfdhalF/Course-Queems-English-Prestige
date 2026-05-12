@@ -23,7 +23,8 @@
             :badge="$course['badge']"
             :image="$course['image']"
             :primary-button="$course['primaryButton']"
-            :secondary-button="$course['secondaryButton']" />
+            :secondary-button="$course['secondaryButton']"
+            :primary-href="$course['primaryHref'] ?? '#'" />
     </div>
     @empty
     <div class="reveal rounded-[24px] border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
