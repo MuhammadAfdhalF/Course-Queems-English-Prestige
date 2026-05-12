@@ -3,6 +3,7 @@
 'name' => 'Alex Johnson',
 'description' => "Ready to continue your English journey? You’re doing great! You’ve completed 65% of your current goals this month.",
 'buttonText' => 'Continue Learning',
+'href' => null,
 ])
 
 <div {{ $attributes->merge(['class' => 'relative overflow-hidden rounded-[24px] bg-gradient-to-r from-[#1847D1] via-[#2457E6] to-[#4F78D8] p-7 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg']) }}>
@@ -23,9 +24,17 @@
         </p>
 
         <div class="mt-7">
+            @if ($href)
+            <a
+                href="{{ $href }}"
+                class="motion-button inline-flex items-center justify-center rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition-all duration-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-white/70 focus:ring-offset-2 focus:ring-offset-[#1847D1]">
+                {{ $buttonText }}
+            </a>
+            @else
             <x-ui.button variant="secondary" class="px-5 py-2.5">
                 {{ $buttonText }}
             </x-ui.button>
+            @endif
         </div>
     </div>
 </div>

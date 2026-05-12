@@ -5,7 +5,7 @@
         </x-ui.button>
     </a>
 
-    <a href="{{ route('student.all-courses') }}">
+    <a href="{{ route('courses') }}">
         <x-ui.button variant="outline" class="min-w-[220px] px-6 py-3">
             Browse All Courses
         </x-ui.button>

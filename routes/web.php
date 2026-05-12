@@ -35,6 +35,7 @@ use App\Http\Controllers\Admin\Cms\FreeTestResultController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\Order\CourseOrderController;
 use App\Http\Controllers\Student\MyCourseController;
+use App\Http\Controllers\Student\DashboardController;
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -97,8 +98,9 @@ Route::middleware(['auth', 'role:student'])
     ->prefix('student')
     ->name('student.')
     ->group(function () {
-        Route::view('/', 'pages.student.dashboard')->name('dashboard');
-
+        Route::get('/', [DashboardController::class, 'index'])
+            ->name('dashboard');
+            
         Route::get('/my-courses', [MyCourseController::class, 'index'])
             ->name('my-courses');
         Route::view('/my-courses/toefl-preparation-mastery', 'pages.student.learning-path')->name('learning-path');

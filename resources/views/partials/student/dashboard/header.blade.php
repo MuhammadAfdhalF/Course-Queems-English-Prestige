@@ -4,6 +4,6 @@
     </h1>
 
     <p class="mt-2 text-lg text-slate-500 lg:text-2xl">
-        Welcome back to your academic portal.
+        Welcome back, {{ $student->name }}.
     </p>
 </div>
