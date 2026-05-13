@@ -28,7 +28,7 @@
             </p>
             @endif
         </div>
-  
+
 
         {{-- LESSON CONTENT --}}
         <div class="px-6 py-7 lg:px-9 lg:py-8">
@@ -156,6 +156,10 @@
 
         {{-- PRACTICE INFO --}}
         @if ($practices->count() > 0)
+        @php
+        $practice = $practices->first();
+        @endphp
+
         <div class="border-t border-blue-100 bg-blue-50 px-6 py-6 lg:px-9">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -164,15 +168,15 @@
                     </h2>
 
                     <p class="mt-2 text-sm leading-6 text-slate-600">
-                        This module has {{ $practices->count() }} practice section(s). Practice submission will be enabled in the next phase.
+                        Complete this practice to evaluate your understanding of the module material.
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    class="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-xl bg-white/80 px-5 text-sm font-bold text-slate-400 ring-1 ring-blue-100">
-                    Coming Soon
-                </button>
+                <a
+                    href="{{ route('student.module-practice', ['enrollment' => $enrollment, 'module' => $module, 'practice' => $practice]) }}"
+                    class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-bold text-white shadow-sm transition hover:opacity-95">
+                    Start Practice
+                </a>
             </div>
         </div>
         @endif

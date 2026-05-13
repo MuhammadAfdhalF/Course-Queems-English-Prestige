@@ -19,34 +19,71 @@
         </p>
     </div>
 
-    <div class="mt-5">
-        <h3 class="max-w-3xl text-[18px] font-medium leading-9 text-slate-900 lg:text-[20px]">
-            {{ $question }}
-        </h3>
+    <div class="rich-text-content mt-5 max-w-3xl text-slate-900">
+        {!! $question !!}
     </div>
 
-    @if($type === 'multiple_choice')
+    @error('answers.' . $questionId)
+    <p class="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">
+        {{ $message }}
+    </p>
+    @enderror
+
+    @error('uploads.' . $questionId)
+    <p class="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">
+        {{ $message }}
+    </p>
+    @enderror
+
+    @if ($type === 'multiple_choice')
     <div class="mt-6 space-y-3">
-        @foreach ($options as $index => $option)
-        <label class="flex cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 transition hover:border-slate-300 hover:bg-slate-50">
+        @foreach ($options as $option)
+        <label class="flex cursor-pointer items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 transition hover:border-slate-300 hover:bg-slate-50">
             <input
                 type="radio"
-                name="question_{{ $questionId }}"
-                :value="'{{ $option }}'"
-                x-model="answers[{{ $questionId }}]"
-                class="h-5 w-5 border-slate-300 text-[var(--color-brand-blue)] focus:ring-[var(--color-brand-blue)]">
+                name="answers[{{ $questionId }}]"
+                value="{{ $option->id }}"
+                @checked((string) old('answers.' . $questionId)===(string) $option->id)
+            class="mt-1 h-5 w-5 border-slate-300 text-[var(--color-brand-blue)] focus:ring-[var(--color-brand-blue)]">
 
-            <span class="text-lg font-medium text-slate-700">
-                {{ $option }}
+            <span class="text-base font-medium leading-7 text-slate-700">
+                <span class="mr-2 font-extrabold text-[var(--color-brand-blue)]">
+                    {{ $option->option_label }}.
+                </span>
+                {{ $option->option_text }}
             </span>
         </label>
         @endforeach
+    </div>
+    @elseif ($type === 'essay')
+    <div class="mt-6">
+        <textarea
+            name="answers[{{ $questionId }}]"
+            rows="6"
+            placeholder="{{ $placeholder }}"
+            class="w-full resize-y rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base leading-7 text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('answers.' . $questionId) }}</textarea>
+    </div>
+    @elseif ($type === 'upload')
+    <div class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-5">
+        <label class="block text-sm font-extrabold text-slate-900">
+            Upload your answer file
+        </label>
+
+        <input
+            type="file"
+            name="uploads[{{ $questionId }}]"
+            class="mt-3 block w-full text-sm font-medium text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-[var(--color-brand-blue)] file:px-4 file:py-2.5 file:text-sm file:font-bold file:text-white hover:file:opacity-90">
+
+        <p class="mt-3 text-xs leading-5 text-slate-500">
+            Upload a document, image, audio, or video file according to the instruction.
+        </p>
     </div>
     @else
     <div class="mt-6">
         <input
             type="text"
-            x-model="answers[{{ $questionId }}]"
+            name="answers[{{ $questionId }}]"
+            value="{{ old('answers.' . $questionId) }}"
             placeholder="{{ $placeholder }}"
             class="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
     </div>

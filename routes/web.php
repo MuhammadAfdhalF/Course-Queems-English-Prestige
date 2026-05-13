@@ -37,7 +37,7 @@ use App\Http\Controllers\Admin\Order\CourseOrderController;
 use App\Http\Controllers\Student\MyCourseController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\LearningController;
-
+use App\Http\Controllers\Student\PracticeController;
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -111,8 +111,12 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/my-courses/{enrollment}/modules/{module}', [LearningController::class, 'module'])
             ->name('module-material');
 
-        Route::view('/my-courses/toefl-preparation-mastery/module-01/practice', 'pages.student.module-practice')->name('module-practice');
-        Route::view('/my-courses/toefl-preparation-mastery/module-01/completed', 'pages.student.module-completed')->name('module-completed');
+        Route::get('/my-courses/{enrollment}/modules/{module}/practices/{practice}', [PracticeController::class, 'show'])
+            ->name('module-practice');
+        Route::post('/my-courses/{enrollment}/modules/{module}/practices/{practice}/submit', [PracticeController::class, 'submit'])
+            ->name('module-practice.submit');
+        Route::get('/my-courses/{enrollment}/modules/{module}/practice-attempts/{attempt}', [PracticeController::class, 'result'])
+            ->name('module-practice-result');
 
         Route::view('/my-courses/toefl-preparation-mastery/final-exam', 'pages.student.final-exam')->name('final-exam');
         Route::view('/my-courses/toefl-preparation-mastery/final-exam/result', 'pages.student.final-exam-result')->name('final-exam-result');
