@@ -114,8 +114,12 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/my-courses/{enrollment}/modules/{module}', [LearningController::class, 'module'])
             ->name('module-material');
 
+        Route::post('/my-courses/{enrollment}/modules/{module}/complete', [LearningController::class, 'completeModule'])
+            ->name('module-complete');
+
         Route::get('/my-courses/{enrollment}/modules/{module}/practices/{practice}', [PracticeController::class, 'show'])
             ->name('module-practice');
+            
         Route::post('/my-courses/{enrollment}/modules/{module}/practices/{practice}/submit', [PracticeController::class, 'submit'])
             ->name('module-practice.submit');
         Route::get('/my-courses/{enrollment}/modules/{module}/practice-attempts/{attempt}', [PracticeController::class, 'result'])

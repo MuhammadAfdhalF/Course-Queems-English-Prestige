@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Module;
 use App\Models\StudentCourseEnrollment;
+use App\Models\StudentModuleProgress;
+use App\Services\StudentProgressService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -36,6 +38,7 @@ class LearningController extends Controller
             'courseLevel.finalExams' => function ($query) {
                 $query->where('is_active', true);
             },
+            'moduleProgress',
         ]);
 
         $courseLevel = $enrollment->courseLevel;
@@ -45,14 +48,41 @@ class LearningController extends Controller
         $modulesCollection = $courseLevel->modules ?? collect();
         $finalExam = $courseLevel->finalExams?->first();
 
+        $completedModuleIds = $enrollment->moduleProgress
+            ->where('status', 'completed')
+            ->pluck('module_id')
+            ->all();
+
+        $firstIncompleteIndex = $modulesCollection
+            ->values()
+            ->search(fn(Module $module) => ! in_array($module->id, $completedModuleIds, true));
+
+        if ($firstIncompleteIndex === false) {
+            $firstIncompleteIndex = $modulesCollection->count();
+        }
+
         $modules = $modulesCollection
             ->values()
-            ->map(function (Module $module, int $index) use ($enrollment) {
+            ->map(function (Module $module, int $index) use ($enrollment, $completedModuleIds, $firstIncompleteIndex) {
+                $isCompleted = in_array($module->id, $completedModuleIds, true);
+
+                $status = match (true) {
+                    $isCompleted => 'completed',
+                    $index === $firstIncompleteIndex => 'current',
+                    default => 'locked',
+                };
+
+                $buttonText = match ($status) {
+                    'completed' => 'Review',
+                    'current' => $index === 0 ? 'Start' : 'Continue',
+                    default => 'Locked',
+                };
+
                 return [
                     'number' => str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
                     'title' => $module->title,
-                    'status' => 'current',
-                    'buttonText' => $index === 0 ? 'Start' : 'Open',
+                    'status' => $status,
+                    'buttonText' => $buttonText,
                     'note' => $module->short_description,
                     'href' => route('student.module-material', [
                         'enrollment' => $enrollment,
@@ -64,18 +94,24 @@ class LearningController extends Controller
             })
             ->all();
 
+        $continueModule = collect($modules)->firstWhere('status', 'current')
+            ?? collect($modules)->firstWhere('status', 'completed');
+
         return view('pages.student.learning-path', [
             'enrollment' => $enrollment,
             'courseLevel' => $courseLevel,
             'modules' => $modules,
             'modulesCount' => count($modules),
             'finalExam' => $finalExam,
-            'continueHref' => $modules[0]['href'] ?? route('student.my-courses'),
+            'continueHref' => $continueModule['href'] ?? route('student.my-courses'),
         ]);
     }
 
-    public function module(StudentCourseEnrollment $enrollment, Module $module): View|RedirectResponse
-    {
+    public function module(
+        StudentCourseEnrollment $enrollment,
+        Module $module,
+        StudentProgressService $progressService
+    ): View|RedirectResponse {
         $this->authorizeEnrollment($enrollment);
 
         $enrollment->load('courseLevel.courseProgram');
@@ -89,6 +125,14 @@ class LearningController extends Controller
 
         abort_unless($module->is_active, 404);
 
+        if (! $progressService->isModuleUnlocked($enrollment, $module)) {
+            return redirect()
+                ->route('student.learning-path', $enrollment)
+                ->with('error', 'Please complete the previous module first.');
+        }
+
+        $progressService->markModuleInProgress($enrollment, $module);
+
         $module->load([
             'materials' => function ($query) {
                 $query
@@ -101,13 +145,65 @@ class LearningController extends Controller
             },
         ]);
 
+        $moduleProgress = StudentModuleProgress::query()
+            ->where('enrollment_id', $enrollment->id)
+            ->where('module_id', $module->id)
+            ->first();
+
         return view('pages.student.module-material', [
             'enrollment' => $enrollment,
             'courseLevel' => $enrollment->courseLevel,
             'module' => $module,
             'materials' => $module->materials,
             'practices' => $module->practices,
+            'moduleProgress' => $moduleProgress,
         ]);
+    }
+
+    public function completeModule(
+        StudentCourseEnrollment $enrollment,
+        Module $module,
+        StudentProgressService $progressService
+    ): RedirectResponse {
+        $this->authorizeEnrollment($enrollment);
+
+        $enrollment->load('courseLevel');
+
+        abort_unless($enrollment->courseLevel, 404);
+
+        abort_unless(
+            $module->course_level_id === $enrollment->course_level_id,
+            404
+        );
+
+        abort_unless($module->is_active, 404);
+
+        if (! $progressService->isModuleUnlocked($enrollment, $module)) {
+            return redirect()
+                ->route('student.learning-path', $enrollment)
+                ->with('error', 'Please complete the previous module first.');
+        }
+
+        $module->load([
+            'practices' => function ($query) {
+                $query->where('is_active', true);
+            },
+        ]);
+
+        if ($module->practices->count() > 0) {
+            return redirect()
+                ->route('student.module-material', [
+                    'enrollment' => $enrollment,
+                    'module' => $module,
+                ])
+                ->with('error', 'Please submit the module practice to complete this module.');
+        }
+
+        $progressService->markModuleCompleted($enrollment, $module);
+
+        return redirect()
+            ->route('student.learning-path', $enrollment)
+            ->with('success', 'Module has been marked as completed.');
     }
 
     private function authorizeEnrollment(StudentCourseEnrollment $enrollment): void

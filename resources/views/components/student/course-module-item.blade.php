@@ -80,7 +80,7 @@ default => 'border border-slate-300 bg-white text-slate-700',
                     @endif
                 </div>
 
-                <h3 class="mt-2 text-[18px] font-bold leading-tight {{ $status === 'completed' ? 'text-slate-400 line-through' : ($status === 'locked' ? 'text-slate-400' : 'text-slate-900') }}">
+                <h3 class="mt-2 text-[18px] font-bold leading-tight {{ $status === 'locked' ? 'text-slate-400' : 'text-slate-900' }}">
                     {{ $title }}
                 </h3>
 

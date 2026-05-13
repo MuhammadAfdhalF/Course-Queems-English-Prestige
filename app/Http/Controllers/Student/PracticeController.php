@@ -9,8 +9,8 @@ use App\Models\ModulePracticeAttempt;
 use App\Models\StudentCourseEnrollment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use App\Services\StudentProgressService;
 
 class PracticeController extends Controller
 {
@@ -59,7 +59,8 @@ class PracticeController extends Controller
         Request $request,
         StudentCourseEnrollment $enrollment,
         Module $module,
-        ModulePractice $practice
+        ModulePractice $practice,
+        StudentProgressService $progressService
     ): RedirectResponse {
         $this->authorizeAccess($enrollment, $module, $practice);
 
@@ -212,6 +213,8 @@ class PracticeController extends Controller
             'submitted_at' => now(),
             'graded_at' => $hasManualReview ? null : now(),
         ]);
+
+        $progressService->markModuleCompleted($enrollment, $module);
 
         return redirect()
             ->route('student.module-practice-result', [
