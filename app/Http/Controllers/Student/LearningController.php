@@ -9,6 +9,7 @@ use App\Models\StudentModuleProgress;
 use App\Services\StudentProgressService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use App\Models\ModulePracticeAttempt;
 
 class LearningController extends Controller
 {
@@ -150,6 +151,31 @@ class LearningController extends Controller
             ->where('module_id', $module->id)
             ->first();
 
+        $practice = $module->practices->first();
+
+        $latestPracticeAttempt = null;
+        $practiceAttemptCount = 0;
+        $canRetakePractice = false;
+
+        if ($practice) {
+            $latestPracticeAttempt = ModulePracticeAttempt::query()
+                ->where('student_id', auth()->id())
+                ->where('module_practice_id', $practice->id)
+                ->whereIn('status', ['passed', 'failed', 'waiting_review'])
+                ->latest('submitted_at')
+                ->latest()
+                ->first();
+
+            $practiceAttemptCount = ModulePracticeAttempt::query()
+                ->where('student_id', auth()->id())
+                ->where('module_practice_id', $practice->id)
+                ->whereIn('status', ['passed', 'failed', 'waiting_review'])
+                ->count();
+
+            $canRetakePractice = ! $practice->max_attempts
+                || $practiceAttemptCount < (int) $practice->max_attempts;
+        }
+
         return view('pages.student.module-material', [
             'enrollment' => $enrollment,
             'courseLevel' => $enrollment->courseLevel,
@@ -157,6 +183,10 @@ class LearningController extends Controller
             'materials' => $module->materials,
             'practices' => $module->practices,
             'moduleProgress' => $moduleProgress,
+            'practice' => $practice,
+            'latestPracticeAttempt' => $latestPracticeAttempt,
+            'practiceAttemptCount' => $practiceAttemptCount,
+            'canRetakePractice' => $canRetakePractice,
         ]);
     }
 

@@ -155,28 +155,90 @@
         </div>
 
         {{-- MODULE COMPLETION / PRACTICE --}}
-        @if ($practices->count() > 0)
+        @if ($practice)
         @php
-        $practice = $practices->first();
+        $attemptStatusLabel = match ($latestPracticeAttempt?->status) {
+        'passed' => 'Passed',
+        'failed' => 'Failed',
+        'waiting_review' => 'Waiting for Review',
+        default => null,
+        };
+
+        $attemptStatusClass = match ($latestPracticeAttempt?->status) {
+        'passed' => 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+        'failed' => 'bg-rose-50 text-rose-700 ring-1 ring-rose-100',
+        'waiting_review' => 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
+        default => 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
+        };
         @endphp
 
         <div class="border-t border-blue-100 bg-blue-50 px-6 py-6 lg:px-9">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div class="min-w-0">
                     <h2 class="text-2xl font-extrabold text-slate-900">
                         Practice Available
                     </h2>
 
+                    @if ($latestPracticeAttempt)
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-[0.12em] {{ $attemptStatusClass }}">
+                            {{ $attemptStatusLabel }}
+                        </span>
+
+                        <span class="inline-flex rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-blue-100">
+                            Score: {{ number_format((float) $latestPracticeAttempt->total_score, 2) }}%
+                        </span>
+
+                        <span class="inline-flex rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-blue-100">
+                            Attempt #{{ $latestPracticeAttempt->attempt_number }}
+                        </span>
+                    </div>
+
+                    <p class="mt-3 text-sm leading-6 text-slate-600">
+                        You have submitted this practice. You can review your result or retake the practice if attempts are still available.
+                    </p>
+
+                    @if ($latestPracticeAttempt->status === 'waiting_review')
+                    <p class="mt-2 text-sm font-semibold leading-6 text-amber-700">
+                        Your answer is waiting for admin review. You can continue learning while waiting.
+                    </p>
+                    @endif
+
+                    @if (! $canRetakePractice)
+                    <p class="mt-2 text-sm font-semibold leading-6 text-slate-500">
+                        You have reached the maximum number of attempts for this practice.
+                    </p>
+                    @endif
+                    @else
                     <p class="mt-2 text-sm leading-6 text-slate-600">
                         Submit this practice to complete the module and unlock the next lesson.
                     </p>
+                    @endif
                 </div>
 
-                <a
-                    href="{{ route('student.module-practice', ['enrollment' => $enrollment, 'module' => $module, 'practice' => $practice]) }}"
-                    class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-bold text-white shadow-sm transition hover:opacity-95">
-                    Start Practice
-                </a>
+                <div class="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
+                    @if ($latestPracticeAttempt)
+                    <a
+                        href="{{ route('student.module-practice-result', ['enrollment' => $enrollment, 'module' => $module, 'attempt' => $latestPracticeAttempt]) }}"
+                        class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                        Review Result
+                    </a>
+
+                    @if ($canRetakePractice)
+                    <a
+                        href="{{ route('student.module-practice', ['enrollment' => $enrollment, 'module' => $module, 'practice' => $practice]) }}"
+                        class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-bold text-white shadow-sm transition hover:opacity-95">
+                        Retake Practice
+                    </a>
+                    @endif
+                    @else
+                    <a
+                        href="{{ route('student.module-practice', ['enrollment' => $enrollment, 'module' => $module, 'practice' => $practice]) }}"
+                        class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-bold text-white shadow-sm transition hover:opacity-95">
+                        Start Practice
+                    </a>
+                    @endif
+                </div>
             </div>
         </div>
         @else
