@@ -38,6 +38,9 @@ use App\Http\Controllers\Student\MyCourseController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\LearningController;
 use App\Http\Controllers\Student\PracticeController;
+use App\Http\Controllers\Admin\CourseManagement\ModulePracticeReviewController;
+
+
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -245,6 +248,15 @@ Route::middleware(['auth', 'role:admin'])
                 Route::get('/practices/{modulePractice}/preview', [ModulePracticeQuestionController::class, 'preview'])
                     ->name('practices.preview');
 
+                // practice reviews
+                Route::get('/practices/{modulePractice}/reviews', [ModulePracticeReviewController::class, 'index'])
+                    ->name('practice-reviews.index');
+
+                Route::get('/practice-attempts/{modulePracticeAttempt}/review', [ModulePracticeReviewController::class, 'show'])
+                    ->name('practice-reviews.show');
+
+                Route::put('/practice-attempts/{modulePracticeAttempt}/review', [ModulePracticeReviewController::class, 'update'])
+                    ->name('practice-reviews.update');
 
                 // final exam
                 Route::get('/levels/{courseLevel}/final-exam', [FinalExamController::class, 'index'])
