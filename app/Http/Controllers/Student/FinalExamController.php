@@ -11,7 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Services\CertificateService;
-
+use App\Models\Certificate;
 
 class FinalExamController extends Controller
 {
@@ -241,12 +241,41 @@ class FinalExamController extends Controller
 
         abort_unless($attempt->finalExam?->course_level_id === $enrollment->course_level_id, 404);
 
+        $finalExam = $attempt->finalExam;
+
+        $certificate = null;
+
+        if ($attempt->status === 'passed') {
+            $certificate = Certificate::query()
+                ->where('student_id', auth()->id())
+                ->where('enrollment_id', $enrollment->id)
+                ->where('course_level_id', $enrollment->course_level_id)
+                ->whereIn('status', ['locked', 'issued'])
+                ->latest()
+                ->first();
+        }
+
+        $finalExamAttemptCount = FinalExamAttempt::query()
+            ->where('student_id', auth()->id())
+            ->where('final_exam_id', $finalExam->id)
+            ->whereIn('status', ['passed', 'failed', 'waiting_review'])
+            ->count();
+
+        $canRetakeFinalExam = $attempt->status === 'failed'
+            && (
+                ! $finalExam->max_attempts
+                || $finalExamAttemptCount < (int) $finalExam->max_attempts
+            );
+
         return view('pages.student.final-exam-result', [
             'enrollment' => $enrollment,
             'courseLevel' => $enrollment->courseLevel,
-            'finalExam' => $attempt->finalExam,
+            'finalExam' => $finalExam,
             'attempt' => $attempt,
             'answers' => $attempt->answers,
+            'certificate' => $certificate,
+            'finalExamAttemptCount' => $finalExamAttemptCount,
+            'canRetakeFinalExam' => $canRetakeFinalExam,
         ]);
     }
 
@@ -285,6 +314,4 @@ class FinalExamController extends Controller
 
         return $attemptCount >= (int) $finalExam->max_attempts;
     }
-
-
 }

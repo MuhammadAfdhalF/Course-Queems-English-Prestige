@@ -95,6 +95,104 @@ default => 'Your final exam attempt has been saved successfully.',
         </div>
     </div>
 
+    <div class="reveal reveal-delay-2 rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+        @if ($attempt->status === 'passed')
+        @if ($certificate?->status === 'issued')
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-500">
+                    Certificate Issued
+                </p>
+
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">
+                    Your certificate is ready.
+                </h2>
+
+                <p class="mt-2 text-sm leading-6 text-slate-500">
+                    You have passed the final exam and your certificate has been issued.
+                </p>
+            </div>
+
+            <a
+                href="{{ route('student.certificates.show', $certificate) }}"
+                class="inline-flex h-12 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-6 text-sm font-bold text-white shadow-md transition hover:opacity-95">
+                View Certificate
+            </a>
+        </div>
+        @elseif ($certificate?->status === 'locked')
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-gold)]">
+                    Certificate Locked
+                </p>
+
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">
+                    Submit your testimonial to unlock your certificate.
+                </h2>
+
+                <p class="mt-2 text-sm leading-6 text-slate-500">
+                    Your final exam is passed. One more step: submit your learning testimonial and your certificate will be issued immediately.
+                </p>
+            </div>
+
+            <a
+                href="{{ route('student.testimoni') }}"
+                class="inline-flex h-12 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-6 text-sm font-bold text-white shadow-md transition hover:opacity-95">
+                Write Testimonial
+            </a>
+        </div>
+        @else
+        <div class="rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4">
+            <h2 class="text-lg font-extrabold text-amber-800">
+                Certificate is being prepared.
+            </h2>
+
+            <p class="mt-2 text-sm leading-6 text-amber-700">
+                You passed the final exam, but your certificate record is not available yet. Please contact admin if this message does not change.
+            </p>
+        </div>
+        @endif
+        @elseif ($attempt->status === 'waiting_review')
+        <div class="rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4">
+            <h2 class="text-lg font-extrabold text-amber-800">
+                Your final exam is waiting for admin review.
+            </h2>
+
+            <p class="mt-2 text-sm leading-6 text-amber-700">
+                Some answers need manual grading. Your certificate will be available after the final exam result is confirmed as passed.
+            </p>
+        </div>
+        @elseif ($attempt->status === 'failed')
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-rose-500">
+                    Final Exam Not Passed
+                </p>
+
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">
+                    You can try again if attempts are still available.
+                </h2>
+
+                <p class="mt-2 text-sm leading-6 text-slate-500">
+                    Attempt used: {{ $finalExamAttemptCount }}{{ $finalExam->max_attempts ? ' / ' . $finalExam->max_attempts : '' }}.
+                    Review your answers before retaking the final exam.
+                </p>
+            </div>
+
+            @if ($canRetakeFinalExam)
+            <a
+                href="{{ route('student.final-exam', ['enrollment' => $enrollment, 'finalExam' => $finalExam]) }}"
+                class="inline-flex h-12 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-6 text-sm font-bold text-white shadow-md transition hover:opacity-95">
+                Retake Final Exam
+            </a>
+            @else
+            <div class="inline-flex h-12 items-center justify-center rounded-xl bg-slate-100 px-6 text-sm font-bold text-slate-400">
+                No Attempts Remaining
+            </div>
+            @endif
+        </div>
+        @endif
+    </div>
     <div class="reveal reveal-delay-2">
         <div class="mb-4">
             <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
