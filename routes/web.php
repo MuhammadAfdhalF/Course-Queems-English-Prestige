@@ -40,7 +40,7 @@ use App\Http\Controllers\Student\LearningController;
 use App\Http\Controllers\Student\PracticeController;
 use App\Http\Controllers\Admin\CourseManagement\ModulePracticeReviewController;
 use App\Http\Controllers\Student\FinalExamController as StudentFinalExamController;
-
+use App\Http\Controllers\Admin\CourseManagement\FinalExamReviewController;
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -305,6 +305,15 @@ Route::middleware(['auth', 'role:admin'])
 
                 Route::get('/final-exams/{finalExam}/preview', [FinalExamQuestionController::class, 'preview'])
                     ->name('final-exams.preview');
+
+                Route::get('/final-exams/{finalExam}/reviews', [FinalExamReviewController::class, 'index'])
+                    ->name('final-exam-reviews.index');
+
+                Route::get('/final-exam-attempts/{finalExamAttempt}/review', [FinalExamReviewController::class, 'show'])
+                    ->name('final-exam-reviews.show');
+
+                Route::put('/final-exam-attempts/{finalExamAttempt}/review', [FinalExamReviewController::class, 'update'])
+                    ->name('final-exam-reviews.update');
             });
 
         Route::get('/orders', [CourseOrderController::class, 'index'])

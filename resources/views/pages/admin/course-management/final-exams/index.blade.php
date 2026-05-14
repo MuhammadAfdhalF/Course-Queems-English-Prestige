@@ -154,6 +154,13 @@
                         <x-admin.icon name="check" class="h-4 w-4" />
                         <span>Manage Questions</span>
                     </a>
+
+                    <a
+                        href="{{ route('admin.course-management.final-exam-reviews.index', $finalExam) }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-50 px-5 py-3 text-sm font-bold text-amber-700 shadow-sm transition hover:bg-amber-100">
+                        <x-admin.icon name="eye" class="h-4 w-4" />
+                        <span>Review Attempts</span>
+                    </a>
                 </div>
             </div>
         </div>
