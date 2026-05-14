@@ -39,7 +39,7 @@ use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\LearningController;
 use App\Http\Controllers\Student\PracticeController;
 use App\Http\Controllers\Admin\CourseManagement\ModulePracticeReviewController;
-
+use App\Http\Controllers\Student\FinalExamController as StudentFinalExamController;
 
 
 // sementara logout
@@ -119,15 +119,20 @@ Route::middleware(['auth', 'role:student'])
 
         Route::get('/my-courses/{enrollment}/modules/{module}/practices/{practice}', [PracticeController::class, 'show'])
             ->name('module-practice');
-            
+
         Route::post('/my-courses/{enrollment}/modules/{module}/practices/{practice}/submit', [PracticeController::class, 'submit'])
             ->name('module-practice.submit');
         Route::get('/my-courses/{enrollment}/modules/{module}/practice-attempts/{attempt}', [PracticeController::class, 'result'])
             ->name('module-practice-result');
 
-        Route::view('/my-courses/toefl-preparation-mastery/final-exam', 'pages.student.final-exam')->name('final-exam');
-        Route::view('/my-courses/toefl-preparation-mastery/final-exam/result', 'pages.student.final-exam-result')->name('final-exam-result');
+        Route::get('/my-courses/{enrollment}/final-exams/{finalExam}', [StudentFinalExamController::class, 'show'])
+            ->name('final-exam');
 
+        Route::post('/my-courses/{enrollment}/final-exams/{finalExam}/submit', [StudentFinalExamController::class, 'submit'])
+            ->name('final-exam.submit');
+
+        Route::get('/my-courses/{enrollment}/final-exam-attempts/{attempt}', [StudentFinalExamController::class, 'result'])
+            ->name('final-exam-result');
         Route::view('/all-courses', 'pages.student.all-courses')->name('all-courses');
         Route::view('/testimoni', 'pages.student.testimoni')->name('testimoni');
         Route::view('/profile', 'pages.student.profile')->name('profile');

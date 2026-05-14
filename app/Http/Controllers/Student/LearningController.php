@@ -10,6 +10,7 @@ use App\Services\StudentProgressService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use App\Models\ModulePracticeAttempt;
+use App\Models\FinalExamAttempt;
 
 class LearningController extends Controller
 {
@@ -48,6 +49,30 @@ class LearningController extends Controller
 
         $modulesCollection = $courseLevel->modules ?? collect();
         $finalExam = $courseLevel->finalExams?->first();
+
+        $latestFinalExamAttempt = null;
+        $finalExamAttemptCount = 0;
+        $canRetakeFinalExam = false;
+        $isFinalExamUnlocked = (float) $enrollment->progress_percentage >= 100;
+
+        if ($finalExam) {
+            $latestFinalExamAttempt = FinalExamAttempt::query()
+                ->where('student_id', auth()->id())
+                ->where('final_exam_id', $finalExam->id)
+                ->whereIn('status', ['passed', 'failed', 'waiting_review'])
+                ->latest('submitted_at')
+                ->latest()
+                ->first();
+
+            $finalExamAttemptCount = FinalExamAttempt::query()
+                ->where('student_id', auth()->id())
+                ->where('final_exam_id', $finalExam->id)
+                ->whereIn('status', ['passed', 'failed', 'waiting_review'])
+                ->count();
+
+            $canRetakeFinalExam = ! $finalExam->max_attempts
+                || $finalExamAttemptCount < (int) $finalExam->max_attempts;
+        }
 
         $completedModuleIds = $enrollment->moduleProgress
             ->where('status', 'completed')
@@ -104,6 +129,10 @@ class LearningController extends Controller
             'modules' => $modules,
             'modulesCount' => count($modules),
             'finalExam' => $finalExam,
+            'latestFinalExamAttempt' => $latestFinalExamAttempt,
+            'finalExamAttemptCount' => $finalExamAttemptCount,
+            'canRetakeFinalExam' => $canRetakeFinalExam,
+            'isFinalExamUnlocked' => $isFinalExamUnlocked,
             'continueHref' => $continueModule['href'] ?? route('student.my-courses'),
         ]);
     }
