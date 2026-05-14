@@ -1,151 +1,135 @@
-<div
+@if ($eligibleCertificates->count() > 0)
+<form
     x-data="{
-        serviceRating: 5,
-        courseRating: 5,
-        selectedAspect: 'Layanan Admin',
-        aspects: ['Layanan Admin', 'Mentor Profesional', 'Fasilitas Belajar', 'Materi Kurikulum'],
-        submitTestimoni() {
-            alert('Testimoni berhasil disimpan. Sertifikat akan terbuka setelah proses validasi.');
-        }
-    }"
-    class="rounded-[24px] border border-slate-200 bg-white p-7 shadow-sm lg:p-9"
->
-    {{-- Service Review --}}
+            rating: {{ (int) old('rating', 5) }}
+        }"
+    action="{{ route('student.testimoni.store') }}"
+    method="POST"
+    class="rounded-[24px] border border-slate-200 bg-white p-7 shadow-sm lg:p-9">
+    @csrf
+
     <div class="flex items-start gap-4">
         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[var(--color-brand-blue)]">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <rect x="4" y="5" width="16" height="14" rx="2" stroke-width="1.8" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 9h8M8 13h5" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4z" />
             </svg>
         </div>
 
         <div class="min-w-0 flex-1">
             <h2 class="text-2xl font-bold text-slate-900">
-                Review Queens English Prestige
+                Unlock Your Certificate
             </h2>
+
             <p class="mt-1 text-sm text-slate-500">
-                Berikan rating untuk layanan keseluruhan kami (Admin, Mentor, & Fasilitas)
+                Submit your course testimonial to unlock your digital certificate.
             </p>
 
             <div class="mt-7">
-                <label class="block text-sm font-bold text-slate-700">
-                    Rating Keseluruhan
+                <label for="certificate_id" class="block text-sm font-bold text-slate-700">
+                    Select Certificate
                 </label>
 
-                <div class="mt-3 flex items-center gap-1 text-[32px] leading-none text-[var(--color-brand-gold)]">
-                    <template x-for="star in 5" :key="star">
-                        <button
-                            type="button"
-                            @click="serviceRating = star"
-                            class="transition hover:scale-110"
-                            :class="star <= serviceRating ? 'text-[var(--color-brand-gold)]' : 'text-slate-200'">
-                            ★
-                        </button>
-                    </template>
-                </div>
-            </div>
+                <select
+                    id="certificate_id"
+                    name="certificate_id"
+                    class="mt-3 h-13 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    <option value="">Choose your completed course...</option>
 
-            <div class="mt-7">
-                <label class="block text-sm font-bold text-slate-700">
-                    Aspek yang paling memuaskan?
-                </label>
-
-                <div class="mt-3 flex flex-wrap gap-3">
-                    <template x-for="aspect in aspects" :key="aspect">
-                        <button
-                            type="button"
-                            @click="selectedAspect = aspect"
-                            class="rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-                            :class="selectedAspect === aspect
-                                ? 'border-[var(--color-brand-blue)] bg-[var(--color-brand-blue)] text-white shadow-sm'
-                                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'">
-                            <span x-text="aspect"></span>
-                        </button>
-                    </template>
-                </div>
-            </div>
-
-            <div class="mt-7">
-                <label class="block text-sm font-bold text-slate-700">
-                    Ceritakan pengalaman Anda
-                </label>
-
-                <textarea
-                    rows="5"
-                    placeholder="Apa yang Anda sukai dari layanan kami?"
-                    class="mt-3 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100"></textarea>
-            </div>
-        </div>
-    </div>
-
-    <div class="my-9 border-t border-slate-200"></div>
-
-    {{-- Course Review --}}
-    <div class="flex items-start gap-4">
-        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[var(--color-brand-blue)]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6.5A2.5 2.5 0 016.5 4H10v16H6.5A2.5 2.5 0 014 17.5v-11zM20 6.5A2.5 2.5 0 0017.5 4H14v16h3.5a2.5 2.5 0 002.5-2.5v-11z" />
-            </svg>
-        </div>
-
-        <div class="min-w-0 flex-1">
-            <h2 class="text-2xl font-bold text-slate-900">
-                Review Kursus Spesifik
-            </h2>
-            <p class="mt-1 text-sm text-slate-500">
-                Berikan detail evaluasi untuk kursus yang telah Anda selesaikan.
-            </p>
-
-            <div class="mt-7">
-                <label class="block text-sm font-bold text-slate-700">
-                    Pilih Kursus
-                </label>
-
-                <select class="mt-3 h-13 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
-                    <option>Pilih salah satu...</option>
-                    <option>IELTS Mastery: Band 7.5+</option>
-                    <option>Business English Communication</option>
-                    <option>TOEFL Preparation Course</option>
+                    @foreach ($eligibleCertificates as $certificate)
+                    <option
+                        value="{{ $certificate->id }}"
+                        @selected((string) old('certificate_id')===(string) $certificate->id)>
+                        {{ $certificate->courseLevel?->name ?? 'Unknown Course' }}
+                        —
+                        {{ $certificate->certificate_number }}
+                    </option>
+                    @endforeach
                 </select>
+
+                @error('certificate_id')
+                <p class="mt-2 text-sm font-semibold text-rose-600">
+                    {{ $message }}
+                </p>
+                @enderror
             </div>
 
             <div class="mt-7">
                 <label class="block text-sm font-bold text-slate-700">
-                    Rating Kursus
+                    Rating
                 </label>
 
-                <div class="mt-3 flex items-center gap-1 text-[32px] leading-none text-[var(--color-brand-gold)]">
+                <input type="hidden" name="rating" x-model="rating">
+
+                <div class="mt-3 flex items-center gap-1 text-[34px] leading-none">
                     <template x-for="star in 5" :key="star">
                         <button
                             type="button"
-                            @click="courseRating = star"
+                            @click="rating = star"
                             class="transition hover:scale-110"
-                            :class="star <= courseRating ? 'text-[var(--color-brand-gold)]' : 'text-slate-200'">
+                            :class="star <= rating ? 'text-[var(--color-brand-gold)]' : 'text-slate-200'">
                             ★
                         </button>
                     </template>
                 </div>
+
+                @error('rating')
+                <p class="mt-2 text-sm font-semibold text-rose-600">
+                    {{ $message }}
+                </p>
+                @enderror
             </div>
 
             <div class="mt-7">
-                <label class="block text-sm font-bold text-slate-700">
-                    Apa pencapaian terbesar Anda di kursus ini?
+                <label for="testimonial" class="block text-sm font-bold text-slate-700">
+                    Your Learning Experience
                 </label>
 
                 <textarea
-                    rows="5"
-                    placeholder="Tuliskan pengalaman belajar Anda di sini..."
-                    class="mt-3 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100"></textarea>
+                    id="testimonial"
+                    name="testimonial"
+                    rows="6"
+                    placeholder="Tell us about your learning experience..."
+                    class="mt-3 w-full resize-y rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('testimonial') }}</textarea>
+
+                @error('testimonial')
+                <p class="mt-2 text-sm font-semibold text-rose-600">
+                    {{ $message }}
+                </p>
+                @enderror
             </div>
 
             <div class="mt-8 flex justify-end">
                 <button
-                    type="button"
-                    @click="submitTestimoni()"
+                    type="submit"
                     class="inline-flex h-14 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-8 text-base font-bold text-white shadow-md transition hover:opacity-95">
-                    Submit Testimoni & Buka Sertifikat
+                    Submit Testimonial & Unlock Certificate
                 </button>
             </div>
         </div>
     </div>
+</form>
+@else
+<div class="rounded-[24px] border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
+    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <rect x="6" y="10" width="12" height="10" rx="2" stroke-width="1.8" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10V8a4 4 0 118 0v2" />
+        </svg>
+    </div>
+
+    <h2 class="mt-5 text-2xl font-extrabold text-slate-900">
+        No Locked Certificate
+    </h2>
+
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
+        Locked certificates will appear here after you pass a final exam.
+    </p>
+
+    <a
+        href="{{ route('student.my-courses') }}"
+        class="mt-6 inline-flex h-12 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-6 text-sm font-bold text-white shadow-md transition hover:opacity-95">
+        Back to My Courses
+    </a>
 </div>
+@endif

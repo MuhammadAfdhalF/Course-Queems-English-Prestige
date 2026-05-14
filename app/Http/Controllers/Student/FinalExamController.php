@@ -10,6 +10,8 @@ use App\Models\StudentCourseEnrollment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Services\CertificateService;
+
 
 class FinalExamController extends Controller
 {
@@ -57,7 +59,8 @@ class FinalExamController extends Controller
     public function submit(
         Request $request,
         StudentCourseEnrollment $enrollment,
-        FinalExam $finalExam
+        FinalExam $finalExam,
+        CertificateService $certificateService
     ): RedirectResponse {
         $this->authorizeAccess($enrollment, $finalExam);
 
@@ -215,7 +218,7 @@ class FinalExamController extends Controller
         ]);
 
         if ($status === 'passed') {
-            $this->markEnrollmentCompleted($enrollment);
+            $certificateService->createLockedCertificateFromAttempt($attempt->fresh());
         }
 
         return redirect()
@@ -283,12 +286,5 @@ class FinalExamController extends Controller
         return $attemptCount >= (int) $finalExam->max_attempts;
     }
 
-    private function markEnrollmentCompleted(StudentCourseEnrollment $enrollment): void
-    {
-        $enrollment->update([
-            'status' => 'completed',
-            'progress_percentage' => 100,
-            'completed_at' => now(),
-        ]);
-    }
+
 }

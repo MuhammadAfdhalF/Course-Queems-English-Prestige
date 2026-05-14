@@ -2,21 +2,27 @@
 'items' => [],
 ])
 
+@php
+$earnedCount = collect($items)
+->where('issued', true)
+->count();
+@endphp
+
 <div class="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
     <div class="flex items-center justify-between gap-4">
         <h3 class="text-[18px] font-bold text-slate-900">My Certificates</h3>
 
         <span class="inline-flex items-center rounded-lg bg-yellow-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-brand-gold)]">
-            2 Earned
+            {{ $earnedCount }} Earned
         </span>
     </div>
 
     <div class="mt-6 space-y-4">
-        @foreach ($items as $item)
-        <div class="rounded-2xl border {{ !empty($item['locked']) ? 'border-slate-200 bg-slate-50 opacity-70' : 'border-slate-200 bg-white' }} p-4 transition hover:shadow-sm">
+        @forelse ($items as $item)
+        <div class="rounded-2xl border {{ !empty($item['locked']) ? 'border-slate-200 bg-slate-50 opacity-80' : 'border-slate-200 bg-white' }} p-4 transition hover:shadow-sm">
             <div class="flex items-start gap-4">
                 <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl {{ !empty($item['locked']) ? 'bg-slate-100 text-slate-400' : 'bg-yellow-50 text-[var(--color-brand-gold)]' }}">
-                    @if(!empty($item['locked']))
+                    @if (!empty($item['locked']))
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <rect x="6" y="10" width="12" height="10" rx="2" stroke-width="1.8" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10V8a4 4 0 118 0v2" />
@@ -38,27 +44,46 @@
                         ID: {{ $item['id'] }}
                     </p>
 
-                    @if(empty($item['locked']))
-                    <a href="#" class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-brand-blue)] hover:opacity-80">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14" />
-                        </svg>
-                        Download PDF
+                    @if (!empty($item['locked']))
+                    <a
+                        href="{{ $item['href'] ?? '#' }}"
+                        class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-brand-gold)] hover:opacity-80">
+                        {{ $item['note'] ?? 'Write testimonial to unlock' }}
                     </a>
-                    @elseif(!empty($item['note']))
-                    <p class="mt-3 text-sm font-semibold text-[var(--color-brand-gold)]">
-                        {{ $item['note'] }}
+                    @elseif (($item['status'] ?? null) === 'revoked')
+                    <p class="mt-3 text-sm font-semibold text-rose-600">
+                        {{ $item['note'] ?? 'Certificate revoked' }}
                     </p>
+                    @else
+                    <p class="mt-3 text-sm font-semibold text-emerald-600">
+                        {{ $item['note'] ?? 'Certificate issued' }}
+                    </p>
+
+                    <button
+                        type="button"
+                        class="mt-3 inline-flex cursor-not-allowed items-center gap-2 text-sm font-semibold text-slate-400">
+                        View Certificate Coming Soon
+                    </button>
                     @endif
                 </div>
             </div>
         </div>
-        @endforeach
+        @empty
+        <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
+            <h4 class="text-base font-extrabold text-slate-900">
+                No Certificates Yet
+            </h4>
+
+            <p class="mt-2 text-sm leading-6 text-slate-500">
+                Certificates will appear after you pass a final exam.
+            </p>
+        </div>
+        @endforelse
     </div>
 
-    <button
-        type="button"
+    <a
+        href="{{ route('student.testimoni') }}"
         class="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl border border-slate-300 bg-white text-base font-bold text-slate-700 transition hover:bg-slate-50">
-        View All Achievements
-    </button>
+        Unlock Certificates
+    </a>
 </div>

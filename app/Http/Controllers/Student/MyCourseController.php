@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\StudentCourseEnrollment;
 use Illuminate\View\View;
+use App\Models\Certificate;
+
 
 class MyCourseController extends Controller
 {
@@ -101,7 +103,33 @@ class MyCourseController extends Controller
             ->where('status', 'active')
             ->count();
 
-        $certificates = [];
+        $certificates = Certificate::query()
+            ->with('courseLevel.courseProgram')
+            ->where('student_id', $student->id)
+            ->latest()
+            ->get()
+            ->map(function (Certificate $certificate) {
+                $isLocked = $certificate->status === 'locked';
+                $isIssued = $certificate->status === 'issued';
+
+                return [
+                    'title' => $certificate->courseLevel?->name ?? 'Unknown Course',
+                    'id' => $certificate->certificate_number,
+                    'locked' => $isLocked,
+                    'issued' => $isIssued,
+                    'status' => $certificate->status,
+                    'note' => match ($certificate->status) {
+                        'locked' => 'Write testimonial to unlock',
+                        'issued' => 'Certificate issued',
+                        'revoked' => 'Certificate revoked',
+                        default => '',
+                    },
+                    'href' => $isLocked
+                        ? route('student.testimoni')
+                        : '#',
+                ];
+            })
+            ->all();
 
         return view('pages.student.my-courses', [
             'courses' => $courses,

@@ -41,6 +41,8 @@ use App\Http\Controllers\Student\PracticeController;
 use App\Http\Controllers\Admin\CourseManagement\ModulePracticeReviewController;
 use App\Http\Controllers\Student\FinalExamController as StudentFinalExamController;
 use App\Http\Controllers\Admin\CourseManagement\FinalExamReviewController;
+use App\Http\Controllers\Student\TestimonialController;
+
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -134,7 +136,13 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/my-courses/{enrollment}/final-exam-attempts/{attempt}', [StudentFinalExamController::class, 'result'])
             ->name('final-exam-result');
         Route::view('/all-courses', 'pages.student.all-courses')->name('all-courses');
-        Route::view('/testimoni', 'pages.student.testimoni')->name('testimoni');
+
+        Route::get('/testimoni', [TestimonialController::class, 'index'])
+            ->name('testimoni');
+
+        Route::post('/testimoni', [TestimonialController::class, 'store'])
+            ->name('testimoni.store');
+
         Route::view('/profile', 'pages.student.profile')->name('profile');
     });
 

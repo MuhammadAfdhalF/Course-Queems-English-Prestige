@@ -10,6 +10,9 @@ use App\Models\StudentCourseEnrollment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Services\CertificateService;
+
+
 
 class FinalExamReviewController extends Controller
 {
@@ -50,8 +53,11 @@ class FinalExamReviewController extends Controller
         ]);
     }
 
-    public function update(Request $request, FinalExamAttempt $finalExamAttempt): RedirectResponse
-    {
+    public function update(
+        Request $request,
+        FinalExamAttempt $finalExamAttempt,
+        CertificateService $certificateService
+    ): RedirectResponse {
         $finalExamAttempt->load([
             'finalExam.questions',
             'answers.question',
@@ -118,7 +124,7 @@ class FinalExamReviewController extends Controller
         ]);
 
         if ($status === 'passed') {
-            $this->markEnrollmentCompleted($finalExamAttempt);
+            $certificateService->createLockedCertificateFromAttempt($finalExamAttempt->fresh());
         }
 
         return redirect()
