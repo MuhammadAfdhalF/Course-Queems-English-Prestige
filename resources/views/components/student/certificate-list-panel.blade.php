@@ -68,6 +68,16 @@ $earnedCount = collect($items)
                         </svg>
                         View Certificate
                     </a>
+
+                    @if (!empty($item['certificateId']))
+                    <a
+                        href="{{ route('student.certificates.download', ['certificate' => $item['certificateId']]) }}"
+                        class="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[var(--color-brand-blue)]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14" />
+                        </svg>
+                        Download PDF
+                    </a>
                     @endif
                 </div>
             </div>

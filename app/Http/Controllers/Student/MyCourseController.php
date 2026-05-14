@@ -112,6 +112,7 @@ class MyCourseController extends Controller
                 $isIssued = $certificate->status === 'issued';
 
                 return [
+                    'certificateId' => $certificate->id,
                     'title' => $certificate->courseLevel?->name ?? 'Unknown Course',
                     'id' => $certificate->certificate_number,
                     'locked' => $isLocked,

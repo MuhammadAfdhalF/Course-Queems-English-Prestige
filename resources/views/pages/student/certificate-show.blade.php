@@ -65,12 +65,11 @@
                 Print Certificate
             </button>
 
-            <button
-                type="button"
-                disabled
-                class="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-xl bg-slate-100 px-5 text-sm font-bold text-slate-400">
-                Download PDF Soon
-            </button>
+            <a
+                href="{{ route('student.certificates.download', $certificate) }}"
+                class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-bold text-white shadow-sm transition hover:opacity-95">
+                Download PDF
+            </a>
         </div>
     </div>
 
@@ -212,8 +211,7 @@
                 </h2>
 
                 <p class="mt-2 text-sm leading-6 text-slate-500">
-                    Your certificate has been issued. You can print it now. PDF download will be added after the certificate layout is finalized.
-                </p>
+                    Your certificate has been issued. You can print it or download the official PDF file. </p>
             </div>
 
             <div class="flex flex-col gap-3 sm:flex-row">
@@ -229,6 +227,12 @@
                     class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-bold text-white transition hover:opacity-95">
                     Print Certificate
                 </button>
+
+                <a
+                    href="{{ route('student.certificates.download', $certificate) }}"
+                    class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-bold text-white transition hover:opacity-95">
+                    Download PDF
+                </a>
             </div>
         </div>
     </div>

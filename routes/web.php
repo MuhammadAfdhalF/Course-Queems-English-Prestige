@@ -141,7 +141,8 @@ Route::middleware(['auth', 'role:student'])
 
         Route::get('/certificates/{certificate}', [StudentCertificateController::class, 'show'])
             ->name('certificates.show');
-            
+        Route::get('/certificates/{certificate}/download', [StudentCertificateController::class, 'download'])
+            ->name('certificates.download');
         Route::get('/testimoni', [TestimonialController::class, 'index'])
             ->name('testimoni');
 
