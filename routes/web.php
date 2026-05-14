@@ -44,7 +44,7 @@ use App\Http\Controllers\Admin\CourseManagement\FinalExamReviewController;
 use App\Http\Controllers\Student\TestimonialController;
 use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
 use App\Http\Controllers\Admin\Cms\TestimonialController as AdminTestimonialController;
-
+use App\Http\Controllers\Admin\CourseManagement\CertificateController as AdminCertificateController;
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -329,6 +329,22 @@ Route::middleware(['auth', 'role:admin'])
 
                 Route::put('/final-exam-attempts/{finalExamAttempt}/review', [FinalExamReviewController::class, 'update'])
                     ->name('final-exam-reviews.update');
+
+                // certificates
+                Route::get('/certificates', [AdminCertificateController::class, 'index'])
+                    ->name('certificates.index');
+
+                Route::get('/certificates/{certificate}', [AdminCertificateController::class, 'show'])
+                    ->name('certificates.show');
+
+                Route::get('/certificates/{certificate}/download', [AdminCertificateController::class, 'download'])
+                    ->name('certificates.download');
+
+                Route::put('/certificates/{certificate}/revoke', [AdminCertificateController::class, 'revoke'])
+                    ->name('certificates.revoke');
+
+                Route::put('/certificates/{certificate}/reissue', [AdminCertificateController::class, 'reissue'])
+                    ->name('certificates.reissue');
             });
 
         Route::get('/orders', [CourseOrderController::class, 'index'])
