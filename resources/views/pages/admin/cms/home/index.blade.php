@@ -22,10 +22,10 @@ $sections = [
 ],
 [
 'title' => 'Featured Testimonials',
-'description' => 'Manage selected testimonials displayed on the home page.',
+'description' => 'Publish and feature testimonials displayed on the home page.',
 'count' => $featuredTestimonialsCount,
-'href' => null,
-'status' => 'Coming Soon',
+'href' => route('admin.cms.testimonials.index'),
+'status' => 'Manage',
 ],
 ];
 @endphp

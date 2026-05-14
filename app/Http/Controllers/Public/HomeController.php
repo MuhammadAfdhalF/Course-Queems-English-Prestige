@@ -12,6 +12,7 @@ use App\Models\HeroSection;
 use App\Models\InformationPost;
 use App\Models\WhyChooseUs;
 use App\Models\FreeTest;
+use App\Models\Testimonial;
 
 class HomeController extends Controller
 {
@@ -34,7 +35,7 @@ class HomeController extends Controller
             ->orderBy('id')
             ->limit(10)
             ->get();
-            
+
         $featuredCourses = CourseLevel::query()
             ->where('is_active', true)
             ->with('courseProgram')
@@ -64,6 +65,29 @@ class HomeController extends Controller
             })
             ->orderByRaw('published_at IS NULL')
             ->orderByDesc('published_at')
+            ->latest()
+            ->limit(4)
+            ->get();
+
+        $featuredTestimonials = Testimonial::query()
+            ->where('is_active', true)
+            ->where('is_featured', true)
+            ->with([
+                'student',
+                'courseLevel.courseProgram',
+            ])
+            ->latest()
+            ->limit(4)
+            ->get();
+
+        $testimonials = $featuredTestimonials->isNotEmpty()
+            ? $featuredTestimonials
+            : Testimonial::query()
+            ->where('is_active', true)
+            ->with([
+                'student',
+                'courseLevel.courseProgram',
+            ])
             ->latest()
             ->limit(4)
             ->get();
@@ -107,6 +131,7 @@ class HomeController extends Controller
             'freeTestCategories',
             'latestPosts',
             'freeTests',
+            'testimonials',
             'faqs',
             'contact'
         ));

@@ -11,6 +11,73 @@
         </div>
 
         <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            @forelse ($testimonials as $index => $testimonial)
+            @php
+            $delayClass = match ($index) {
+            1 => 'reveal-delay-1',
+            2 => 'reveal-delay-2',
+            3 => 'reveal-delay-3',
+            default => '',
+            };
+
+            $displayName = $testimonial->name
+            ?: ($testimonial->student?->name ?? 'Queens Student');
+
+            $initials = collect(explode(' ', trim($displayName)))
+            ->filter()
+            ->take(2)
+            ->map(fn ($word) => strtoupper(substr($word, 0, 1)))
+            ->implode('');
+
+            $initials = $initials ?: 'QS';
+
+            $courseLabel = $testimonial->courseLevel?->name
+            ?? ($testimonial->type === 'company' ? 'Queens English Prestige' : 'Course Student');
+
+            $programLabel = $testimonial->courseLevel?->courseProgram?->name;
+
+            $subtitle = $programLabel
+            ? $courseLabel . ' • ' . $programLabel
+            : $courseLabel;
+
+            $rating = max(0, min(5, (int) ($testimonial->rating ?? 5)));
+            @endphp
+
+            <div class="reveal {{ $delayClass }} motion-card flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div class="flex items-center gap-1 text-amber-400">
+                    @for ($i = 1; $i <= 5; $i++)
+                        <span>{{ $i <= $rating ? '★' : '☆' }}</span>
+                        @endfor
+                </div>
+
+                <p class="mt-5 line-clamp-5 flex-1 text-sm leading-7 text-slate-600">
+                    “{{ $testimonial->testimonial }}”
+                </p>
+
+                <div class="mt-6 flex items-center gap-3">
+                    @if ($testimonial->photo)
+                    <img
+                        src="{{ asset('storage/' . $testimonial->photo) }}"
+                        alt="{{ $displayName }}"
+                        class="h-11 w-11 rounded-full object-cover">
+                    @else
+                    <div class="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+                        {{ $initials }}
+                    </div>
+                    @endif
+
+                    <div class="min-w-0">
+                        <p class="truncate text-sm font-semibold text-slate-900">
+                            {{ $displayName }}
+                        </p>
+
+                        <p class="mt-0.5 line-clamp-1 text-xs text-slate-500">
+                            {{ $subtitle }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            @empty
             <div class="reveal motion-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="flex items-center gap-1 text-amber-400">
                     <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
@@ -94,6 +161,7 @@
                     </div>
                 </div>
             </div>
+            @endforelse
         </div>
     </div>
 </section>
