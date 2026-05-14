@@ -232,7 +232,9 @@
                         News & Gallery
                     </x-admin.sidebar-item>
 
-                    <x-admin.sidebar-item href="#">
+                    <x-admin.sidebar-item
+                        :href="route('admin.cms.testimonials.index')"
+                        :active="request()->routeIs('admin.cms.testimonials.*')">
                         <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 17.25l-5.227 2.748 1-5.823L3.546 10.5l5.846-.849L12 4.5l2.608 5.151 5.846.849-4.227 3.675 1 5.823z" />
