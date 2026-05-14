@@ -23,6 +23,7 @@ class MyCourseController extends Controller
             ->get()
             ->map(function (StudentCourseEnrollment $enrollment) {
                 $courseLevel = $enrollment->courseLevel;
+                $progress = (int) $enrollment->progress_percentage;
 
                 return [
                     'title' => $courseLevel?->name ?? 'Unknown Course',
@@ -32,18 +33,13 @@ class MyCourseController extends Controller
                     'meta' => $enrollment->enrolled_at
                         ? 'Enrolled ' . $enrollment->enrolled_at->format('M d, Y')
                         : 'Enrollment active',
-                    'progress' => (int) $enrollment->progress_percentage,
-                    'progressLabel' => $enrollment->status === 'completed'
-                        ? 'Course Completed'
-                        : 'Course Progress',
+                    'progress' => $progress,
+                    'progressLabel' => $this->courseProgressLabel($enrollment->status, $progress),
                     'badge' => $this->courseBadge($courseLevel?->learning_mode, $courseLevel?->access_type),
                     'image' => $this->courseImage($courseLevel),
-                    'primaryButton' => $enrollment->status === 'completed'
-                        ? 'View Certificate'
-                        : 'Continue Learning',
+                    'primaryButton' => $this->primaryButtonLabel($enrollment->status, $progress),
                     'secondaryButton' => 'Chat Admin',
                     'primaryHref' => route('student.learning-path', $enrollment),
-
                 ];
             });
 
@@ -74,6 +70,7 @@ class MyCourseController extends Controller
                         'image' => $this->courseImage($courseLevel),
                         'primaryButton' => 'Order Rejected',
                         'secondaryButton' => 'Chat Admin',
+                        'primaryHref' => '#',
                     ];
                 }
 
@@ -122,6 +119,44 @@ class MyCourseController extends Controller
             'cancelled' => 'Cancelled',
             default => 'Active',
         };
+    }
+
+    private function courseProgressLabel(string $status, int $progress): string
+    {
+        if ($status === 'completed') {
+            return 'Course Completed';
+        }
+
+        if ($progress <= 0) {
+            return 'Ready to start';
+        }
+
+        if ($progress >= 100) {
+            return 'All modules completed';
+        }
+
+        return 'Course Progress';
+    }
+
+    private function primaryButtonLabel(string $status, int $progress): string
+    {
+        if ($status === 'completed') {
+            return 'Review Course';
+        }
+
+        if (in_array($status, ['expired', 'cancelled'], true)) {
+            return 'Course Unavailable';
+        }
+
+        if ($progress <= 0) {
+            return 'Start Learning';
+        }
+
+        if ($progress >= 100) {
+            return 'Review Course';
+        }
+
+        return 'Continue Learning';
     }
 
     private function courseBadge(?string $learningMode, ?string $accessType): string
