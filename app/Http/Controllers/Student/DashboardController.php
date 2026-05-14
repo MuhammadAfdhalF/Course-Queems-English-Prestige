@@ -23,16 +23,26 @@ class DashboardController extends Controller
 
         $latestPendingOrder = $pendingOrders->first();
 
-        $activeCourseCount = StudentCourseEnrollment::query()
+        $activeEnrollments = StudentCourseEnrollment::query()
+            ->with([
+                'courseLevel.courseProgram',
+                'courseLevel.finalExams' => function ($query) {
+                    $query->where('is_active', true);
+                },
+            ])
             ->where('student_id', $student->id)
             ->where('status', 'active')
-            ->count();
+            ->whereHas('courseLevel')
+            ->latest('enrolled_at')
+            ->latest()
+            ->get();
 
         $completedCourseCount = StudentCourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('status', 'completed')
             ->count();
 
+        $activeCourseCount = $activeEnrollments->count();
         $pendingOrderCount = $pendingOrders->count();
 
         $rejectedOrderCount = Order::query()
@@ -40,36 +50,57 @@ class DashboardController extends Controller
             ->where('status', 'rejected')
             ->count();
 
-        $continueLearningCourses = StudentCourseEnrollment::query()
-            ->with('courseLevel.courseProgram')
-            ->where('student_id', $student->id)
-            ->where('status', 'active')
-            ->whereHas('courseLevel')
-            ->latest('enrolled_at')
-            ->latest()
-            ->limit(4)
-            ->get()
+        $finalExamAvailableCount = $activeEnrollments
+            ->filter(function (StudentCourseEnrollment $enrollment) {
+                return $enrollment->courseLevel?->finalExams?->count() > 0;
+            })
+            ->count();
+
+        $averageProgress = $activeEnrollments->count() > 0
+            ? (int) round($activeEnrollments->avg('progress_percentage'))
+            : 0;
+
+        $continueLearningCourses = $activeEnrollments
+            ->sortBy(function (StudentCourseEnrollment $enrollment) {
+                $progress = (int) $enrollment->progress_percentage;
+
+                if ($progress <= 0) {
+                    return 1;
+                }
+
+                if ($progress < 100) {
+                    return 0;
+                }
+
+                return 2;
+            })
+            ->take(4)
             ->map(function (StudentCourseEnrollment $enrollment) {
                 $courseLevel = $enrollment->courseLevel;
+                $progress = (int) $enrollment->progress_percentage;
 
                 return [
                     'title' => $courseLevel?->name ?? 'Unknown Course',
                     'level' => $courseLevel?->courseProgram?->name ?? 'Course Program',
-                    'progress' => (int) $enrollment->progress_percentage,
+                    'progress' => $progress,
                     'image' => $this->courseImage($courseLevel),
                     'href' => route('student.learning-path', $enrollment),
                 ];
             })
+            ->values()
             ->all();
 
         $academicStatus = $this->academicStatus(
             $activeCourseCount,
-            $pendingOrderCount
+            $pendingOrderCount,
+            $averageProgress
         );
 
         $welcomeDescription = $this->welcomeDescription(
             $activeCourseCount,
-            $pendingOrderCount
+            $pendingOrderCount,
+            $averageProgress,
+            $finalExamAvailableCount
         );
 
         return view('pages.student.dashboard', [
@@ -80,14 +111,19 @@ class DashboardController extends Controller
             'pendingOrderCount' => $pendingOrderCount,
             'completedCourseCount' => $completedCourseCount,
             'rejectedOrderCount' => $rejectedOrderCount,
+            'finalExamAvailableCount' => $finalExamAvailableCount,
             'continueLearningCourses' => $continueLearningCourses,
             'academicStatus' => $academicStatus,
             'welcomeDescription' => $welcomeDescription,
         ]);
     }
 
-    private function academicStatus(int $activeCourseCount, int $pendingOrderCount): string
+    private function academicStatus(int $activeCourseCount, int $pendingOrderCount, int $averageProgress): string
     {
+        if ($activeCourseCount > 0 && $averageProgress >= 100) {
+            return 'Academic Status: Modules Completed';
+        }
+
         if ($activeCourseCount > 0) {
             return 'Academic Status: Active';
         }
@@ -99,8 +135,20 @@ class DashboardController extends Controller
         return 'Academic Status: New Student';
     }
 
-    private function welcomeDescription(int $activeCourseCount, int $pendingOrderCount): string
-    {
+    private function welcomeDescription(
+        int $activeCourseCount,
+        int $pendingOrderCount,
+        int $averageProgress,
+        int $finalExamAvailableCount
+    ): string {
+        if ($activeCourseCount > 0 && $averageProgress >= 100 && $finalExamAvailableCount > 0) {
+            return 'You have completed your learning modules. Review your course materials and get ready for the final exam when you are prepared.';
+        }
+
+        if ($activeCourseCount > 0 && $averageProgress >= 100) {
+            return 'You have completed your learning modules. You can review your course materials anytime from My Courses.';
+        }
+
         if ($activeCourseCount > 0) {
             return 'Ready to continue your English journey? Pick up from your active course and keep building your progress.';
         }

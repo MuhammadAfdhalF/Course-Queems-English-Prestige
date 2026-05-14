@@ -21,16 +21,16 @@
         <x-student.summary-stat-card
             title="Completed Courses"
             :value="str_pad((string) $completedCourseCount, 2, '0', STR_PAD_LEFT)"
-            description="Course completed"
+            description="After final exam"
             accent="green"
             icon="shield" />
     </div>
 
     <div class="reveal reveal-delay-3">
         <x-student.summary-stat-card
-            title="Rejected Orders"
-            :value="str_pad((string) $rejectedOrderCount, 2, '0', STR_PAD_LEFT)"
-            description="Contact admin"
+            title="Final Exams"
+            :value="str_pad((string) $finalExamAvailableCount, 2, '0', STR_PAD_LEFT)"
+            description="Available exams"
             accent="gold"
             icon="clock" />
     </div>

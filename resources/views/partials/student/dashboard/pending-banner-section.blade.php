@@ -15,4 +15,5 @@ $bannerDescription = 'Your order for ' . $latestPendingCourse . ' is waiting for
         :description="$bannerDescription"
         button-text="View My Courses"
         :href="route('student.my-courses')" />
-    @endif
+</div>
+@endif
