@@ -102,7 +102,6 @@ class MyCourseController extends Controller
         $activeCourseCount = collect($courses)
             ->where('status', 'active')
             ->count();
-
         $certificates = Certificate::query()
             ->with('courseLevel.courseProgram')
             ->where('student_id', $student->id)
@@ -124,9 +123,11 @@ class MyCourseController extends Controller
                         'revoked' => 'Certificate revoked',
                         default => '',
                     },
-                    'href' => $isLocked
-                        ? route('student.testimoni')
-                        : '#',
+                    'href' => match ($certificate->status) {
+                        'locked' => route('student.testimoni'),
+                        'issued' => route('student.certificates.show', $certificate),
+                        default => '#',
+                    },
                 ];
             })
             ->all();

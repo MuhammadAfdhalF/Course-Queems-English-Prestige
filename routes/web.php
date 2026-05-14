@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\CourseManagement\ModulePracticeReviewController;
 use App\Http\Controllers\Student\FinalExamController as StudentFinalExamController;
 use App\Http\Controllers\Admin\CourseManagement\FinalExamReviewController;
 use App\Http\Controllers\Student\TestimonialController;
+use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
 
 
 // sementara logout
@@ -137,6 +138,10 @@ Route::middleware(['auth', 'role:student'])
             ->name('final-exam-result');
         Route::view('/all-courses', 'pages.student.all-courses')->name('all-courses');
 
+
+        Route::get('/certificates/{certificate}', [StudentCertificateController::class, 'show'])
+            ->name('certificates.show');
+            
         Route::get('/testimoni', [TestimonialController::class, 'index'])
             ->name('testimoni');
 

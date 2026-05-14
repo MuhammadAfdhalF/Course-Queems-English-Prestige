@@ -63,10 +63,16 @@ class TestimonialController extends Controller
             'is_active' => false,
         ]);
 
-        $certificateService->unlockCertificateFromTestimonial($testimonial);
+        $unlockedCertificate = $certificateService->unlockCertificateFromTestimonial($testimonial);
+
+        if ($unlockedCertificate) {
+            return redirect()
+                ->route('student.certificates.show', $unlockedCertificate)
+                ->with('success', 'Thank you for your testimonial. Your certificate has been unlocked.');
+        }
 
         return redirect()
             ->route('student.my-courses')
-            ->with('success', 'Thank you for your testimonial. Your certificate has been unlocked.');
+            ->with('success', 'Thank you for your testimonial.');
     }
 }

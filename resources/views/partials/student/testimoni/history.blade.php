@@ -51,7 +51,7 @@
                             </span>
                             @else
                             <span class="inline-flex items-center rounded-full bg-yellow-50 px-3 py-1 text-xs font-bold text-[var(--color-brand-gold)]">
-                                • Reviewing
+                                • Awaiting Publication
                             </span>
                             @endif
                         </div>
