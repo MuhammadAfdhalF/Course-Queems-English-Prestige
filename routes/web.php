@@ -43,6 +43,7 @@ use App\Http\Controllers\Student\FinalExamController as StudentFinalExamControll
 use App\Http\Controllers\Admin\CourseManagement\FinalExamReviewController;
 use App\Http\Controllers\Student\TestimonialController;
 use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
+use App\Http\Controllers\Admin\Cms\TestimonialController as AdminTestimonialController;
 
 
 // sementara logout
@@ -379,6 +380,24 @@ Route::middleware(['auth', 'role:admin'])
 
                 Route::resource('mentors', MentorController::class)
                     ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::get('/testimonials', [AdminTestimonialController::class, 'index'])
+                    ->name('testimonials.index');
+
+                Route::put('/testimonials/{testimonial}/publish', [AdminTestimonialController::class, 'publish'])
+                    ->name('testimonials.publish');
+
+                Route::put('/testimonials/{testimonial}/unpublish', [AdminTestimonialController::class, 'unpublish'])
+                    ->name('testimonials.unpublish');
+
+                Route::put('/testimonials/{testimonial}/feature', [AdminTestimonialController::class, 'feature'])
+                    ->name('testimonials.feature');
+
+                Route::put('/testimonials/{testimonial}/unfeature', [AdminTestimonialController::class, 'unfeature'])
+                    ->name('testimonials.unfeature');
+
+                Route::delete('/testimonials/{testimonial}', [AdminTestimonialController::class, 'destroy'])
+                    ->name('testimonials.destroy');
 
                 Route::get('/contact', [ContactPageController::class, 'index'])
                     ->name('contact.index');
