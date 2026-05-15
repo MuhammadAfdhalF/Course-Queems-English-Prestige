@@ -8,6 +8,7 @@ use App\Models\CourseLevel;
 use App\Models\FinalExamAttempt;
 use App\Models\StudentCourseEnrollment;
 use App\Models\Testimonial;
+use Illuminate\Support\Str;
 
 class CertificateService
 {
@@ -63,6 +64,7 @@ class CertificateService
             'final_exam_attempt_id' => $attempt->id,
             'certificate_template_id' => $this->resolveTemplate($courseLevel)->id,
             'certificate_number' => $this->generateCertificateNumber(),
+            'verification_token' => $this->generateVerificationToken(),
             'certificate_file' => null,
             'issued_at' => null,
             'status' => 'locked',
@@ -156,5 +158,17 @@ class CertificateService
         );
 
         return $number;
+    }
+    private function generateVerificationToken(): string
+    {
+        do {
+            $token = Str::random(48);
+        } while (
+            Certificate::query()
+            ->where('verification_token', $token)
+            ->exists()
+        );
+
+        return $token;
     }
 }

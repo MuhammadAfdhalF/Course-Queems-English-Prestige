@@ -46,6 +46,9 @@ use App\Http\Controllers\Student\CertificateController as StudentCertificateCont
 use App\Http\Controllers\Admin\Cms\TestimonialController as AdminTestimonialController;
 use App\Http\Controllers\Admin\CourseManagement\CertificateController as AdminCertificateController;
 use App\Http\Controllers\Admin\CourseManagement\CertificateTemplateController;
+use App\Http\Controllers\Public\CertificateVerificationController;
+
+
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
@@ -78,7 +81,8 @@ Route::get('/news', [PublicInformationController::class, 'index'])->name('news')
 Route::get('/news/{informationPost:slug}', [PublicInformationController::class, 'show'])->name('news.show');
 
 Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
-
+Route::get('/certificates/verify/{token}', [CertificateVerificationController::class, 'show'])
+    ->name('certificates.verify');
 /*
 |--------------------------------------------------------------------------
 | Auth Routes

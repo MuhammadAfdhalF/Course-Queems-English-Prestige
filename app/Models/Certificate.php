@@ -14,6 +14,7 @@ class Certificate extends Model
         'final_exam_attempt_id',
         'certificate_template_id',
         'certificate_number',
+        'verification_token',
         'certificate_file',
         'issued_at',
         'status',

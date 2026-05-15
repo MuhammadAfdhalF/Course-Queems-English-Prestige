@@ -23,6 +23,14 @@ $templateBackground = $certificate->certificateTemplate?->background_image;
 $templateBackgroundUrl = $templateBackground
 ? asset('storage/' . $templateBackground)
 : null;
+
+$verificationUrl = $certificate->verification_token
+? route('certificates.verify', $certificate->verification_token)
+: null;
+
+$qrSvg = $verificationUrl
+? \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(120)->margin(1)->generate($verificationUrl)
+: null;
 @endphp
 
 <section class="mx-auto max-w-7xl space-y-6">

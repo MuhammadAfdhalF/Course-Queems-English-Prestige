@@ -15,12 +15,24 @@
 
     $logoPath = public_path('images/logo-queens-english.png');
     $hasLogo = file_exists($logoPath);
+
+    $verificationUrl = $certificate->verification_token
+    ? route('certificates.verify', $certificate->verification_token)
+    : null;
+
+    $qrSvg = $verificationUrl
+    ? \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(130)->margin(1)->generate($verificationUrl)
+    : null;
+
+    $qrDataUri = $qrSvg
+    ? 'data:image/svg+xml;base64,' . base64_encode($qrSvg)
+    : null;
     @endphp
 
     <style>
         @page {
             size: A4 landscape;
-            margin: 10mm;
+            margin: 0;
         }
 
         * {
@@ -31,8 +43,8 @@
         body {
             margin: 0;
             padding: 0;
-            width: 277mm;
-            height: 190mm;
+            width: 297mm;
+            height: 210mm;
             overflow: hidden;
             background: #ffffff;
             color: #0f172a;
@@ -41,34 +53,38 @@
 
         .certificate {
             position: relative;
-            width: 277mm;
-            height: 190mm;
+            width: 297mm;
+            height: 210mm;
             overflow: hidden;
-            border: 3mm solid #071738;
             background: #fffdf6;
             text-align: center;
         }
 
         .template-background {
             position: absolute;
-            inset: 0;
-            width: 277mm;
-            height: 190mm;
-            object-fit: cover;
+            top: 0;
+            left: 0;
+            width: 297mm;
+            height: 210mm;
             z-index: 0;
         }
 
-        .content-layer {
-            position: relative;
-            z-index: 3;
+        .default-border {
+            position: absolute;
+            top: 6mm;
+            left: 6mm;
+            right: 6mm;
+            bottom: 6mm;
+            border: 3mm solid #071738;
+            z-index: 1;
         }
 
         .inner-border {
             position: absolute;
-            top: 5mm;
-            left: 5mm;
-            right: 5mm;
-            bottom: 5mm;
+            top: 13mm;
+            left: 13mm;
+            right: 13mm;
+            bottom: 13mm;
             border: 0.35mm solid rgba(212, 160, 23, 0.35);
             z-index: 2;
         }
@@ -81,29 +97,29 @@
         }
 
         .corner-top-left {
-            top: 6mm;
-            left: 6mm;
+            top: 15mm;
+            left: 15mm;
             border-left: 0.9mm solid #d4a017;
             border-top: 0.9mm solid #d4a017;
         }
 
         .corner-top-right {
-            top: 6mm;
-            right: 6mm;
+            top: 15mm;
+            right: 15mm;
             border-right: 0.9mm solid #d4a017;
             border-top: 0.9mm solid #d4a017;
         }
 
         .corner-bottom-left {
-            bottom: 6mm;
-            left: 6mm;
+            bottom: 15mm;
+            left: 15mm;
             border-left: 0.9mm solid #d4a017;
             border-bottom: 0.9mm solid #d4a017;
         }
 
         .corner-bottom-right {
-            bottom: 6mm;
-            right: 6mm;
+            bottom: 15mm;
+            right: 15mm;
             border-right: 0.9mm solid #d4a017;
             border-bottom: 0.9mm solid #d4a017;
         }
@@ -111,7 +127,7 @@
         .watermark-left {
             position: absolute;
             left: -35mm;
-            top: 35mm;
+            top: 42mm;
             width: 90mm;
             height: 90mm;
             border: 8mm solid rgba(212, 160, 23, 0.08);
@@ -122,7 +138,7 @@
         .watermark-right {
             position: absolute;
             right: -40mm;
-            bottom: 18mm;
+            bottom: 25mm;
             width: 105mm;
             height: 105mm;
             border: 9mm solid rgba(7, 23, 56, 0.06);
@@ -130,11 +146,18 @@
             z-index: 1;
         }
 
+        .content-layer {
+            position: relative;
+            z-index: 5;
+            width: 297mm;
+            height: 210mm;
+        }
+
         .header {
             position: absolute;
-            top: 15mm;
-            left: 20mm;
-            right: 20mm;
+            top: 17mm;
+            left: 30mm;
+            right: 30mm;
             text-align: center;
         }
 
@@ -157,7 +180,6 @@
             width: 13mm;
             height: 13mm;
             margin-top: 1.4mm;
-            object-fit: contain;
         }
 
         .brand {
@@ -182,7 +204,7 @@
         .subtitle {
             margin-top: 3mm;
             color: #64748b;
-            font-size: 7.5pt;
+            font-size: 7.4pt;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 4px;
@@ -197,9 +219,9 @@
 
         .recipient {
             position: absolute;
-            top: 78mm;
-            left: 20mm;
-            right: 20mm;
+            top: 80mm;
+            left: 35mm;
+            right: 35mm;
             text-align: center;
         }
 
@@ -211,7 +233,7 @@
         .student-name {
             margin-top: 3mm;
             color: #020617;
-            font-size: 25pt;
+            font-size: 24pt;
             font-weight: 900;
             line-height: 1.08;
         }
@@ -232,7 +254,7 @@
         .course-name {
             margin-top: 2mm;
             color: #071738;
-            font-size: 18pt;
+            font-size: 17pt;
             font-weight: 900;
             line-height: 1.1;
         }
@@ -240,7 +262,7 @@
         .program-name {
             margin-top: 2mm;
             color: #d4a017;
-            font-size: 6.5pt;
+            font-size: 6.4pt;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1.7px;
@@ -248,19 +270,18 @@
 
         .meta-table {
             position: absolute;
-            left: 20mm;
-            right: 20mm;
-            bottom: 54mm;
-            width: 237mm;
+            left: 72mm;
+            top: 135mm;
+            width: 153mm;
             border-collapse: separate;
             border-spacing: 3mm 0;
         }
 
         .meta-box {
-            width: 33.333%;
-            padding: 3mm 3.5mm;
+            width: 50%;
+            padding: 3.2mm 3.8mm;
             border: 0.3mm solid #dbe3ef;
-            background: rgba(255, 255, 255, 0.82);
+            background: rgba(255, 255, 255, 0.90);
             text-align: left;
         }
 
@@ -279,30 +300,31 @@
             font-weight: 900;
         }
 
-        .signature-table {
+        .bottom-table {
             position: absolute;
-            left: 28mm;
-            right: 28mm;
-            bottom: 28mm;
-            width: 221mm;
+            left: 50mm;
+            top: 163mm;
+            width: 197mm;
             border-collapse: collapse;
         }
 
-        .signature-cell {
+        .bottom-cell {
             width: 50%;
+            vertical-align: middle;
             text-align: center;
-            padding: 0 18mm;
+            padding: 0 10mm;
         }
 
         .signature-line {
+            width: 68mm;
             height: 0.3mm;
             background: #334155;
-            margin-bottom: 3mm;
+            margin: 0 auto 3mm;
         }
 
         .signature-name {
             color: #0f172a;
-            font-size: 7.2pt;
+            font-size: 7.4pt;
             font-weight: 900;
         }
 
@@ -315,37 +337,39 @@
             letter-spacing: 1.2px;
         }
 
-        .note {
-            position: absolute;
-            left: 42mm;
-            right: 42mm;
-            bottom: 16mm;
-            color: #64748b;
-            font-size: 5.5pt;
-            line-height: 1.45;
+        .qr-box {
+            display: inline-block;
+            width: 31mm;
+            padding: 1.8mm;
+            border: 0.3mm solid #dbe3ef;
+            background: rgba(255, 255, 255, 0.96);
             text-align: center;
         }
 
-        .seal {
-            position: absolute;
-            right: 22mm;
-            top: 70mm;
-            width: 28mm;
-            height: 28mm;
-            border: 1mm solid rgba(212, 160, 23, 0.28);
-            border-radius: 50%;
-            color: rgba(212, 160, 23, 0.38);
-            font-size: 7pt;
+        .qr-box img {
+            width: 21mm;
+            height: 21mm;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .qr-title {
+            margin-top: 1mm;
+            color: #0f172a;
+            font-size: 5.5pt;
             font-weight: 900;
-            line-height: 28mm;
-            text-align: center;
+        }
+
+        .qr-subtitle {
+            margin-top: 0.5mm;
+            color: #94a3b8;
+            font-size: 4.2pt;
+            font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            z-index: 2;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
-
 
 <body>
     <div class="certificate">
@@ -354,8 +378,8 @@
             src="{{ $templateBackgroundPath }}"
             alt="Certificate Template Background"
             class="template-background">
-        @endif
-
+        @else
+        <div class="default-border"></div>
         <div class="inner-border"></div>
 
         <div class="corner corner-top-left"></div>
@@ -363,12 +387,9 @@
         <div class="corner corner-bottom-left"></div>
         <div class="corner corner-bottom-right"></div>
 
-        @unless ($hasTemplateBackground)
         <div class="watermark-left"></div>
         <div class="watermark-right"></div>
-        @endunless
-
-        <div class="seal">QEP</div>
+        @endif
 
         <div class="content-layer">
             <div class="header">
@@ -382,6 +403,7 @@
                     QEP
                     @endif
                 </div>
+
                 <div class="brand">
                     Queens English Prestige
                 </div>
@@ -432,35 +454,28 @@
                         <div class="meta-label">Issued Date</div>
                         <div class="meta-value">{{ $certificate->issued_at?->format('d F Y') ?? '-' }}</div>
                     </td>
-
-                    <td class="meta-box">
-                        <div class="meta-label">Final Exam Score</div>
-                        <div class="meta-value">
-                            {{ $finalExamAttempt ? number_format((float) $finalExamAttempt->total_score, 2) . '%' : '-' }}
-                        </div>
-                    </td>
                 </tr>
             </table>
 
-            <table class="signature-table">
+            <table class="bottom-table">
                 <tr>
-                    <td class="signature-cell">
+                    <td class="bottom-cell">
                         <div class="signature-line"></div>
                         <div class="signature-name">Queens English Prestige</div>
                         <div class="signature-title">Authorized Signature</div>
                     </td>
 
-                    <td class="signature-cell">
-                        <div class="signature-line"></div>
-                        <div class="signature-name">{{ $student?->name ?? 'Student' }}</div>
-                        <div class="signature-title">Certificate Holder</div>
+                    <td class="bottom-cell">
+                        @if ($qrDataUri)
+                        <div class="qr-box">
+                            <img src="{{ $qrDataUri }}" alt="Certificate Verification QR">
+                            <div class="qr-title">Verify Certificate</div>
+                            <div class="qr-subtitle">Scan to Verify</div>
+                        </div>
+                        @endif
                     </td>
                 </tr>
             </table>
-
-            <div class="note">
-                This certificate verifies that the student has completed the required learning activities and passed the final assessment according to Queens English Prestige standards.
-            </div>
         </div>
     </div>
 </body>
