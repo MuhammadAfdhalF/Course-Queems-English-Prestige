@@ -180,6 +180,17 @@
                         </x-slot:icon>
                         Issued Certificates
                     </x-admin.sidebar-item>
+                    <x-admin.sidebar-item
+                        :href="route('admin.course-management.certificate-settings.edit')"
+                        :active="request()->routeIs('admin.course-management.certificate-settings.*')">
+                        <x-slot:icon>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16.862 4.487l1.651 1.651a2.121 2.121 0 010 3l-8.486 8.486-4.243.943.943-4.243 8.486-8.486a2.121 2.121 0 013 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 20H5" />
+                            </svg>
+                        </x-slot:icon>
+                        Certificate Settings
+                    </x-admin.sidebar-item>
                 </nav>
             </div>
 

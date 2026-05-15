@@ -47,7 +47,7 @@ use App\Http\Controllers\Admin\Cms\TestimonialController as AdminTestimonialCont
 use App\Http\Controllers\Admin\CourseManagement\CertificateController as AdminCertificateController;
 use App\Http\Controllers\Admin\CourseManagement\CertificateTemplateController;
 use App\Http\Controllers\Public\CertificateVerificationController;
-
+use App\Http\Controllers\Admin\CourseManagement\CertificateSettingController;
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -352,6 +352,12 @@ Route::middleware(['auth', 'role:admin'])
 
                 Route::resource('certificate-templates', CertificateTemplateController::class)
                     ->only(['index', 'store', 'update', 'destroy']);
+
+                Route::get('/certificate-settings', [CertificateSettingController::class, 'edit'])
+                    ->name('certificate-settings.edit');
+
+                Route::put('/certificate-settings', [CertificateSettingController::class, 'update'])
+                    ->name('certificate-settings.update');
             });
 
         Route::get('/orders', [CourseOrderController::class, 'index'])

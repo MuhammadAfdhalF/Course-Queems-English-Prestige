@@ -1,7 +1,7 @@
 <x-admin.modal
     model="createModalOpen"
     title="Add Certificate Template"
-    subtitle="Create a reusable certificate template."
+    subtitle="Create a reusable certificate background template."
     size="lg">
     <form
         id="createCertificateTemplateForm"

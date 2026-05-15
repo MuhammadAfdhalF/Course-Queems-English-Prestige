@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('certificate_templates', function (Blueprint $table) {
+            if (Schema::hasColumn('certificate_templates', 'signature_image')) {
+                $table->dropColumn('signature_image');
+            }
+
+            if (Schema::hasColumn('certificate_templates', 'signer_name')) {
+                $table->dropColumn('signer_name');
+            }
+
+            if (Schema::hasColumn('certificate_templates', 'signer_title')) {
+                $table->dropColumn('signer_title');
+            }
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('certificate_templates', function (Blueprint $table) {
+            $table->string('signature_image')->nullable()->after('background_image');
+            $table->string('signer_name')->nullable()->after('signature_image');
+            $table->string('signer_title')->nullable()->after('signer_name');
+        });
+    }
+};

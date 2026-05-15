@@ -1,7 +1,7 @@
 <x-admin.modal
     model="editModalOpen"
     title="Edit Certificate Template"
-    subtitle="Update the selected certificate template."
+    subtitle="Update the selected certificate background template."
     size="lg">
     <template x-if="selectedTemplate">
         <form
