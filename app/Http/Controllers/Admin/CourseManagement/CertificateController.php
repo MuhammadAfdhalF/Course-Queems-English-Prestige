@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Models\CertificateSetting;
 
 class CertificateController extends Controller
 {
@@ -49,6 +50,7 @@ class CertificateController extends Controller
             'courseLevel' => $certificate->courseLevel,
             'courseProgram' => $certificate->courseLevel?->courseProgram,
             'finalExamAttempt' => $certificate->finalExamAttempt,
+            'certificateSetting' => CertificateSetting::current(),
         ]);
     }
 
@@ -124,6 +126,7 @@ class CertificateController extends Controller
             'courseLevel' => $certificate->courseLevel,
             'courseProgram' => $certificate->courseLevel?->courseProgram,
             'finalExamAttempt' => $certificate->finalExamAttempt,
+            'certificateSetting' => CertificateSetting::current(),
         ])->setPaper('a4', 'landscape');
 
         $fileName = Str::slug($certificate->certificate_number) . '.pdf';

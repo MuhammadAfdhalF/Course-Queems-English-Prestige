@@ -16,6 +16,15 @@
     $logoPath = public_path('images/logo-queens-english.png');
     $hasLogo = file_exists($logoPath);
 
+    $signaturePath = $certificateSetting?->signature_image
+    ? public_path('storage/' . $certificateSetting->signature_image)
+    : null;
+
+    $hasSignature = $signaturePath && file_exists($signaturePath);
+
+    $signerName = $certificateSetting?->signerName() ?? 'Queens English Prestige';
+    $signerTitle = $certificateSetting?->signerTitle() ?? 'Authorized Signature';
+
     $verificationUrl = $certificate->verification_token
     ? route('certificates.verify', $certificate->verification_token)
     : null;
@@ -303,7 +312,7 @@
         .bottom-table {
             position: absolute;
             left: 50mm;
-            top: 163mm;
+            top: 160mm;
             width: 197mm;
             border-collapse: collapse;
         }
@@ -313,6 +322,19 @@
             vertical-align: middle;
             text-align: center;
             padding: 0 10mm;
+        }
+
+        .signature-image {
+            width: 54mm;
+            height: 14mm;
+            object-fit: contain;
+            margin: 0 auto 1.5mm;
+            display: block;
+        }
+
+        .signature-placeholder {
+            height: 14mm;
+            margin-bottom: 1.5mm;
         }
 
         .signature-line {
@@ -460,9 +482,18 @@
             <table class="bottom-table">
                 <tr>
                     <td class="bottom-cell">
+                        @if ($hasSignature)
+                        <img
+                            src="{{ $signaturePath }}"
+                            alt="{{ $signerName }}"
+                            class="signature-image">
+                        @else
+                        <div class="signature-placeholder"></div>
+                        @endif
+
                         <div class="signature-line"></div>
-                        <div class="signature-name">Queens English Prestige</div>
-                        <div class="signature-title">Authorized Signature</div>
+                        <div class="signature-name">{{ $signerName }}</div>
+                        <div class="signature-title">{{ $signerTitle }}</div>
                     </td>
 
                     <td class="bottom-cell">
