@@ -2,18 +2,26 @@
 
 @section('content')
 @php
-    $templateBackground = $certificate->certificateTemplate?->background_image;
-    $templateBackgroundUrl = $templateBackground
-        ? asset('storage/' . $templateBackground)
-        : null;
+$templateBackground = $certificate->certificateTemplate?->background_image;
+$templateBackgroundUrl = $templateBackground
+? asset('storage/' . $templateBackground)
+: null;
 
-    $verificationUrl = $certificate->verification_token
-        ? route('certificates.verify', $certificate->verification_token)
-        : null;
+$signatureImage = $certificateSetting?->signature_image;
+$signatureImageUrl = $signatureImage
+? asset('storage/' . $signatureImage)
+: null;
 
-    $qrSvg = $verificationUrl
-        ? \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(110)->margin(1)->generate($verificationUrl)
-        : null;
+$signerName = $certificateSetting?->signerName() ?? 'Queens English Prestige';
+$signerTitle = $certificateSetting?->signerTitle() ?? 'Authorized Signature';
+
+$verificationUrl = $certificate->verification_token
+? route('certificates.verify', $certificate->verification_token)
+: null;
+
+$qrSvg = $verificationUrl
+? \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(110)->margin(1)->generate($verificationUrl)
+: null;
 @endphp
 
 <style>
@@ -101,21 +109,21 @@
                 class="certificate-preview-frame relative mx-auto w-full overflow-hidden rounded-[26px] bg-[#fffdf6] text-center shadow-[0_22px_70px_rgba(15,23,42,0.14)]">
 
                 @if ($templateBackgroundUrl)
-                    <img
-                        src="{{ $templateBackgroundUrl }}"
-                        alt="Certificate Template Background"
-                        class="absolute inset-0 h-full w-full">
+                <img
+                    src="{{ $templateBackgroundUrl }}"
+                    alt="Certificate Template Background"
+                    class="absolute inset-0 h-full w-full">
                 @else
-                    <div class="absolute inset-[2.8%] border-[10px] border-[#071738]"></div>
-                    <div class="absolute inset-[6%] border border-[#D4A017]/40"></div>
+                <div class="absolute inset-[2.8%] border-[10px] border-[#071738]"></div>
+                <div class="absolute inset-[6%] border border-[#D4A017]/40"></div>
 
-                    <div class="pointer-events-none absolute left-[6.5%] top-[7%] h-[14%] w-[10%] border-l-4 border-t-4 border-[#D4A017] opacity-80"></div>
-                    <div class="pointer-events-none absolute right-[6.5%] top-[7%] h-[14%] w-[10%] border-r-4 border-t-4 border-[#D4A017] opacity-80"></div>
-                    <div class="pointer-events-none absolute bottom-[7%] left-[6.5%] h-[14%] w-[10%] border-b-4 border-l-4 border-[#D4A017] opacity-80"></div>
-                    <div class="pointer-events-none absolute bottom-[7%] right-[6.5%] h-[14%] w-[10%] border-b-4 border-r-4 border-[#D4A017] opacity-80"></div>
+                <div class="pointer-events-none absolute left-[6.5%] top-[7%] h-[14%] w-[10%] border-l-4 border-t-4 border-[#D4A017] opacity-80"></div>
+                <div class="pointer-events-none absolute right-[6.5%] top-[7%] h-[14%] w-[10%] border-r-4 border-t-4 border-[#D4A017] opacity-80"></div>
+                <div class="pointer-events-none absolute bottom-[7%] left-[6.5%] h-[14%] w-[10%] border-b-4 border-l-4 border-[#D4A017] opacity-80"></div>
+                <div class="pointer-events-none absolute bottom-[7%] right-[6.5%] h-[14%] w-[10%] border-b-4 border-r-4 border-[#D4A017] opacity-80"></div>
 
-                    <div class="pointer-events-none absolute -left-[12%] top-[20%] h-[42%] w-[30%] rounded-full border-[36px] border-[#D4A017]/10"></div>
-                    <div class="pointer-events-none absolute -bottom-[10%] -right-[10%] h-[48%] w-[34%] rounded-full border-[42px] border-[#071738]/10"></div>
+                <div class="pointer-events-none absolute -left-[12%] top-[20%] h-[42%] w-[30%] rounded-full border-[36px] border-[#D4A017]/10"></div>
+                <div class="pointer-events-none absolute -bottom-[10%] -right-[10%] h-[48%] w-[34%] rounded-full border-[42px] border-[#071738]/10"></div>
                 @endif
 
                 <div class="absolute inset-0 z-10">
@@ -193,51 +201,60 @@
                     </div>
 
                     {{-- SIGNATURE + VERIFY --}}
-                    <div class="absolute left-[17%] right-[17%] top-[81%] grid grid-cols-2 items-center gap-8">
+                    <div class="absolute left-[17%] right-[17%] top-[78.5%] grid grid-cols-2 items-center gap-8">
                         <div class="text-center">
-                            <div class="mx-auto h-[2px] max-w-[260px] bg-slate-500"></div>
+                            @if ($signatureImageUrl)
+                            <img
+                                src="{{ $signatureImageUrl }}"
+                                alt="{{ $signerName }}"
+                                class="mx-auto h-10 w-full object-contain lg:h-14">
+                            @else
+                            <div class="mx-auto h-10 w-full lg:h-14"></div>
+                            @endif
+
+                            <div class="mx-auto mt-1 h-[2px] max-w-[260px] bg-slate-500"></div>
 
                             <p class="mt-3 text-xs font-black text-slate-900 lg:text-sm">
-                                Queens English Prestige
+                                {{ $signerName }}
                             </p>
 
                             <p class="mt-1 text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400 lg:text-[10px]">
-                                Authorized Signature
+                                {{ $signerTitle }}
                             </p>
                         </div>
 
                         <div class="text-center">
                             @if ($verificationUrl && $qrSvg)
-                                <div class="inline-flex flex-col items-center justify-center border border-slate-200 bg-white/95 p-2 shadow-sm">
-                                    <div class="[&_svg]:h-16 [&_svg]:w-16 lg:[&_svg]:h-20 lg:[&_svg]:w-20">
-                                        {!! $qrSvg !!}
-                                    </div>
-
-                                    <p class="mt-2 text-[8px] font-black uppercase tracking-[0.18em] text-slate-400 lg:text-[10px]">
-                                        Scan to Verify
-                                    </p>
-
-                                    <p class="mt-1 text-[9px] font-bold text-slate-500 lg:text-[11px]">
-                                        Verify Certificate
-                                    </p>
+                            <div class="inline-flex flex-col items-center justify-center border border-slate-200 bg-white/95 p-2 shadow-sm">
+                                <div class="[&_svg]:h-16 [&_svg]:w-16 lg:[&_svg]:h-20 lg:[&_svg]:w-20">
+                                    {!! $qrSvg !!}
                                 </div>
+
+                                <p class="mt-2 text-[8px] font-black uppercase tracking-[0.18em] text-slate-400 lg:text-[10px]">
+                                    Scan to Verify
+                                </p>
+
+                                <p class="mt-1 text-[9px] font-bold text-slate-500 lg:text-[11px]">
+                                    Verify Certificate
+                                </p>
+                            </div>
                             @else
-                                <div class="inline-flex border border-dashed border-slate-300 bg-white/80 px-5 py-4">
-                                    <p class="text-xs font-bold text-slate-400">
-                                        Verification link unavailable
-                                    </p>
-                                </div>
+                            <div class="inline-flex border border-dashed border-slate-300 bg-white/80 px-5 py-4">
+                                <p class="text-xs font-bold text-slate-400">
+                                    Verification link unavailable
+                                </p>
+                            </div>
                             @endif
                         </div>
                     </div>
 
                     @if ($verificationUrl)
-                        <a
-                            href="{{ $verificationUrl }}"
-                            target="_blank"
-                            aria-label="Verify Certificate"
-                            class="absolute left-[58%] right-[17%] top-[81%] bottom-[6%] z-20">
-                        </a>
+                    <a
+                        href="{{ $verificationUrl }}"
+                        target="_blank"
+                        aria-label="Verify Certificate"
+                        class="absolute left-[58%] right-[17%] top-[78.5%] bottom-[6%] z-20">
+                    </a>
                     @endif
                 </div>
             </div>
