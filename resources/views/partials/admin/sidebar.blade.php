@@ -157,7 +157,9 @@
                 </p>
 
                 <nav class="space-y-1">
-                    <x-admin.sidebar-item href="#">
+                    <x-admin.sidebar-item
+                        :href="route('admin.course-management.certificate-templates.index')"
+                        :active="request()->routeIs('admin.course-management.certificate-templates.*')">
                         <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <rect x="5" y="3" width="14" height="18" rx="2" stroke-width="1.8" />

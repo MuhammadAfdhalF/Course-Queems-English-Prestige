@@ -45,7 +45,7 @@ use App\Http\Controllers\Student\TestimonialController;
 use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
 use App\Http\Controllers\Admin\Cms\TestimonialController as AdminTestimonialController;
 use App\Http\Controllers\Admin\CourseManagement\CertificateController as AdminCertificateController;
-
+use App\Http\Controllers\Admin\CourseManagement\CertificateTemplateController;
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
@@ -345,6 +345,9 @@ Route::middleware(['auth', 'role:admin'])
 
                 Route::put('/certificates/{certificate}/reissue', [AdminCertificateController::class, 'reissue'])
                     ->name('certificates.reissue');
+
+                Route::resource('certificate-templates', CertificateTemplateController::class)
+                    ->only(['index', 'store', 'update', 'destroy']);
             });
 
         Route::get('/orders', [CourseOrderController::class, 'index'])
