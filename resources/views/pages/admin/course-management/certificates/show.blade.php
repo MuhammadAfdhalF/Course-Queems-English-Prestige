@@ -24,6 +24,14 @@ $templateBackgroundUrl = $templateBackground
 ? asset('storage/' . $templateBackground)
 : null;
 
+$signatureImage = $certificateSetting?->signature_image;
+$signatureImageUrl = $signatureImage
+? asset('storage/' . $signatureImage)
+: null;
+
+$signerName = $certificateSetting?->signerName() ?? 'Queens English Prestige';
+$signerTitle = $certificateSetting?->signerTitle() ?? 'Authorized Signature';
+
 $verificationUrl = $certificate->verification_token
 ? route('certificates.verify', $certificate->verification_token)
 : null;
@@ -244,16 +252,25 @@ $qrSvg = $verificationUrl
                                 </div>
 
                                 {{-- SIGNATURE + VERIFY --}}
-                                <div class="absolute left-[18%] right-[18%] top-[81%] grid grid-cols-2 items-center gap-8">
+                                <div class="absolute left-[18%] right-[18%] top-[78.5%] grid grid-cols-2 items-center gap-8">
                                     <div class="text-center">
-                                        <div class="mx-auto h-[2px] max-w-[200px] bg-slate-500"></div>
+                                        @if ($signatureImageUrl)
+                                        <img
+                                            src="{{ $signatureImageUrl }}"
+                                            alt="{{ $signerName }}"
+                                            class="mx-auto h-8 w-full object-contain md:h-9 lg:h-11">
+                                        @else
+                                        <div class="mx-auto h-8 w-full md:h-9 lg:h-11"></div>
+                                        @endif
+
+                                        <div class="mx-auto mt-1 h-[2px] max-w-[200px] bg-slate-500"></div>
 
                                         <p class="mt-2 text-[8px] font-black text-slate-900 md:text-[9px] lg:text-[10px]">
-                                            Queens English Prestige
+                                            {{ $signerName }}
                                         </p>
 
                                         <p class="mt-1 text-[5px] font-bold uppercase tracking-[0.2em] text-slate-400 md:text-[6px] lg:text-[7px]">
-                                            Authorized Signature
+                                            {{ $signerTitle }}
                                         </p>
                                     </div>
 
@@ -287,7 +304,7 @@ $qrSvg = $verificationUrl
                                     href="{{ $verificationUrl }}"
                                     target="_blank"
                                     aria-label="Verify Certificate"
-                                    class="absolute left-[58%] right-[18%] top-[81%] bottom-[7%] z-30">
+                                    class="absolute left-[58%] right-[18%] top-[78.5%] bottom-[7%] z-30">
                                 </a>
                                 @endif
                             </div>
@@ -393,6 +410,57 @@ $qrSvg = $verificationUrl
                             {{ $certificate->certificate_file ?? 'Not generated yet' }}
                         </p>
                     </div>
+                </div>
+            </x-admin.table-card>
+
+            <x-admin.table-card class="p-6">
+                <h2 class="text-lg font-extrabold text-slate-900">
+                    Signature Setting
+                </h2>
+
+                <div class="mt-5 space-y-4">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                            Signer Name
+                        </p>
+                        <p class="mt-1 text-sm font-bold text-slate-900">
+                            {{ $signerName }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                            Signer Title
+                        </p>
+                        <p class="mt-1 text-sm font-bold text-slate-900">
+                            {{ $signerTitle }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                            Signature Image
+                        </p>
+
+                        @if ($signatureImageUrl)
+                        <div class="mt-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                            <img
+                                src="{{ $signatureImageUrl }}"
+                                alt="{{ $signerName }}"
+                                class="h-16 w-full object-contain">
+                        </div>
+                        @else
+                        <p class="mt-1 text-sm font-bold text-slate-900">
+                            Not uploaded
+                        </p>
+                        @endif
+                    </div>
+
+                    <a
+                        href="{{ route('admin.course-management.certificate-settings.edit') }}"
+                        class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition hover:bg-slate-50">
+                        Edit Certificate Settings
+                    </a>
                 </div>
             </x-admin.table-card>
 
