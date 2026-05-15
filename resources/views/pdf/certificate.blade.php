@@ -5,6 +5,18 @@
     <meta charset="UTF-8">
     <title>{{ $certificate->certificate_number }}</title>
 
+    @php
+    $templateBackground = $certificate->certificateTemplate?->background_image;
+    $templateBackgroundPath = $templateBackground
+    ? public_path('storage/' . $templateBackground)
+    : null;
+
+    $hasTemplateBackground = $templateBackgroundPath && file_exists($templateBackgroundPath);
+
+    $logoPath = public_path('images/logo-queens-english.png');
+    $hasLogo = file_exists($logoPath);
+    @endphp
+
     <style>
         @page {
             size: A4 landscape;
@@ -37,6 +49,20 @@
             text-align: center;
         }
 
+        .template-background {
+            position: absolute;
+            inset: 0;
+            width: 277mm;
+            height: 190mm;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        .content-layer {
+            position: relative;
+            z-index: 3;
+        }
+
         .inner-border {
             position: absolute;
             top: 5mm;
@@ -44,13 +70,14 @@
             right: 5mm;
             bottom: 5mm;
             border: 0.35mm solid rgba(212, 160, 23, 0.35);
+            z-index: 2;
         }
 
         .corner {
             position: absolute;
             width: 24mm;
             height: 24mm;
-            z-index: 2;
+            z-index: 3;
         }
 
         .corner-top-left {
@@ -89,6 +116,7 @@
             height: 90mm;
             border: 8mm solid rgba(212, 160, 23, 0.08);
             border-radius: 50%;
+            z-index: 1;
         }
 
         .watermark-right {
@@ -99,6 +127,7 @@
             height: 105mm;
             border: 9mm solid rgba(7, 23, 56, 0.06);
             border-radius: 50%;
+            z-index: 1;
         }
 
         .header {
@@ -121,6 +150,14 @@
             font-weight: 900;
             line-height: 16mm;
             text-align: center;
+            overflow: hidden;
+        }
+
+        .brand-logo {
+            width: 13mm;
+            height: 13mm;
+            margin-top: 1.4mm;
+            object-fit: contain;
         }
 
         .brand {
@@ -304,12 +341,21 @@
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 1px;
+            z-index: 2;
         }
     </style>
 </head>
 
+
 <body>
     <div class="certificate">
+        @if ($hasTemplateBackground)
+        <img
+            src="{{ $templateBackgroundPath }}"
+            alt="Certificate Template Background"
+            class="template-background">
+        @endif
+
         <div class="inner-border"></div>
 
         <div class="corner corner-top-left"></div>
@@ -317,92 +363,104 @@
         <div class="corner corner-bottom-left"></div>
         <div class="corner corner-bottom-right"></div>
 
+        @unless ($hasTemplateBackground)
         <div class="watermark-left"></div>
         <div class="watermark-right"></div>
+        @endunless
 
         <div class="seal">QEP</div>
 
-        <div class="header">
-            <div class="brand-mark">QEP</div>
+        <div class="content-layer">
+            <div class="header">
+                <div class="brand-mark">
+                    @if ($hasLogo)
+                    <img
+                        src="{{ $logoPath }}"
+                        alt="Queens English Prestige"
+                        class="brand-logo">
+                    @else
+                    QEP
+                    @endif
+                </div>
+                <div class="brand">
+                    Queens English Prestige
+                </div>
 
-            <div class="brand">
-                Queens English Prestige
+                <div class="title">
+                    Certificate
+                </div>
+
+                <div class="subtitle">
+                    Of Completion
+                </div>
+
+                <div class="gold-line"></div>
             </div>
 
-            <div class="title">
-                Certificate
+            <div class="recipient">
+                <div class="presented">
+                    This certificate is proudly presented to
+                </div>
+
+                <div class="student-name">
+                    {{ $student?->name ?? 'Student Name' }}
+                </div>
+
+                <div class="thin-line"></div>
+
+                <div class="completion-text">
+                    for successfully completing the course
+                </div>
+
+                <div class="course-name">
+                    {{ $courseLevel?->name ?? 'Course Name' }}
+                </div>
+
+                <div class="program-name">
+                    {{ $courseProgram?->name ?? 'Queens English Prestige Program' }}
+                </div>
             </div>
 
-            <div class="subtitle">
-                Of Completion
+            <table class="meta-table">
+                <tr>
+                    <td class="meta-box">
+                        <div class="meta-label">Certificate No.</div>
+                        <div class="meta-value">{{ $certificate->certificate_number }}</div>
+                    </td>
+
+                    <td class="meta-box">
+                        <div class="meta-label">Issued Date</div>
+                        <div class="meta-value">{{ $certificate->issued_at?->format('d F Y') ?? '-' }}</div>
+                    </td>
+
+                    <td class="meta-box">
+                        <div class="meta-label">Final Exam Score</div>
+                        <div class="meta-value">
+                            {{ $finalExamAttempt ? number_format((float) $finalExamAttempt->total_score, 2) . '%' : '-' }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <table class="signature-table">
+                <tr>
+                    <td class="signature-cell">
+                        <div class="signature-line"></div>
+                        <div class="signature-name">Queens English Prestige</div>
+                        <div class="signature-title">Authorized Signature</div>
+                    </td>
+
+                    <td class="signature-cell">
+                        <div class="signature-line"></div>
+                        <div class="signature-name">{{ $student?->name ?? 'Student' }}</div>
+                        <div class="signature-title">Certificate Holder</div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="note">
+                This certificate verifies that the student has completed the required learning activities and passed the final assessment according to Queens English Prestige standards.
             </div>
-
-            <div class="gold-line"></div>
-        </div>
-
-        <div class="recipient">
-            <div class="presented">
-                This certificate is proudly presented to
-            </div>
-
-            <div class="student-name">
-                {{ $student?->name ?? 'Student Name' }}
-            </div>
-
-            <div class="thin-line"></div>
-
-            <div class="completion-text">
-                for successfully completing the course
-            </div>
-
-            <div class="course-name">
-                {{ $courseLevel?->name ?? 'Course Name' }}
-            </div>
-
-            <div class="program-name">
-                {{ $courseProgram?->name ?? 'Queens English Prestige Program' }}
-            </div>
-        </div>
-
-        <table class="meta-table">
-            <tr>
-                <td class="meta-box">
-                    <div class="meta-label">Certificate No.</div>
-                    <div class="meta-value">{{ $certificate->certificate_number }}</div>
-                </td>
-
-                <td class="meta-box">
-                    <div class="meta-label">Issued Date</div>
-                    <div class="meta-value">{{ $certificate->issued_at?->format('d F Y') ?? '-' }}</div>
-                </td>
-
-                <td class="meta-box">
-                    <div class="meta-label">Final Exam Score</div>
-                    <div class="meta-value">
-                        {{ $finalExamAttempt ? number_format((float) $finalExamAttempt->total_score, 2) . '%' : '-' }}
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-        <table class="signature-table">
-            <tr>
-                <td class="signature-cell">
-                    <div class="signature-line"></div>
-                    <div class="signature-name">Queens English Prestige</div>
-                    <div class="signature-title">Authorized Signature</div>
-                </td>
-
-                <td class="signature-cell">
-                    <div class="signature-line"></div>
-                    <div class="signature-name">{{ $student?->name ?? 'Student' }}</div>
-                    <div class="signature-title">Certificate Holder</div>
-                </td>
-            </tr>
-        </table>
-
-        <div class="note">
-            This certificate verifies that the student has completed the required learning activities and passed the final assessment according to Queens English Prestige standards.
         </div>
     </div>
 </body>

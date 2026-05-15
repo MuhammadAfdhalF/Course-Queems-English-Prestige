@@ -1,6 +1,12 @@
 @extends('layouts.learning')
 
 @section('content')
+@php
+$templateBackground = $certificate->certificateTemplate?->background_image;
+$templateBackgroundUrl = $templateBackground
+? asset('storage/' . $templateBackground)
+: null;
+@endphp
 <style>
     @media print {
         @page {
@@ -77,16 +83,27 @@
     <div class="certificate-print-area reveal reveal-delay-1">
         <div class="rounded-[32px] border border-slate-200 bg-white p-4 shadow-sm lg:p-6">
             <div class="certificate-paper relative mx-auto overflow-hidden rounded-[28px] border-[12px] border-[#071738] bg-[#fffdf6] px-8 py-10 text-center shadow-[0_22px_70px_rgba(15,23,42,0.14)] lg:min-h-[760px] lg:px-16 lg:py-14">
+                @if ($templateBackgroundUrl)
+                <img
+                    src="{{ $templateBackgroundUrl }}"
+                    alt="Certificate Template Background"
+                    class="absolute inset-0 h-full w-full object-cover">
+                <div class="absolute inset-0 bg-white/35"></div>
+                @endif {{-- decorative corners --}}
                 {{-- decorative corners --}}
+                @if (! $templateBackgroundUrl)
                 <div class="pointer-events-none absolute left-5 top-5 h-24 w-24 border-l-4 border-t-4 border-[#D4A017] opacity-80"></div>
                 <div class="pointer-events-none absolute right-5 top-5 h-24 w-24 border-r-4 border-t-4 border-[#D4A017] opacity-80"></div>
                 <div class="pointer-events-none absolute bottom-5 left-5 h-24 w-24 border-b-4 border-l-4 border-[#D4A017] opacity-80"></div>
                 <div class="pointer-events-none absolute bottom-5 right-5 h-24 w-24 border-b-4 border-r-4 border-[#D4A017] opacity-80"></div>
+                @endif
 
                 {{-- soft ornaments --}}
+                @if (! $templateBackgroundUrl)
                 <div class="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full border-[38px] border-[#D4A017]/10"></div>
                 <div class="pointer-events-none absolute -bottom-32 -right-28 h-96 w-96 rounded-full border-[42px] border-[#071738]/10"></div>
                 <div class="pointer-events-none absolute left-1/2 top-8 h-28 w-28 -translate-x-1/2 rounded-full bg-[#D4A017]/10 blur-3xl"></div>
+                @endif
 
                 <div class="relative z-10 flex min-h-[680px] flex-col justify-between">
                     <div>

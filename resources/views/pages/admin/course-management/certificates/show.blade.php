@@ -18,6 +18,11 @@ $statusLabel = match ($certificate->status) {
 'locked' => 'Locked',
 default => ucfirst(str_replace('_', ' ', $certificate->status)),
 };
+
+$templateBackground = $certificate->certificateTemplate?->background_image;
+$templateBackgroundUrl = $templateBackground
+? asset('storage/' . $templateBackground)
+: null;
 @endphp
 
 <section class="mx-auto max-w-7xl space-y-6">
@@ -99,11 +104,19 @@ default => ucfirst(str_replace('_', ' ', $certificate->status)),
                 <div class="bg-white p-6">
                     @if ($certificate->status === 'issued')
                     <div class="relative overflow-hidden rounded-[28px] border-[10px] border-[#071738] bg-[#fffdf6] px-8 py-10 text-center shadow-sm">
+                        @if ($templateBackgroundUrl)
+                        <img
+                            src="{{ $templateBackgroundUrl }}"
+                            alt="Certificate Template Background"
+                            class="absolute inset-0 h-full w-full object-cover">
+                        <div class="absolute inset-0 bg-white/35"></div>
+                        @endif
+                        @if (! $templateBackgroundUrl)
                         <div class="pointer-events-none absolute left-4 top-4 h-20 w-20 border-l-4 border-t-4 border-[#D4A017] opacity-80"></div>
                         <div class="pointer-events-none absolute right-4 top-4 h-20 w-20 border-r-4 border-t-4 border-[#D4A017] opacity-80"></div>
                         <div class="pointer-events-none absolute bottom-4 left-4 h-20 w-20 border-b-4 border-l-4 border-[#D4A017] opacity-80"></div>
                         <div class="pointer-events-none absolute bottom-4 right-4 h-20 w-20 border-b-4 border-r-4 border-[#D4A017] opacity-80"></div>
-
+                        @endif
                         <div class="relative z-10">
                             <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-lg font-black text-[#071738] shadow-sm ring-1 ring-slate-200">
                                 QEP

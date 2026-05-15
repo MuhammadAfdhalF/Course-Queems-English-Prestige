@@ -79,6 +79,8 @@ $earnedCount = collect($items)
                         Download PDF
                     </a>
                     @endif
+
+                    @endif
                 </div>
             </div>
         </div>
