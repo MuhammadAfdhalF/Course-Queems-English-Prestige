@@ -14,53 +14,142 @@
         </span>
     </div>
 
-    <div class="space-y-6 p-7">
-        <div>
-            <label class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Full Name</label>
-            <input value="Alex Thompson" class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
-        </div>
+    <form action="{{ route('student.profile.update') }}" method="POST">
+        @csrf
+        @method('PUT')
 
-        <div class="grid gap-6 md:grid-cols-2">
+        <input type="hidden" name="_section" value="personal">
+
+        <div class="space-y-6 p-7">
             <div>
-                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Whatsapp Number</label>
-                <div class="grid grid-cols-[80px_1fr] gap-3">
-                    <input value="+44" class="h-13 rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
-                    <input value="7911 123456" class="h-13 rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <label for="name" class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                    Full Name
+                </label>
+
+                <input
+                    id="name"
+                    name="name"
+                    value="{{ old('name', $user->name) }}"
+                    class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+
+                @error('name')
+                <p class="mt-2 text-sm font-semibold text-rose-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                    Email
+                </label>
+
+                <input
+                    value="{{ $user->email }}"
+                    readonly
+                    class="h-13 w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-4 text-base font-semibold text-slate-500">
+            </div>
+
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <label for="whatsapp" class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                        Whatsapp Number
+                    </label>
+
+                    <input
+                        id="whatsapp"
+                        name="whatsapp"
+                        value="{{ old('whatsapp', $profile->whatsapp) }}"
+                        placeholder="Example: +6281234567890"
+                        class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+
+                    @error('whatsapp')
+                    <p class="mt-2 text-sm font-semibold text-rose-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="birth_place" class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                        Place of Birth
+                    </label>
+
+                    <input
+                        id="birth_place"
+                        name="birth_place"
+                        value="{{ old('birth_place', $profile->birth_place) }}"
+                        placeholder="Example: Jakarta"
+                        class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+
+                    @error('birth_place')
+                    <p class="mt-2 text-sm font-semibold text-rose-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="birth_date" class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                        Date of Birth
+                    </label>
+
+                    <input
+                        id="birth_date"
+                        name="birth_date"
+                        type="date"
+                        value="{{ old('birth_date', $profile->birth_date?->format('Y-m-d')) }}"
+                        class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+
+                    @error('birth_date')
+                    <p class="mt-2 text-sm font-semibold text-rose-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="gender" class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                        Gender
+                    </label>
+
+                    <select
+                        id="gender"
+                        name="gender"
+                        class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        <option value="">Select gender</option>
+                        <option value="male" @selected(old('gender', $profile->gender) === 'male')>Male</option>
+                        <option value="female" @selected(old('gender', $profile->gender) === 'female')>Female</option>
+                    </select>
+
+                    @error('gender')
+                    <p class="mt-2 text-sm font-semibold text-rose-600">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
 
             <div>
-                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Place of Birth</label>
-                <input value="London, United Kingdom" class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
-            </div>
+                <label for="address" class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                    Mailing Address
+                </label>
 
-            <div>
-                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Date of Birth</label>
-                <input value="05/14/1998" class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
-            </div>
+                <textarea
+                    id="address"
+                    name="address"
+                    rows="4"
+                    placeholder="Write your full address..."
+                    class="w-full resize-none rounded-xl border border-slate-200 px-4 py-4 text-base font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">{{ old('address', $profile->address) }}</textarea>
 
-            <div>
-                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Gender</label>
-                <select class="h-13 w-full rounded-xl border border-slate-200 px-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
-                    <option>Male</option>
-                    <option>Female</option>
-                </select>
+                @error('address')
+                <p class="mt-2 text-sm font-semibold text-rose-600">{{ $message }}</p>
+                @enderror
             </div>
         </div>
 
-        <div>
-            <label class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Mailing Address</label>
-            <textarea rows="4" class="w-full resize-none rounded-xl border border-slate-200 px-4 py-4 text-base font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">221B Baker Street, London, NW1 6XE, United Kingdom</textarea>
+        <div class="flex justify-end gap-4 border-t border-slate-100 bg-slate-50 px-7 py-5">
+            <a
+                href="{{ route('student.profile') }}"
+                class="inline-flex h-12 items-center justify-center rounded-xl px-6 text-sm font-bold text-slate-500 hover:text-slate-700">
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="h-12 rounded-xl bg-[var(--color-brand-blue)] px-7 text-sm font-bold text-white shadow-md hover:opacity-95">
+                Save Changes
+            </button>
         </div>
-    </div>
-
-    <div class="flex justify-end gap-4 border-t border-slate-100 bg-slate-50 px-7 py-5">
-        <button class="h-12 rounded-xl px-6 text-sm font-bold text-slate-500 hover:text-slate-700">
-            Cancel
-        </button>
-
-        <button class="h-12 rounded-xl bg-[var(--color-brand-blue)] px-7 text-sm font-bold text-white shadow-md hover:opacity-95">
-            Save Changes
-        </button>
-    </div>
+    </form>
 </div>

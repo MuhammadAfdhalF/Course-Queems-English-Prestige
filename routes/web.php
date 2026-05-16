@@ -48,6 +48,8 @@ use App\Http\Controllers\Admin\CourseManagement\CertificateController as AdminCe
 use App\Http\Controllers\Admin\CourseManagement\CertificateTemplateController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Admin\CourseManagement\CertificateSettingController;
+use App\Http\Controllers\Student\ProfileController as StudentProfileController;
+
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -154,7 +156,17 @@ Route::middleware(['auth', 'role:student'])
         Route::post('/testimoni', [TestimonialController::class, 'store'])
             ->name('testimoni.store');
 
-        Route::view('/profile', 'pages.student.profile')->name('profile');
+        Route::get('/profile', [StudentProfileController::class, 'edit'])
+            ->name('profile');
+
+        Route::put('/profile', [StudentProfileController::class, 'update'])
+            ->name('profile.update');
+
+        Route::put('/profile/password', [StudentProfileController::class, 'updatePassword'])
+            ->name('profile.password.update');
+
+        Route::delete('/profile/photo', [StudentProfileController::class, 'destroyPhoto'])
+            ->name('profile.photo.destroy');
     });
 
 

@@ -12,6 +12,24 @@
         </p>
     </div>
 
+    @if (session('success'))
+    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-700">
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if ($errors->any())
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">
+        <p class="font-extrabold">Please check the form again.</p>
+
+        <ul class="mt-2 list-inside list-disc space-y-1">
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <div class="grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
         <div class="reveal reveal-delay-1 space-y-6">
             @include('partials.student.profile.sidebar')
