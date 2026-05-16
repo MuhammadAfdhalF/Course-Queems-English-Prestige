@@ -20,14 +20,12 @@
                 ★
             </span>
         </div>
-
         <h1 class="reveal reveal-delay-1 mt-6 text-4xl font-bold leading-tight text-[var(--color-brand-blue)] md:text-5xl">
-            Our <span class="text-[var(--color-brand-gold)]">Programs</span>
+            Explore <span class="text-[var(--color-brand-gold)]">All Courses</span>
         </h1>
 
         <p class="reveal reveal-delay-2 mx-auto mt-4 max-w-2xl text-base leading-8 text-slate-500">
-            A curated collection of premium English courses designed for high-achieving
-            professionals and students seeking global excellence.
+            Browse available programs, continue your enrolled courses, or order a new course directly from your student portal.
         </p>
     </div>
 </div>

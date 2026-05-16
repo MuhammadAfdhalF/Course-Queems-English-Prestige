@@ -49,6 +49,8 @@ use App\Http\Controllers\Admin\CourseManagement\CertificateTemplateController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Admin\CourseManagement\CertificateSettingController;
 use App\Http\Controllers\Student\ProfileController as StudentProfileController;
+use App\Http\Controllers\Student\AllCourseController;
+
 
 
 // sementara logout
@@ -143,8 +145,9 @@ Route::middleware(['auth', 'role:student'])
 
         Route::get('/my-courses/{enrollment}/final-exam-attempts/{attempt}', [StudentFinalExamController::class, 'result'])
             ->name('final-exam-result');
-        Route::view('/all-courses', 'pages.student.all-courses')->name('all-courses');
-
+            
+        Route::get('/all-courses', [AllCourseController::class, 'index'])
+            ->name('all-courses');
 
         Route::get('/certificates/{certificate}', [StudentCertificateController::class, 'show'])
             ->name('certificates.show');
