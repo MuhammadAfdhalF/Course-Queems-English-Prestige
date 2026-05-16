@@ -40,6 +40,19 @@
                         Dashboard
                     </x-admin.sidebar-item>
 
+                    <x-admin.sidebar-item
+                        :href="route('home')"
+                        :active="false">
+                        <x-slot:icon>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l9-8 9 8" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 10.5V20h14v-9.5" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 20v-6h6v6" />
+                            </svg>
+                        </x-slot:icon>
+                        View Website
+                    </x-admin.sidebar-item>
+
                     <x-admin.sidebar-item href="#">
                         <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -287,34 +300,4 @@
         </div>
     </div>
 
-    <div class="border-t border-slate-200 p-4">
-        <div class="space-y-1">
-            <x-admin.sidebar-item href="#">
-                <x-slot:icon>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.325 4.317a1 1 0 011.35-.936l.94.47a1 1 0 00.894 0l.94-.47a1 1 0 011.35.936l.094 1.04a1 1 0 00.592.823l.95.475a1 1 0 01.376 1.527l-.665.83a1 1 0 000 1.25l.665.83a1 1 0 01-.376 1.527l-.95.475a1 1 0 00-.592.823l-.094 1.04a1 1 0 01-1.35.936l-.94-.47a1 1 0 00-.894 0l-.94.47a1 1 0 01-1.35-.936l-.094-1.04a1 1 0 00-.592-.823l-.95-.475a1 1 0 01-.376-1.527l.665-.83a1 1 0 000-1.25l-.665-.83a1 1 0 01.376-1.527l.95-.475a1 1 0 00.592-.823l.094-1.04z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                </x-slot:icon>
-                Admin Profile
-            </x-admin.sidebar-item>
-
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-
-                <button
-                    type="submit"
-                    class="motion-button flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-600">
-                    <span class="shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H9" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 20H6a2 2 0 01-2-2V6a2 2 0 012-2h7" />
-                        </svg>
-                    </span>
-
-                    <span>Logout</span>
-                </button>
-            </form>
-        </div>
-    </div>
 </aside>
