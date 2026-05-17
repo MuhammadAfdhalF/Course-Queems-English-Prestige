@@ -51,6 +51,7 @@ use App\Http\Controllers\Admin\CourseManagement\CertificateSettingController;
 use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Student\AllCourseController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 
 
 // sementara logout
@@ -384,8 +385,13 @@ Route::middleware(['auth', 'role:admin'])
         Route::put('/orders/{order}/reject', [CourseOrderController::class, 'reject'])
             ->name('orders.reject');
 
-        Route::view('/students', 'pages.admin.students.index')->name('students.index');
+        Route::get('/students', [AdminStudentController::class, 'index'])
+            ->name('students.index');
 
+        Route::get('/students/{student}', [AdminStudentController::class, 'show'])
+            ->name('students.show');
+
+            
         Route::prefix('cms')
             ->name('cms.')
             ->group(function () {

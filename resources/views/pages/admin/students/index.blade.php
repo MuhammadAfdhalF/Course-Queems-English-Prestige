@@ -1,120 +1,113 @@
 @extends('layouts.admin', [
 'pageTitle' => 'Students',
-'pageSubtitle' => 'Students',
+'pageSubtitle' => 'Student Management',
 ])
 
 @section('content')
-@php
-$students = [
-[
-'id' => 'STD-001',
-'name' => 'James Dougherty',
-'email' => 'james.d@example.com',
-'whatsapp' => '+44 7911 123456',
-'registeredDate' => 'Oct 12, 2023',
-'coursesCount' => 3,
-'status' => 'active',
-'statusLabel' => 'Active',
-'memberType' => 'Premium Member',
-'initials' => 'JD',
-'avatarColor' => 'bg-blue-100 text-blue-700',
-'image' => '',
-],
-[
-'id' => 'STD-002',
-'name' => 'Sarah Jenkins',
-'email' => 's.jenkins@icloud.com',
-'whatsapp' => '+44 7911 889999',
-'registeredDate' => 'Sep 28, 2023',
-'coursesCount' => 1,
-'status' => 'active',
-'statusLabel' => 'Active',
-'memberType' => 'Standard Member',
-'initials' => 'SJ',
-'avatarColor' => 'bg-orange-100 text-orange-700',
-'image' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
-],
-[
-'id' => 'STD-003',
-'name' => 'Michael Kovac',
-'email' => 'mkovac@edu.it',
-'whatsapp' => '+39 333 444 555',
-'registeredDate' => 'Aug 05, 2023',
-'coursesCount' => 0,
-'status' => 'inactive',
-'statusLabel' => 'Inactive',
-'memberType' => 'Standard Member',
-'initials' => 'MK',
-'avatarColor' => 'bg-slate-100 text-slate-600',
-'image' => '',
-],
-[
-'id' => 'STD-004',
-'name' => "Liam O'Connell",
-'email' => 'liam.oc@gmail.com',
-'whatsapp' => '+353 87 123 4567',
-'registeredDate' => 'Jul 19, 2023',
-'coursesCount' => 5,
-'status' => 'active',
-'statusLabel' => 'Active',
-'memberType' => 'Premium Member',
-'initials' => 'LO',
-'avatarColor' => 'bg-emerald-100 text-emerald-700',
-'image' => 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop',
-],
-[
-'id' => 'STD-005',
-'name' => 'Elena Castros',
-'email' => 'ecastros@biz.mx',
-'whatsapp' => '+52 55 1234 5678',
-'registeredDate' => 'Jun 30, 2023',
-'coursesCount' => 2,
-'status' => 'active',
-'statusLabel' => 'Active',
-'memberType' => 'Standard Member',
-'initials' => 'EC',
-'avatarColor' => 'bg-indigo-100 text-indigo-700',
-'image' => '',
-],
-];
-@endphp
+<section class="mx-auto max-w-7xl space-y-6">
+    <x-admin.page-toolbar
+        :back-url="route('admin.dashboard')"
+        back-label="Back to Dashboard" />
 
-<section
-    x-data="{
-        search: '',
-        statusFilter: 'all',
-        addStudentModalOpen: false,
-        studentDetailModalOpen: false,
-        activeDetailTab: 'profile',
-        selectedStudent: null,
-        students: @js($students),
+    <x-admin.flash-message />
 
-        openStudent(student) {
-            this.selectedStudent = student;
-            this.activeDetailTab = 'profile';
-            this.studentDetailModalOpen = true;
-        },
+    <x-admin.table-card class="p-6">
+        <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                    Student Management
+                </p>
 
-        matches(student) {
-            const keyword = this.search.toLowerCase();
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">
+                    Registered Students
+                </h2>
 
-            const searchMatch =
-                student.name.toLowerCase().includes(keyword) ||
-                student.email.toLowerCase().includes(keyword) ||
-                student.whatsapp.toLowerCase().includes(keyword);
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                    View student accounts, profile information, course access, orders, certificates, testimonials, and assessment summaries.
+                </p>
+            </div>
 
-            const statusMatch =
-                this.statusFilter === 'all' ||
-                student.status === this.statusFilter;
+            <div class="grid gap-3 sm:grid-cols-3">
+                <div class="rounded-2xl bg-blue-50 px-4 py-3">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-blue-500">
+                        Total
+                    </p>
+                    <p class="mt-1 text-2xl font-extrabold text-blue-700">
+                        {{ $totalStudents }}
+                    </p>
+                </div>
 
-            return searchMatch && statusMatch;
-        }
-    }"
-    class="mx-auto max-w-7xl space-y-6">
-    @include('partials.admin.students.header')
-    @include('partials.admin.students.filters')
+                <div class="rounded-2xl bg-emerald-50 px-4 py-3">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-500">
+                        Active
+                    </p>
+                    <p class="mt-1 text-2xl font-extrabold text-emerald-700">
+                        {{ $activeStudents }}
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-rose-50 px-4 py-3">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-rose-500">
+                        Inactive
+                    </p>
+                    <p class="mt-1 text-2xl font-extrabold text-rose-700">
+                        {{ $inactiveStudents }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </x-admin.table-card>
+
+    <x-admin.table-card class="p-6">
+        <form action="{{ route('admin.students.index') }}" method="GET">
+            <div class="grid gap-4 lg:grid-cols-[1fr_220px_auto] lg:items-end">
+                <div>
+                    <label for="search" class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                        Search Student
+                    </label>
+
+                    <input
+                        id="search"
+                        name="search"
+                        value="{{ $search }}"
+                        placeholder="Search by name, email, or WhatsApp..."
+                        class="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                </div>
+
+                <div>
+                    <label for="status" class="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                        Status
+                    </label>
+
+                    <select
+                        id="status"
+                        name="status"
+                        class="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        <option value="all" @selected($status==='all' )>All Status</option>
+                        <option value="active" @selected($status==='active' )>Active</option>
+                        <option value="inactive" @selected($status==='inactive' )>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3">
+                    <button
+                        type="submit"
+                        class="inline-flex h-12 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-6 text-sm font-bold text-white shadow-sm transition hover:opacity-90">
+                        Filter
+                    </button>
+
+                    @if ($search || $status !== 'all')
+                    <a
+                        href="{{ route('admin.students.index') }}"
+                        class="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                        Reset
+                    </a>
+                    @endif
+                </div>
+            </div>
+        </form>
+    </x-admin.table-card>
+
     @include('partials.admin.students.table')
-    @include('partials.admin.students.add-student-modal')
-    @include('partials.admin.students.student-detail-modal')
 </section>
 @endsection
