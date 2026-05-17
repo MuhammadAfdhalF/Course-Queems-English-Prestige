@@ -7,7 +7,7 @@
                 </h3>
 
                 <p class="mt-1 text-sm text-slate-500">
-                    Monthly breakdown of income streams
+                    Monthly approved order revenue in {{ $currentYear }}
                 </p>
             </div>
 
@@ -17,21 +17,29 @@
                 </x-admin.status-badge>
 
                 <x-admin.status-badge>
-                    2024
+                    {{ $currentYear }}
                 </x-admin.status-badge>
             </div>
         </div>
     </div>
 
     <div class="grid gap-6 p-6 lg:grid-cols-[2fr_1fr]">
-        <div class="flex h-72 items-end gap-4 rounded-2xl bg-slate-50 p-6">
-            <div class="h-24 w-full rounded-t-xl bg-blue-100"></div>
-            <div class="h-32 w-full rounded-t-xl bg-blue-100"></div>
-            <div class="h-44 w-full rounded-t-xl bg-blue-100"></div>
-            <div class="h-28 w-full rounded-t-xl bg-blue-100"></div>
-            <div class="h-40 w-full rounded-t-xl bg-blue-100"></div>
-            <div class="h-56 w-full rounded-t-xl bg-[var(--color-brand-blue)]"></div>
-            <div class="h-10 w-full rounded-t-xl bg-blue-100"></div>
+        <div class="rounded-2xl bg-slate-50 p-6">
+            <div class="flex h-72 items-end gap-3">
+                @foreach ($monthlyRevenue as $month)
+                <div class="flex h-full flex-1 flex-col items-center justify-end gap-2">
+                    <div
+                        title="{{ $month['month'] }}: Rp {{ number_format((float) $month['total'], 0, ',', '.') }}"
+                        class="w-full rounded-t-xl {{ (float) $month['total'] > 0 ? 'bg-[var(--color-brand-blue)]' : 'bg-blue-100' }}"
+                        style="height: {{ $month['height'] }}%;">
+                    </div>
+
+                    <span class="text-[10px] font-bold uppercase text-slate-400">
+                        {{ $month['month'] }}
+                    </span>
+                </div>
+                @endforeach
+            </div>
         </div>
 
         <div class="space-y-6">
@@ -41,11 +49,11 @@
                 </p>
 
                 <p class="mt-2 text-3xl font-bold text-slate-900">
-                    Rp 128,450,000
+                    Rp {{ number_format((float) $thisMonthRevenue, 0, ',', '.') }}
                 </p>
 
                 <p class="mt-2 text-sm font-semibold text-emerald-600">
-                    ↑14% vs last month
+                    Approved orders this month
                 </p>
             </div>
 
@@ -55,11 +63,11 @@
                 </p>
 
                 <p class="mt-2 text-3xl font-bold text-slate-900">
-                    Rp 842,900,000
+                    Rp {{ number_format((float) $yearToDateRevenue, 0, ',', '.') }}
                 </p>
 
                 <p class="mt-2 text-sm font-semibold text-slate-500">
-                    Targets: 84% reached
+                    Based on approved course orders
                 </p>
             </div>
         </div>

@@ -50,7 +50,7 @@ use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Admin\CourseManagement\CertificateSettingController;
 use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Student\AllCourseController;
-
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 
 // sementara logout
@@ -145,7 +145,7 @@ Route::middleware(['auth', 'role:student'])
 
         Route::get('/my-courses/{enrollment}/final-exam-attempts/{attempt}', [StudentFinalExamController::class, 'result'])
             ->name('final-exam-result');
-            
+
         Route::get('/all-courses', [AllCourseController::class, 'index'])
             ->name('all-courses');
 
@@ -182,8 +182,8 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::view('/', 'pages.admin.dashboard')->name('dashboard');
-
+        Route::get('/', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
 
         Route::post('/rich-text/upload-image', [RichTextUploadController::class, 'uploadImage'])
             ->name('rich-text.upload-image');
