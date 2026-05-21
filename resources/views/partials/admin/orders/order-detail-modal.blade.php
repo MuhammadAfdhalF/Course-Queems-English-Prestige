@@ -199,18 +199,11 @@
                     </button>
                 </form>
 
-                <form :action="selectedOrder.approveUrl" method="POST">
-                    @csrf
-                    @method('PUT')
-
-                    <input type="hidden" name="note" :value="adminNote">
-
-                    <button
-                        type="submit"
-                        class="h-11 rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-extrabold text-white shadow-md transition hover:opacity-95">
-                        Approve Order
-                    </button>
-                </form>
+                <a
+                    :href="selectedOrder.paymentUrl"
+                    class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-extrabold text-white shadow-md transition hover:opacity-95">
+                    Record Payment & Approve
+                </a>
             </div>
         </template>
     </x-slot:footer>

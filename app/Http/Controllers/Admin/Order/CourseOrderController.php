@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin\Order;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\StudentCourseEnrollment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class CourseOrderController extends Controller
@@ -18,6 +20,7 @@ class CourseOrderController extends Controller
             ->with([
                 'student.studentProfile',
                 'courseLevel.courseProgram',
+                'payment',
             ])
             ->latest('order_date')
             ->latest()
@@ -33,6 +36,7 @@ class CourseOrderController extends Controller
                     'course' => $order->courseLevel?->name ?? 'Unknown Course',
                     'program' => $order->courseLevel?->courseProgram?->name ?? 'Course Program',
                     'price' => 'Rp ' . number_format((float) $order->price, 0, ',', '.'),
+                    'rawPrice' => (float) $order->price,
                     'status' => $order->status,
                     'statusLabel' => $this->statusLabel($order->status),
                     'orderDate' => $order->order_date?->format('M d, Y H:i') ?? $order->created_at?->format('M d, Y H:i') ?? '-',
@@ -40,6 +44,12 @@ class CourseOrderController extends Controller
                     'rejectedAt' => $order->rejected_at?->format('M d, Y H:i'),
                     'whatsapp' => $order->student?->studentProfile?->whatsapp ?? '-',
                     'note' => $order->note,
+                    'paymentStatus' => $order->payment?->payment_status,
+                    'paymentAmount' => $order->payment
+                        ? 'Rp ' . number_format((float) $order->payment->amount, 0, ',', '.')
+                        : null,
+                    'paymentDate' => $order->payment?->payment_date?->format('M d, Y H:i'),
+                    'paymentUrl' => route('admin.orders.payment', $order),
                     'approveUrl' => route('admin.orders.approve', $order),
                     'rejectUrl' => route('admin.orders.reject', $order),
                 ];
@@ -77,20 +87,74 @@ class CourseOrderController extends Controller
         ]);
     }
 
-    public function approve(Request $request, Order $order): RedirectResponse
+    public function payment(Order $order): View|RedirectResponse
+    {
+        $order->load([
+            'student.studentProfile',
+            'courseLevel.courseProgram',
+            'payment',
+        ]);
+
+        if ($order->status !== 'pending') {
+            return redirect()
+                ->route('admin.orders.index')
+                ->with('error', 'Only pending orders can record payment.');
+        }
+
+        return view('pages.admin.orders.payment', [
+            'order' => $order,
+            'student' => $order->student,
+            'courseLevel' => $order->courseLevel,
+            'courseProgram' => $order->courseLevel?->courseProgram,
+            'payment' => $order->payment,
+        ]);
+    }
+
+    public function recordPayment(Request $request, Order $order): RedirectResponse
     {
         $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0'],
+            'payment_method' => ['required', 'in:manual_transfer,cash,other'],
+            'payment_date' => ['required', 'date'],
+            'proof_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,webp', 'max:4096'],
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
 
         if ($order->status !== 'pending') {
             return redirect()
                 ->route('admin.orders.index')
-                ->with('error', 'Only pending orders can be approved.');
+                ->with('error', 'Only pending orders can be approved with payment.');
         }
 
-        DB::transaction(function () use ($order, $validated) {
-            $order->load('courseLevel');
+        DB::transaction(function () use ($request, $order, $validated) {
+            $order->load(['courseLevel', 'payment']);
+
+            $proofPath = $order->payment?->proof_file;
+
+            if ($request->hasFile('proof_file')) {
+                if ($proofPath && Storage::disk('public')->exists($proofPath)) {
+                    Storage::disk('public')->delete($proofPath);
+                }
+
+                $proofPath = $request->file('proof_file')->store('payments/proofs', 'public');
+            }
+
+            Payment::updateOrCreate(
+                [
+                    'order_id' => $order->id,
+                ],
+                [
+                    'student_id' => $order->student_id,
+                    'course_level_id' => $order->course_level_id,
+                    'confirmed_by' => auth()->id(),
+                    'amount' => $validated['amount'],
+                    'payment_method' => $validated['payment_method'],
+                    'payment_status' => 'paid',
+                    'proof_file' => $proofPath,
+                    'payment_date' => $validated['payment_date'],
+                    'note' => $validated['note'] ?? null,
+                ]
+            );
 
             $order->update([
                 'status' => 'approved',
@@ -99,37 +163,25 @@ class CourseOrderController extends Controller
                 'note' => $validated['note'] ?? $order->note,
             ]);
 
-            $expiredAt = null;
-
-            if (
-                $order->courseLevel?->access_type === 'limited'
-                && $order->courseLevel?->access_duration_days
-            ) {
-                $expiredAt = now()->addDays((int) $order->courseLevel->access_duration_days);
-            }
-
-            StudentCourseEnrollment::updateOrCreate(
-                [
-                    'student_id' => $order->student_id,
-                    'course_level_id' => $order->course_level_id,
-                ],
-                [
-                    'order_id' => $order->id,
-                    'enrollment_source' => 'order',
-                    'created_by' => auth()->id(),
-                    'status' => 'active',
-                    'progress_percentage' => 0,
-                    'enrolled_at' => now(),
-                    'completed_at' => null,
-                    'expired_at' => $expiredAt,
-                    'note' => 'Created from approved order ' . $order->order_code,
-                ]
-            );
+            $this->createOrUpdateEnrollment($order);
         });
 
         return redirect()
             ->route('admin.orders.index')
-            ->with('success', 'Order has been approved and course access has been created.');
+            ->with('success', 'Payment has been recorded, order approved, and course access created.');
+    }
+
+    public function approve(Request $request, Order $order): RedirectResponse
+    {
+        if ($order->status !== 'pending') {
+            return redirect()
+                ->route('admin.orders.index')
+                ->with('error', 'Only pending orders can be approved.');
+        }
+
+        return redirect()
+            ->route('admin.orders.payment', $order)
+            ->with('success', 'Please record payment before approving this order.');
     }
 
     public function reject(Request $request, Order $order): RedirectResponse
@@ -154,6 +206,36 @@ class CourseOrderController extends Controller
         return redirect()
             ->route('admin.orders.index')
             ->with('success', 'Order has been rejected.');
+    }
+
+    private function createOrUpdateEnrollment(Order $order): void
+    {
+        $expiredAt = null;
+
+        if (
+            $order->courseLevel?->access_type === 'limited'
+            && $order->courseLevel?->access_duration_days
+        ) {
+            $expiredAt = now()->addDays((int) $order->courseLevel->access_duration_days);
+        }
+
+        StudentCourseEnrollment::updateOrCreate(
+            [
+                'student_id' => $order->student_id,
+                'course_level_id' => $order->course_level_id,
+            ],
+            [
+                'order_id' => $order->id,
+                'enrollment_source' => 'order',
+                'created_by' => auth()->id(),
+                'status' => 'active',
+                'progress_percentage' => 0,
+                'enrolled_at' => now(),
+                'completed_at' => null,
+                'expired_at' => $expiredAt,
+                'note' => 'Created from paid order ' . $order->order_code,
+            ]
+        );
     }
 
     private function makeInitials(string $name): string

@@ -12,6 +12,8 @@ use App\Models\StudentCourseEnrollment;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
+use App\Models\Payment;
+
 
 class DashboardController extends Controller
 {
@@ -50,18 +52,16 @@ class DashboardController extends Controller
         $lockedCertificates = Certificate::query()
             ->where('status', 'locked')
             ->count();
+        $thisMonthRevenue = Payment::query()
+            ->where('payment_status', 'paid')
+            ->whereYear('payment_date', now()->year)
+            ->whereMonth('payment_date', now()->month)
+            ->sum('amount');
 
-        $thisMonthRevenue = Order::query()
-            ->where('status', 'approved')
-            ->whereYear('approved_at', now()->year)
-            ->whereMonth('approved_at', now()->month)
-            ->sum('price');
-
-        $yearToDateRevenue = Order::query()
-            ->where('status', 'approved')
-            ->whereYear('approved_at', now()->year)
-            ->sum('price');
-
+        $yearToDateRevenue = Payment::query()
+            ->where('payment_status', 'paid')
+            ->whereYear('payment_date', now()->year)
+            ->sum('amount');
         $metrics = [
             [
                 'title' => 'Total Students',
@@ -273,11 +273,11 @@ class DashboardController extends Controller
 
     private function monthlyRevenue(): array
     {
-        $revenues = Order::query()
-            ->selectRaw('MONTH(approved_at) as month_number, SUM(price) as total')
-            ->where('status', 'approved')
-            ->whereYear('approved_at', now()->year)
-            ->whereNotNull('approved_at')
+        $revenues = Payment::query()
+            ->selectRaw('MONTH(payment_date) as month_number, SUM(amount) as total')
+            ->where('payment_status', 'paid')
+            ->whereYear('payment_date', now()->year)
+            ->whereNotNull('payment_date')
             ->groupBy('month_number')
             ->pluck('total', 'month_number');
 

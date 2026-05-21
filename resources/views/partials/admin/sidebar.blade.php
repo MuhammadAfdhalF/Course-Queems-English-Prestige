@@ -112,7 +112,9 @@
                         Course Orders
                     </x-admin.sidebar-item>
 
-                    <x-admin.sidebar-item href="#">
+                    <x-admin.sidebar-item
+                        :href="route('admin.payments.index')"
+                        :active="request()->routeIs('admin.payments.*')">
                         <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.8" />
@@ -122,7 +124,9 @@
                         Payments
                     </x-admin.sidebar-item>
 
-                    <x-admin.sidebar-item href="#">
+                    <x-admin.sidebar-item
+                        :href="route('admin.revenue.index')"
+                        :active="request()->routeIs('admin.revenue.*')">
                         <x-slot:icon>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3" />

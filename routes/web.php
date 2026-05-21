@@ -34,6 +34,8 @@ use App\Http\Controllers\Public\FreeTestController as PublicFreeTestController;
 use App\Http\Controllers\Admin\Cms\FreeTestResultController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\Order\CourseOrderController;
+use App\Http\Controllers\Admin\Order\PaymentController;
+use App\Http\Controllers\Admin\Order\RevenueReportController;
 use App\Http\Controllers\Student\MyCourseController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\LearningController;
@@ -375,9 +377,29 @@ Route::middleware(['auth', 'role:admin'])
                 Route::put('/certificate-settings', [CertificateSettingController::class, 'update'])
                     ->name('certificate-settings.update');
             });
-
         Route::get('/orders', [CourseOrderController::class, 'index'])
             ->name('orders.index');
+
+        Route::get('/orders/{order}/payment', [CourseOrderController::class, 'payment'])
+            ->name('orders.payment');
+
+        Route::post('/orders/{order}/payment', [CourseOrderController::class, 'recordPayment'])
+            ->name('orders.payment.store');
+
+        Route::put('/orders/{order}/approve', [CourseOrderController::class, 'approve'])
+            ->name('orders.approve');
+
+        Route::put('/orders/{order}/reject', [CourseOrderController::class, 'reject'])
+            ->name('orders.reject');
+
+        Route::get('/payments', [PaymentController::class, 'index'])
+            ->name('payments.index');
+
+        Route::get('/payments/{payment}', [PaymentController::class, 'show'])
+            ->name('payments.show');
+
+        Route::get('/revenue', [RevenueReportController::class, 'index'])
+            ->name('revenue.index');
 
         Route::put('/orders/{order}/approve', [CourseOrderController::class, 'approve'])
             ->name('orders.approve');
