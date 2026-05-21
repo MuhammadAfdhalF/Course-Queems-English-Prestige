@@ -52,7 +52,7 @@ use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Student\AllCourseController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
-
+use App\Http\Controllers\Admin\CourseAccessController;
 
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -390,8 +390,21 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('/students/{student}', [AdminStudentController::class, 'show'])
             ->name('students.show');
+        Route::get('/course-access', [CourseAccessController::class, 'index'])
+            ->name('course-access.index');
 
-            
+        Route::get('/course-access/create', [CourseAccessController::class, 'create'])
+            ->name('course-access.create');
+
+        Route::post('/course-access', [CourseAccessController::class, 'store'])
+            ->name('course-access.store');
+
+        Route::get('/course-access/{enrollment}', [CourseAccessController::class, 'show'])
+            ->name('course-access.show');
+
+        Route::put('/course-access/{enrollment}/cancel', [CourseAccessController::class, 'cancel'])
+            ->name('course-access.cancel');
+
         Route::prefix('cms')
             ->name('cms.')
             ->group(function () {
