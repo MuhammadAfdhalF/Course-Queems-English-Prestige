@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use App\Models\Notification;
+use App\Models\User;
 
 class CourseOrderController extends Controller
 {
@@ -200,7 +202,7 @@ class CourseOrderController extends Controller
                 $proofPath = $request->file('proof_file')->store('payments/proofs', 'public');
             }
 
-            Payment::updateOrCreate(
+            $payment = Payment::updateOrCreate(
                 [
                     'order_id' => $order->id,
                 ],
@@ -225,6 +227,13 @@ class CourseOrderController extends Controller
             ]);
 
             $this->createOrUpdateEnrollment($order);
+            $this->notifyActiveAdmins(
+                title: 'Payment Recorded',
+                message: 'Payment for order ' . $order->order_code . ' has been recorded and approved.',
+                type: 'payment',
+                referenceId: $payment->id,
+                referenceType: 'payment'
+            );
         });
 
         return redirect()
@@ -263,6 +272,13 @@ class CourseOrderController extends Controller
             'approved_at' => null,
             'note' => $validated['note'] ?? $order->note,
         ]);
+        $this->notifyActiveAdmins(
+            title: 'Order Rejected',
+            message: 'Order ' . $order->order_code . ' has been rejected.',
+            type: 'order',
+            referenceId: $order->id,
+            referenceType: 'order'
+        );
 
         return redirect()
             ->route('admin.orders.show', $order)
@@ -299,6 +315,30 @@ class CourseOrderController extends Controller
         );
     }
 
+    private function notifyActiveAdmins(
+        string $title,
+        string $message,
+        string $type,
+        int $referenceId,
+        string $referenceType
+    ): void {
+        User::query()
+            ->where('role', 'admin')
+            ->where('is_active', true)
+            ->get()
+            ->each(function (User $admin) use ($title, $message, $type, $referenceId, $referenceType) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => $title,
+                    'message' => $message,
+                    'type' => $type,
+                    'reference_id' => $referenceId,
+                    'reference_type' => $referenceType,
+                    'is_read' => false,
+                    'read_at' => null,
+                ]);
+            });
+    }
     private function makeInitials(string $name): string
     {
         $words = collect(explode(' ', trim($name)))

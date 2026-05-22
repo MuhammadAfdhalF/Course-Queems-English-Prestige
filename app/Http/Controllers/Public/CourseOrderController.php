@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Models\Notification;
+use App\Models\User;
 
 class CourseOrderController extends Controller
 {
@@ -68,7 +70,7 @@ class CourseOrderController extends Controller
         }
 
         $order = DB::transaction(function () use ($student, $courseLevel, $validated) {
-            return Order::create([
+            $order = Order::create([
                 'student_id' => $student->id,
                 'course_level_id' => $courseLevel->id,
                 'order_code' => $this->generateOrderCode(),
@@ -77,6 +79,16 @@ class CourseOrderController extends Controller
                 'order_date' => now(),
                 'note' => $validated['note'] ?? null,
             ]);
+
+            $this->notifyActiveAdmins(
+                title: 'New Course Order',
+                message: $student->name . ' ordered ' . $courseLevel->name . '.',
+                type: 'order',
+                referenceId: $order->id,
+                referenceType: 'order'
+            );
+
+            return $order;
         });
 
         return redirect()
@@ -111,7 +123,30 @@ class CourseOrderController extends Controller
             ->where('status', 'pending')
             ->exists();
     }
-
+    private function notifyActiveAdmins(
+        string $title,
+        string $message,
+        string $type,
+        int $referenceId,
+        string $referenceType
+    ): void {
+        User::query()
+            ->where('role', 'admin')
+            ->where('is_active', true)
+            ->get()
+            ->each(function (User $admin) use ($title, $message, $type, $referenceId, $referenceType) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => $title,
+                    'message' => $message,
+                    'type' => $type,
+                    'reference_id' => $referenceId,
+                    'reference_type' => $referenceType,
+                    'is_read' => false,
+                    'read_at' => null,
+                ]);
+            });
+    }
     private function generateOrderCode(): string
     {
         $date = Carbon::now()->format('Ymd');

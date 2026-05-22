@@ -55,7 +55,7 @@ use App\Http\Controllers\Student\AllCourseController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\CourseAccessController;
-
+use App\Http\Controllers\Admin\NotificationController;
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
@@ -187,7 +187,18 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
+            
+        Route::get('/notifications', [NotificationController::class, 'index'])
+            ->name('notifications.index');
 
+        Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])
+            ->name('notifications.open');
+
+        Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
+            ->name('notifications.read');
+
+        Route::put('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+            ->name('notifications.read-all');
         Route::post('/rich-text/upload-image', [RichTextUploadController::class, 'uploadImage'])
             ->name('rich-text.upload-image');
 
