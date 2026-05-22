@@ -177,12 +177,13 @@
     </template>
 
     <x-slot:footer>
-        <button
-            type="button"
-            @click="closeOrder()"
-            class="h-11 rounded-xl px-5 text-sm font-extrabold text-slate-500 transition hover:text-slate-700">
-            Close
-        </button>
+        <template x-if="selectedOrder">
+            <a
+                :href="selectedOrder.detailUrl"
+                class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50">
+                View Full Detail
+            </a>
+        </template>
 
         <template x-if="selectedOrder && selectedOrder.status === 'pending'">
             <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">

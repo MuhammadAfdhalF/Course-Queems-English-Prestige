@@ -49,6 +49,7 @@ class CourseOrderController extends Controller
                         ? 'Rp ' . number_format((float) $order->payment->amount, 0, ',', '.')
                         : null,
                     'paymentDate' => $order->payment?->payment_date?->format('M d, Y H:i'),
+                    'detailUrl' => route('admin.orders.show', $order),
                     'paymentUrl' => route('admin.orders.payment', $order),
                     'approveUrl' => route('admin.orders.approve', $order),
                     'rejectUrl' => route('admin.orders.reject', $order),
@@ -84,6 +85,66 @@ class CourseOrderController extends Controller
             'orders' => $orders,
             'tabs' => $tabs,
             'orderCount' => count($orders),
+        ]);
+    }
+
+    public function show(Order $order): View
+    {
+        $order->load([
+            'student.studentProfile',
+            'courseLevel.courseProgram',
+            'payment.confirmedBy',
+            'enrollment.createdBy',
+        ]);
+
+        $timeline = collect([
+            [
+                'title' => 'Order Created',
+                'description' => 'Student submitted course order.',
+                'date' => $order->order_date ?? $order->created_at,
+                'variant' => 'default',
+            ],
+            [
+                'title' => 'Payment Recorded',
+                'description' => $order->payment
+                    ? 'Payment was recorded by admin.'
+                    : 'Payment has not been recorded yet.',
+                'date' => $order->payment?->payment_date,
+                'variant' => 'payment',
+            ],
+            [
+                'title' => 'Order Approved',
+                'description' => 'Order approved after payment confirmation.',
+                'date' => $order->approved_at,
+                'variant' => 'approved',
+            ],
+            [
+                'title' => 'Order Rejected',
+                'description' => 'Order was rejected by admin.',
+                'date' => $order->rejected_at,
+                'variant' => 'rejected',
+            ],
+            [
+                'title' => 'Course Access Created',
+                'description' => 'Student enrollment/course access was created.',
+                'date' => $order->enrollment?->enrolled_at,
+                'variant' => 'access',
+            ],
+        ])
+            ->filter(fn(array $item) => ! is_null($item['date']))
+            ->sortBy('date')
+            ->values()
+            ->all();
+
+        return view('pages.admin.orders.show', [
+            'order' => $order,
+            'student' => $order->student,
+            'profile' => $order->student?->studentProfile,
+            'courseLevel' => $order->courseLevel,
+            'courseProgram' => $order->courseLevel?->courseProgram,
+            'payment' => $order->payment,
+            'enrollment' => $order->enrollment,
+            'timeline' => $timeline,
         ]);
     }
 
@@ -167,7 +228,7 @@ class CourseOrderController extends Controller
         });
 
         return redirect()
-            ->route('admin.orders.index')
+            ->route('admin.orders.show', $order)
             ->with('success', 'Payment has been recorded, order approved, and course access created.');
     }
 
@@ -204,7 +265,7 @@ class CourseOrderController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.orders.index')
+            ->route('admin.orders.show', $order)
             ->with('success', 'Order has been rejected.');
     }
 

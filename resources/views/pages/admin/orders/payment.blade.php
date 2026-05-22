@@ -6,8 +6,8 @@
 @section('content')
 <section class="mx-auto max-w-5xl space-y-6">
     <x-admin.page-toolbar
-        :back-url="route('admin.orders.index')"
-        back-label="Back to Orders" />
+        :back-url="route('admin.orders.show', $order)"
+        back-label="Back to Order Detail" />
 
     <x-admin.flash-message />
 
@@ -184,7 +184,7 @@
 
                 <div class="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
                     <a
-                        href="{{ route('admin.orders.index') }}"
+                        href="{{ route('admin.orders.show', $order) }}"
                         class="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
                         Cancel
                     </a>

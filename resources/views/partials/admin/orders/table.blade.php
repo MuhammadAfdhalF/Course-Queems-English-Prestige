@@ -15,12 +15,11 @@
             x-transition.opacity.duration.200ms
             class="transition hover:bg-slate-50">
             <td class="whitespace-nowrap px-6 py-5">
-                <button
-                    type="button"
-                    @click="openOrder(order)"
+                <a
+                    :href="order.detailUrl"
                     class="max-w-[120px] text-left text-base font-extrabold leading-tight text-slate-900 transition hover:text-[var(--color-brand-blue)]"
                     x-text="order.id">
-                </button>
+                </a>
             </td>
 
             <td class="whitespace-nowrap px-6 py-5">

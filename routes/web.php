@@ -380,6 +380,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/orders', [CourseOrderController::class, 'index'])
             ->name('orders.index');
 
+        Route::get('/orders/{order}', [CourseOrderController::class, 'show'])
+            ->name('orders.show');
+
         Route::get('/orders/{order}/payment', [CourseOrderController::class, 'payment'])
             ->name('orders.payment');
 
@@ -401,11 +404,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/revenue', [RevenueReportController::class, 'index'])
             ->name('revenue.index');
 
-        Route::put('/orders/{order}/approve', [CourseOrderController::class, 'approve'])
-            ->name('orders.approve');
-
-        Route::put('/orders/{order}/reject', [CourseOrderController::class, 'reject'])
-            ->name('orders.reject');
 
         Route::get('/students', [AdminStudentController::class, 'index'])
             ->name('students.index');
