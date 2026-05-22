@@ -56,6 +56,9 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\CourseAccessController;
 use App\Http\Controllers\Admin\NotificationController;
+
+use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
+
 // sementara logout
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
@@ -187,6 +190,14 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
+        Route::get('/profile', [AdminProfileController::class, 'edit'])
+            ->name('profile.edit');
+
+        Route::put('/profile', [AdminProfileController::class, 'update'])
+            ->name('profile.update');
+
+        Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])
+            ->name('profile.password.update');
             
         Route::get('/notifications', [NotificationController::class, 'index'])
             ->name('notifications.index');

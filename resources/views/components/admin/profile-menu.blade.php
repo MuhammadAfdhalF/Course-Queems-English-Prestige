@@ -40,13 +40,13 @@ $adminInitials = $adminInitials ?: 'A';
         x-transition
         class="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-lg">
         <a
-            href="{{ route('admin.dashboard') }}"
+            href="{{ route('admin.profile.edit') }}"
             class="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
             Profile
         </a>
 
         <a
-            href="{{ route('admin.dashboard') }}"
+            href="{{ route('admin.profile.edit') }}"
             class="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
             Settings
         </a>
