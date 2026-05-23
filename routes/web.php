@@ -174,8 +174,11 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/testimoni', [TestimonialController::class, 'index'])
             ->name('testimoni');
 
-        Route::post('/testimoni', [TestimonialController::class, 'store'])
-            ->name('testimoni.store');
+        Route::post('/testimoni/course', [TestimonialController::class, 'storeCourse'])
+            ->name('testimoni.course.store');
+
+        Route::post('/testimoni/company', [TestimonialController::class, 'storeCompany'])
+            ->name('testimoni.company.store');
 
         Route::get('/profile', [StudentProfileController::class, 'edit'])
             ->name('profile');

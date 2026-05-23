@@ -1,30 +1,35 @@
 @extends('layouts.student')
 
 @section('content')
-<section class="mx-auto max-w-5xl space-y-10 py-8">
-    <div class="reveal text-center">
-        <h1 class="text-4xl font-bold text-slate-900 lg:text-5xl">
-            Testimoni
-        </h1>
+<section class="mx-auto max-w-6xl space-y-8 py-8">
+    <div class="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm">
+        <div class="relative overflow-hidden bg-gradient-to-br from-[#080D4D] via-[#101C72] to-[#AD6B10] px-7 py-10 text-white lg:px-10">
+            <div class="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-white/10 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-24 left-20 h-52 w-52 rounded-full bg-[#AD6B10]/30 blur-3xl"></div>
 
-        <p class="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-500">
-            Berikan feedback Anda untuk membantu kami berkembang dan dapatkan
-            akses penuh ke sertifikat kursus Anda.
-        </p>
+            <div class="relative max-w-3xl">
+                <p class="text-xs font-black uppercase tracking-[0.22em] text-white/60">
+                    Student Feedback
+                </p>
 
-        <div class="mt-6 inline-flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-2 text-sm font-semibold text-[var(--color-brand-gold)]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <circle cx="12" cy="12" r="9" stroke-width="1.8" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8h.01M11 12h1v4h1" />
-            </svg>
-            Testimoni Anda diperlukan untuk membuka sertifikat digital.
+                <h1 class="mt-3 text-4xl font-black leading-tight lg:text-5xl">
+                    Testimoni
+                </h1>
+
+                <p class="mt-4 text-base font-semibold leading-8 text-white/80">
+                    Share your learning experience, unlock eligible course certificates, and help Queens English Prestige improve.
+                </p>
+            </div>
         </div>
     </div>
 
+    <x-admin.flash-message />
+
     @include('partials.student.testimoni.form')
+
     @include('partials.student.testimoni.history')
-    
-    <p class="reveal reveal-delay-3 text-center text-sm text-slate-500">
+
+    <p class="text-center text-sm text-slate-500">
         Mengalami kendala teknis?
         <a href="#" class="font-semibold text-[var(--color-brand-blue)] hover:underline">
             Hubungi Tim IT Support kami
