@@ -56,7 +56,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\CourseAccessController;
 use App\Http\Controllers\Admin\NotificationController;
-
+use App\Http\Controllers\Student\NotificationController as StudentNotificationController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 
 // sementara logout
@@ -123,6 +123,18 @@ Route::middleware(['auth', 'role:student'])
     ->group(function () {
         Route::get('/', [DashboardController::class, 'index'])
             ->name('dashboard');
+
+        Route::get('/notifications', [StudentNotificationController::class, 'index'])
+            ->name('notifications.index');
+
+        Route::put('/notifications/read-all', [StudentNotificationController::class, 'markAllAsRead'])
+            ->name('notifications.read-all');
+
+        Route::get('/notifications/{notification}/open', [StudentNotificationController::class, 'open'])
+            ->name('notifications.open');
+
+        Route::put('/notifications/{notification}/read', [StudentNotificationController::class, 'markAsRead'])
+            ->name('notifications.read');
 
         Route::get('/my-courses', [MyCourseController::class, 'index'])
             ->name('my-courses');
@@ -439,7 +451,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::put('/students/{student}/deactivate', [AdminStudentController::class, 'deactivate'])
             ->name('students.deactivate');
 
-            
+
         Route::get('/course-access', [CourseAccessController::class, 'index'])
             ->name('course-access.index');
 

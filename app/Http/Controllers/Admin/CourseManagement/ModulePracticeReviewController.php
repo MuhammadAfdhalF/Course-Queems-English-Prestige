@@ -9,6 +9,7 @@ use App\Models\ModulePracticeAttempt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Services\StudentNotificationService;
 
 class ModulePracticeReviewController extends Controller
 {
@@ -45,12 +46,17 @@ class ModulePracticeReviewController extends Controller
         ]);
     }
 
-    public function update(Request $request, ModulePracticeAttempt $modulePracticeAttempt): RedirectResponse
-    {
+    public function update(
+        Request $request,
+        ModulePracticeAttempt $modulePracticeAttempt,
+        StudentNotificationService $studentNotificationService
+    ): RedirectResponse {
         $modulePracticeAttempt->load([
             'practice.questions',
             'answers.question',
         ]);
+
+        $wasWaitingReview = $modulePracticeAttempt->status === 'waiting_review';
 
         $validated = $request->validate([
             'answers' => ['nullable', 'array'],
@@ -111,7 +117,9 @@ class ModulePracticeReviewController extends Controller
             'status' => $status,
             'graded_at' => now(),
         ]);
-
+        if ($wasWaitingReview) {
+            $studentNotificationService->practiceReviewed($modulePracticeAttempt->fresh());
+        }
         return redirect()
             ->route('admin.course-management.practice-reviews.show', $modulePracticeAttempt)
             ->with('success', 'Practice attempt has been reviewed successfully.');

@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Services\CertificateService;
 
-
+use App\Services\StudentNotificationService;
 
 class FinalExamReviewController extends Controller
 {
@@ -56,13 +56,14 @@ class FinalExamReviewController extends Controller
     public function update(
         Request $request,
         FinalExamAttempt $finalExamAttempt,
-        CertificateService $certificateService
+        CertificateService $certificateService,
+        StudentNotificationService $studentNotificationService
     ): RedirectResponse {
         $finalExamAttempt->load([
             'finalExam.questions',
             'answers.question',
         ]);
-
+        $wasWaitingReview = $finalExamAttempt->status === 'waiting_review';
         $validated = $request->validate([
             'answers' => ['nullable', 'array'],
             'answers.*.score' => ['nullable', 'numeric', 'min:0'],
@@ -125,6 +126,10 @@ class FinalExamReviewController extends Controller
 
         if ($status === 'passed') {
             $certificateService->createLockedCertificateFromAttempt($finalExamAttempt->fresh());
+        }
+
+        if ($wasWaitingReview) {
+            $studentNotificationService->finalExamReviewed($finalExamAttempt->fresh());
         }
 
         return redirect()
