@@ -19,47 +19,41 @@
         };
         @endphp
 
-        <div class="space-y-4">
-            <div>
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-                    Certificate Number
-                </p>
+        <div class="rounded-[24px] border border-emerald-100 bg-gradient-to-br from-white to-emerald-50 p-5">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.16em] text-emerald-600">
+                        Certificate Number
+                    </p>
 
-                <p class="mt-2 break-all text-lg font-black text-slate-900">
-                    {{ $certificate->certificate_number }}
-                </p>
-            </div>
-
-            <div>
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-                    Status
-                </p>
-
-                <div class="mt-2">
-                    <x-admin.status-badge :variant="$variant">
-                        {{ ucfirst($certificate->status) }}
-                    </x-admin.status-badge>
+                    <p class="mt-2 break-all text-lg font-black text-slate-900">
+                        {{ $certificate->certificate_number }}
+                    </p>
                 </div>
+
+                <x-admin.status-badge :variant="$variant">
+                    {{ ucfirst($certificate->status) }}
+                </x-admin.status-badge>
             </div>
 
-            <div>
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+            <div class="mt-5 rounded-2xl bg-white/80 px-4 py-3">
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
                     Issued At
                 </p>
 
-                <p class="mt-2 text-sm font-bold text-slate-900">
+                <p class="mt-2 text-sm font-black text-slate-900">
                     {{ $certificate->issued_at?->format('d F Y H:i') ?? '-' }}
                 </p>
             </div>
 
             <a
                 href="{{ route('admin.course-management.certificates.show', $certificate) }}"
-                class="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-bold text-white transition hover:opacity-90">
+                class="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 text-sm font-black text-white transition hover:opacity-90">
                 View Certificate
             </a>
         </div>
         @else
-        <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
+        <div class="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 px-5 py-12 text-center">
             <h3 class="text-lg font-black text-slate-900">
                 No certificate yet
             </h3>

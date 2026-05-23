@@ -28,18 +28,18 @@
                 };
                 @endphp
 
-                <div class="px-6 py-5">
+                <div class="px-6 py-5 transition hover:bg-slate-50/70">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <p class="font-bold text-slate-900">
+                            <p class="font-black text-slate-900">
                                 {{ $attempt->practice?->title ?? 'Module Practice' }}
                             </p>
 
-                            <p class="mt-1 text-xs text-slate-400">
+                            <p class="mt-1 text-xs font-semibold text-slate-400">
                                 {{ $attempt->practice?->module?->title ?? '-' }}
                             </p>
 
-                            <p class="mt-1 text-xs text-slate-400">
+                            <p class="mt-1 text-xs font-semibold text-slate-400">
                                 Submitted: {{ $attempt->submitted_at?->format('d M Y H:i') ?? '-' }}
                             </p>
                         </div>
@@ -49,13 +49,24 @@
                         </x-admin.status-badge>
                     </div>
 
-                    <p class="mt-3 text-sm font-bold text-slate-700">
-                        Score: {{ $attempt->total_score !== null ? number_format((float) $attempt->total_score, 2) . '%' : '-' }}
-                    </p>
+                    <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-sm font-black text-slate-700">
+                            Score: {{ $attempt->total_score !== null ? number_format((float) $attempt->total_score, 2) . '%' : '-' }}
+                        </p>
+
+                        <a
+                            href="{{ route('admin.course-management.practice-reviews.show', $attempt) }}"
+                            class="inline-flex h-9 items-center justify-center rounded-lg {{ $attempt->status === 'waiting_review' ? 'bg-amber-500 text-white' : 'bg-[var(--color-brand-blue)] text-white' }} px-4 text-xs font-black transition hover:opacity-90">
+                            {{ $attempt->status === 'waiting_review' ? 'Review Now' : 'View Review' }}
+                        </a>
+                    </div>
                 </div>
                 @empty
-                <div class="px-6 py-10 text-center text-sm text-slate-500">
-                    No practice attempts yet.
+                <div class="px-6 py-12 text-center">
+                    <p class="text-sm font-black text-slate-700">No practice attempts yet</p>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Practice attempts will appear after the student submits module practice.
+                    </p>
                 </div>
                 @endforelse
             </div>
@@ -79,14 +90,14 @@
                 };
                 @endphp
 
-                <div class="px-6 py-5">
+                <div class="px-6 py-5 transition hover:bg-slate-50/70">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <p class="font-bold text-slate-900">
+                            <p class="font-black text-slate-900">
                                 {{ $attempt->finalExam?->title ?? 'Final Exam' }}
                             </p>
 
-                            <p class="mt-1 text-xs text-slate-400">
+                            <p class="mt-1 text-xs font-semibold text-slate-400">
                                 Submitted: {{ $attempt->submitted_at?->format('d M Y H:i') ?? '-' }}
                             </p>
                         </div>
@@ -96,13 +107,24 @@
                         </x-admin.status-badge>
                     </div>
 
-                    <p class="mt-3 text-sm font-bold text-slate-700">
-                        Score: {{ $attempt->total_score !== null ? number_format((float) $attempt->total_score, 2) . '%' : '-' }}
-                    </p>
+                    <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-sm font-black text-slate-700">
+                            Score: {{ $attempt->total_score !== null ? number_format((float) $attempt->total_score, 2) . '%' : '-' }}
+                        </p>
+
+                        <a
+                            href="{{ route('admin.course-management.final-exam-reviews.show', $attempt) }}"
+                            class="inline-flex h-9 items-center justify-center rounded-lg {{ $attempt->status === 'waiting_review' ? 'bg-amber-500 text-white' : 'bg-[var(--color-brand-blue)] text-white' }} px-4 text-xs font-black transition hover:opacity-90">
+                            {{ $attempt->status === 'waiting_review' ? 'Review Now' : 'View Review' }}
+                        </a>
+                    </div>
                 </div>
                 @empty
-                <div class="px-6 py-10 text-center text-sm text-slate-500">
-                    No final exam attempts yet.
+                <div class="px-6 py-12 text-center">
+                    <p class="text-sm font-black text-slate-700">No final exam attempts yet</p>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Final exam attempts will appear after the student submits final exam.
+                    </p>
                 </div>
                 @endforelse
             </div>
