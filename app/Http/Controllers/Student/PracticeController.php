@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Services\StudentProgressService;
+use App\Services\AdminNotificationService;
 
 class PracticeController extends Controller
 {
@@ -60,7 +61,8 @@ class PracticeController extends Controller
         StudentCourseEnrollment $enrollment,
         Module $module,
         ModulePractice $practice,
-        StudentProgressService $progressService
+        StudentProgressService $progressService,
+        AdminNotificationService $adminNotificationService
     ): RedirectResponse {
         $this->authorizeAccess($enrollment, $module, $practice);
 
@@ -214,6 +216,10 @@ class PracticeController extends Controller
             'graded_at' => $hasManualReview ? null : now(),
         ]);
 
+        if ($status === 'waiting_review') {
+            $adminNotificationService->practiceWaitingReview($attempt->fresh());
+        }
+
         $progressService->markModuleCompleted($enrollment, $module);
 
         return redirect()
@@ -223,6 +229,7 @@ class PracticeController extends Controller
                 'attempt' => $attempt,
             ]);
     }
+
 
     public function result(
         StudentCourseEnrollment $enrollment,

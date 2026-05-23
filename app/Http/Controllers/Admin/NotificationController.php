@@ -9,6 +9,9 @@ use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\FinalExamAttempt;
+use App\Models\ModulePracticeAttempt;
+use App\Models\Testimonial;
 
 class NotificationController extends Controller
 {
@@ -85,6 +88,30 @@ class NotificationController extends Controller
 
             if ($payment) {
                 return route('admin.payments.show', $payment);
+            }
+        }
+
+        if ($notification->reference_type === 'practice_attempt' && $notification->reference_id) {
+            $attempt = ModulePracticeAttempt::query()->find($notification->reference_id);
+
+            if ($attempt) {
+                return route('admin.course-management.practice-reviews.show', $attempt);
+            }
+        }
+
+        if ($notification->reference_type === 'final_exam_attempt' && $notification->reference_id) {
+            $attempt = FinalExamAttempt::query()->find($notification->reference_id);
+
+            if ($attempt) {
+                return route('admin.course-management.final-exam-reviews.show', $attempt);
+            }
+        }
+
+        if ($notification->reference_type === 'testimonial' && $notification->reference_id) {
+            $testimonial = Testimonial::query()->find($notification->reference_id);
+
+            if ($testimonial) {
+                return route('admin.cms.testimonials.index');
             }
         }
 

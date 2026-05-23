@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Services\CertificateService;
 use App\Models\Certificate;
+use App\Services\AdminNotificationService;
 
 class FinalExamController extends Controller
 {
@@ -60,7 +61,8 @@ class FinalExamController extends Controller
         Request $request,
         StudentCourseEnrollment $enrollment,
         FinalExam $finalExam,
-        CertificateService $certificateService
+        CertificateService $certificateService,
+        AdminNotificationService $adminNotificationService
     ): RedirectResponse {
         $this->authorizeAccess($enrollment, $finalExam);
 
@@ -209,7 +211,6 @@ class FinalExamController extends Controller
                 ? 'passed'
                 : 'failed';
         }
-
         $attempt->update([
             'total_score' => $percentageScore,
             'status' => $status,
@@ -217,10 +218,13 @@ class FinalExamController extends Controller
             'graded_at' => $hasManualReview ? null : now(),
         ]);
 
+        if ($status === 'waiting_review') {
+            $adminNotificationService->finalExamWaitingReview($attempt->fresh());
+        }
+
         if ($status === 'passed') {
             $certificateService->createLockedCertificateFromAttempt($attempt->fresh());
         }
-
         return redirect()
             ->route('student.final-exam-result', [
                 'enrollment' => $enrollment,

@@ -9,6 +9,7 @@ use App\Services\CertificateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Services\AdminNotificationService;
 
 class TestimonialController extends Controller
 {
@@ -36,8 +37,11 @@ class TestimonialController extends Controller
         ]);
     }
 
-    public function store(Request $request, CertificateService $certificateService): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        CertificateService $certificateService,
+        AdminNotificationService $adminNotificationService
+    ): RedirectResponse {
         $validated = $request->validate([
             'certificate_id' => ['required', 'integer', 'exists:certificates,id'],
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
@@ -62,6 +66,8 @@ class TestimonialController extends Controller
             'is_featured' => false,
             'is_active' => false,
         ]);
+
+        $adminNotificationService->testimonialSubmitted($testimonial->fresh());
 
         $unlockedCertificate = $certificateService->unlockCertificateFromTestimonial($testimonial);
 
