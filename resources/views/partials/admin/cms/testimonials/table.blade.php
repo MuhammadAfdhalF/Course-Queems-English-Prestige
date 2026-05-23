@@ -1,13 +1,12 @@
 <x-admin.data-table>
     <x-slot:head>
         <th class="px-6 py-4">Student</th>
-        <th class="px-6 py-4">Course</th>
+        <th class="px-6 py-4">Subject</th>
         <th class="px-6 py-4">Testimonial</th>
         <th class="px-6 py-4">Rating</th>
         <th class="px-6 py-4">Type</th>
-        <th class="px-6 py-4">Status</th>
-        <th class="px-6 py-4">Featured</th>
-        <th class="px-6 py-4 text-center">Action</th>
+        <th class="px-6 py-4">Visibility</th>
+        <th class="w-[240px] px-6 py-4 text-center">Action</th>
     </x-slot:head>
 
     @forelse ($testimonials as $testimonial)
@@ -22,90 +21,108 @@
     $studentEmail = $testimonial->student?->email;
     $courseName = $testimonial->courseLevel?->name;
     $programName = $testimonial->courseLevel?->courseProgram?->name;
+
+    $isCourse = $testimonial->type === 'course';
+    $typeLabel = $isCourse ? 'Course Feedback' : 'Company Feedback';
+    $typeClass = $isCourse
+    ? 'bg-blue-50 text-blue-700'
+    : 'bg-purple-50 text-purple-700';
     @endphp
 
-    <tr class="text-sm text-slate-700">
-        <td class="min-w-[190px] px-6 py-4">
-            <p class="font-bold text-slate-900">
-                {{ $studentName }}
-            </p>
+    <tr class="text-sm text-slate-700 transition hover:bg-slate-50/80">
+        <td class="min-w-[220px] px-6 py-5">
+            <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-sm font-black text-slate-700">
+                    {{ strtoupper(substr($studentName, 0, 1)) }}
+                </div>
 
-            @if ($studentEmail)
-            <p class="mt-1 text-xs font-medium text-slate-400">
-                {{ $studentEmail }}
-            </p>
-            @endif
+                <div class="min-w-0">
+                    <p class="truncate font-black text-slate-900">
+                        {{ $studentName }}
+                    </p>
 
-            <p class="mt-1 text-xs font-medium text-slate-400">
-                {{ $testimonial->created_at?->format('d M Y, H:i') }}
-            </p>
+                    @if ($studentEmail)
+                    <p class="mt-1 truncate text-xs font-semibold text-slate-400">
+                        {{ $studentEmail }}
+                    </p>
+                    @endif
+
+                    <p class="mt-1 text-xs font-semibold text-slate-400">
+                        {{ $testimonial->created_at?->format('d M Y, H:i') }}
+                    </p>
+                </div>
+            </div>
         </td>
 
-        <td class="min-w-[190px] px-6 py-4">
-            @if ($courseName)
-            <p class="font-semibold text-slate-900">
-                {{ $courseName }}
+        <td class="min-w-[220px] px-6 py-5">
+            @if ($isCourse)
+            <p class="font-black text-slate-900">
+                {{ $courseName ?? 'Unknown Course' }}
             </p>
 
-            <p class="mt-1 text-xs font-medium text-slate-400">
+            <p class="mt-1 text-xs font-semibold text-slate-400">
                 {{ $programName ?? 'Course Program' }}
             </p>
             @else
-            <span class="text-sm font-medium text-slate-400">
-                Company Feedback
-            </span>
+            <p class="font-black text-slate-900">
+                Queens English Prestige
+            </p>
+
+            <p class="mt-1 text-xs font-semibold text-slate-400">
+                General company feedback
+            </p>
             @endif
         </td>
 
-        <td class="max-w-md px-6 py-4">
+        <td class="max-w-md px-6 py-5">
             <p class="line-clamp-3 leading-6 text-slate-600">
                 {{ $testimonial->testimonial }}
             </p>
         </td>
 
-        <td class="px-6 py-4">
-            <div class="whitespace-nowrap text-sm text-[var(--color-brand-gold)]">
+        <td class="whitespace-nowrap px-6 py-5">
+            <div class="text-sm text-[var(--color-brand-gold)]">
                 @for ($i = 1; $i <= 5; $i++)
                     {{ $i <= (int) $testimonial->rating ? '★' : '☆' }}
                     @endfor
                     </div>
 
-                    <p class="mt-1 text-xs font-bold text-slate-400">
+                    <p class="mt-1 text-xs font-black text-slate-400">
                         {{ (int) $testimonial->rating }}/5
                     </p>
         </td>
 
-        <td class="px-6 py-4">
-            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold capitalize text-slate-700">
-                {{ $testimonial->type }}
+        <td class="whitespace-nowrap px-6 py-5">
+            <span class="inline-flex rounded-full px-3 py-1 text-xs font-black {{ $typeClass }}">
+                {{ $typeLabel }}
             </span>
         </td>
 
-        <td class="px-6 py-4">
-            @if ($testimonial->is_active)
-            <x-admin.status-badge variant="completed">
-                Published
-            </x-admin.status-badge>
-            @else
-            <x-admin.status-badge variant="pending">
-                Awaiting
-            </x-admin.status-badge>
-            @endif
+        <td class="whitespace-nowrap px-6 py-5">
+            <div class="flex flex-col gap-2">
+                @if ($testimonial->is_active)
+                <x-admin.status-badge variant="completed">
+                    Published
+                </x-admin.status-badge>
+                @else
+                <x-admin.status-badge variant="pending">
+                    Awaiting
+                </x-admin.status-badge>
+                @endif
+
+                @if ($testimonial->is_featured)
+                <span class="inline-flex w-fit rounded-full bg-yellow-50 px-3 py-1 text-xs font-black text-[var(--color-brand-gold)]">
+                    Featured
+                </span>
+                @else
+                <span class="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-500">
+                    Normal
+                </span>
+                @endif
+            </div>
         </td>
 
-        <td class="px-6 py-4">
-            @if ($testimonial->is_featured)
-            <span class="inline-flex rounded-full bg-yellow-50 px-3 py-1 text-xs font-bold text-[var(--color-brand-gold)]">
-                Featured
-            </span>
-            @else
-            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
-                Normal
-            </span>
-            @endif
-        </td>
-
-        <td class="px-6 py-4">
+        <td class="px-6 py-5">
             <div class="flex min-w-[220px] flex-wrap justify-center gap-2">
                 @if ($testimonial->is_active)
                 <form
@@ -117,7 +134,7 @@
                     <button
                         type="submit"
                         title="Unpublish"
-                        class="inline-flex h-10 items-center justify-center rounded-xl bg-slate-100 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-200">
+                        class="inline-flex h-10 items-center justify-center rounded-xl bg-slate-100 px-3 text-xs font-black text-slate-700 transition hover:bg-slate-200">
                         Unpublish
                     </button>
                 </form>
@@ -131,7 +148,7 @@
                     <button
                         type="submit"
                         title="Publish"
-                        class="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-50 px-3 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100">
+                        class="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-50 px-3 text-xs font-black text-emerald-700 transition hover:bg-emerald-100">
                         Publish
                     </button>
                 </form>
@@ -147,7 +164,7 @@
                     <button
                         type="submit"
                         title="Unfeature"
-                        class="inline-flex h-10 items-center justify-center rounded-xl bg-yellow-50 px-3 text-xs font-bold text-[var(--color-brand-gold)] transition hover:bg-yellow-100">
+                        class="inline-flex h-10 items-center justify-center rounded-xl bg-yellow-50 px-3 text-xs font-black text-[var(--color-brand-gold)] transition hover:bg-yellow-100">
                         Unfeature
                     </button>
                 </form>
@@ -161,7 +178,7 @@
                     <button
                         type="submit"
                         title="Feature"
-                        class="inline-flex h-10 items-center justify-center rounded-xl bg-blue-50 px-3 text-xs font-bold text-blue-700 transition hover:bg-blue-100">
+                        class="inline-flex h-10 items-center justify-center rounded-xl bg-blue-50 px-3 text-xs font-black text-blue-700 transition hover:bg-blue-100">
                         Feature
                     </button>
                 </form>
@@ -179,8 +196,8 @@
     </tr>
     @empty
     <x-admin.empty-state
-        colspan="8"
-        title="No testimonials yet"
-        description="Student testimonials submitted after certificate unlock will appear here." />
+        colspan="7"
+        title="No testimonials found"
+        description="Course and company testimonials submitted by students will appear here." />
     @endforelse
 </x-admin.data-table>
