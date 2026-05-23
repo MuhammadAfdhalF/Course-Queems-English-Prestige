@@ -30,7 +30,7 @@
         <x-student.summary-stat-card
             title="Final Exams"
             :value="str_pad((string) $finalExamAvailableCount, 2, '0', STR_PAD_LEFT)"
-            description="Available exams"
+            description="In active courses"
             accent="gold"
             icon="clock" />
     </div>

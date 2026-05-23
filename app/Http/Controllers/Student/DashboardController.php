@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Certificate;
 use App\Models\Order;
 use App\Models\StudentCourseEnrollment;
 use Illuminate\View\View;
@@ -22,6 +23,14 @@ class DashboardController extends Controller
             ->get();
 
         $latestPendingOrder = $pendingOrders->first();
+
+        $latestRejectedOrder = Order::query()
+            ->with('courseLevel.courseProgram')
+            ->where('student_id', $student->id)
+            ->where('status', 'rejected')
+            ->latest('rejected_at')
+            ->latest()
+            ->first();
 
         $activeEnrollments = StudentCourseEnrollment::query()
             ->with([
@@ -50,11 +59,27 @@ class DashboardController extends Controller
             ->where('status', 'rejected')
             ->count();
 
-        $finalExamAvailableCount = $activeEnrollments
-            ->filter(function (StudentCourseEnrollment $enrollment) {
-                return $enrollment->courseLevel?->finalExams?->count() > 0;
-            })
+        $lockedCertificates = Certificate::query()
+            ->with('courseLevel.courseProgram')
+            ->where('student_id', $student->id)
+            ->where('status', 'locked')
+            ->latest()
+            ->get();
+
+        $latestLockedCertificate = $lockedCertificates->first();
+
+        $issuedCertificateCount = Certificate::query()
+            ->where('student_id', $student->id)
+            ->where('status', 'issued')
             ->count();
+
+        $latestIssuedCertificate = Certificate::query()
+            ->with('courseLevel.courseProgram')
+            ->where('student_id', $student->id)
+            ->where('status', 'issued')
+            ->latest('issued_at')
+            ->latest()
+            ->first();
 
         $averageProgress = $activeEnrollments->count() > 0
             ? (int) round($activeEnrollments->avg('progress_percentage'))
@@ -64,31 +89,41 @@ class DashboardController extends Controller
             ->sortBy(function (StudentCourseEnrollment $enrollment) {
                 $progress = (int) $enrollment->progress_percentage;
 
+                if ($progress > 0 && $progress < 100) {
+                    return 0;
+                }
+
                 if ($progress <= 0) {
                     return 1;
                 }
 
-                if ($progress < 100) {
-                    return 0;
-                }
-
                 return 2;
             })
-            ->take(4)
+            ->take(3)
             ->map(function (StudentCourseEnrollment $enrollment) {
                 $courseLevel = $enrollment->courseLevel;
                 $progress = (int) $enrollment->progress_percentage;
 
                 return [
                     'title' => $courseLevel?->name ?? 'Unknown Course',
-                    'level' => $courseLevel?->courseProgram?->name ?? 'Course Program',
+                    'program' => $courseLevel?->courseProgram?->name ?? 'Course Program',
                     'progress' => $progress,
                     'image' => $this->courseImage($courseLevel),
                     'href' => route('student.learning-path', $enrollment),
+                    'statusLabel' => $this->learningStatusLabel($progress),
+                    'buttonText' => $this->learningButtonText($progress),
                 ];
             })
             ->values()
             ->all();
+
+        $primaryLearningUrl = count($continueLearningCourses) > 0
+            ? $continueLearningCourses[0]['href']
+            : route('courses');
+
+        $primaryLearningButton = count($continueLearningCourses) > 0
+            ? $continueLearningCourses[0]['buttonText']
+            : 'Explore Courses';
 
         $academicStatus = $this->academicStatus(
             $activeCourseCount,
@@ -100,64 +135,97 @@ class DashboardController extends Controller
             $activeCourseCount,
             $pendingOrderCount,
             $averageProgress,
-            $finalExamAvailableCount
+            $lockedCertificates->count()
         );
 
         return view('pages.student.dashboard', [
             'student' => $student,
             'pendingOrders' => $pendingOrders,
             'latestPendingOrder' => $latestPendingOrder,
+            'latestRejectedOrder' => $latestRejectedOrder,
             'activeCourseCount' => $activeCourseCount,
             'pendingOrderCount' => $pendingOrderCount,
             'completedCourseCount' => $completedCourseCount,
             'rejectedOrderCount' => $rejectedOrderCount,
-            'finalExamAvailableCount' => $finalExamAvailableCount,
+            'lockedCertificateCount' => $lockedCertificates->count(),
+            'latestLockedCertificate' => $latestLockedCertificate,
+            'issuedCertificateCount' => $issuedCertificateCount,
+            'latestIssuedCertificate' => $latestIssuedCertificate,
             'continueLearningCourses' => $continueLearningCourses,
+            'averageProgress' => $averageProgress,
             'academicStatus' => $academicStatus,
             'welcomeDescription' => $welcomeDescription,
+            'primaryLearningUrl' => $primaryLearningUrl,
+            'primaryLearningButton' => $primaryLearningButton,
         ]);
     }
 
     private function academicStatus(int $activeCourseCount, int $pendingOrderCount, int $averageProgress): string
     {
         if ($activeCourseCount > 0 && $averageProgress >= 100) {
-            return 'Academic Status: Modules Completed';
+            return 'Modules Completed';
         }
 
         if ($activeCourseCount > 0) {
-            return 'Academic Status: Active';
+            return 'Active Learner';
         }
 
         if ($pendingOrderCount > 0) {
-            return 'Academic Status: Pending Enrollment';
+            return 'Waiting Confirmation';
         }
 
-        return 'Academic Status: New Student';
+        return 'New Student';
     }
 
     private function welcomeDescription(
         int $activeCourseCount,
         int $pendingOrderCount,
         int $averageProgress,
-        int $finalExamAvailableCount
+        int $lockedCertificateCount
     ): string {
-        if ($activeCourseCount > 0 && $averageProgress >= 100 && $finalExamAvailableCount > 0) {
-            return 'You have completed your learning modules. Review your course materials and get ready for the final exam when you are prepared.';
+        if ($lockedCertificateCount > 0) {
+            return 'Your certificate is almost ready. Submit your testimonial to unlock your digital certificate.';
         }
 
         if ($activeCourseCount > 0 && $averageProgress >= 100) {
-            return 'You have completed your learning modules. You can review your course materials anytime from My Courses.';
+            return 'Great job completing your learning modules. You can review your course or continue to your next academic step.';
         }
 
         if ($activeCourseCount > 0) {
-            return 'Ready to continue your English journey? Pick up from your active course and keep building your progress.';
+            return 'Continue your English journey today and keep building steady progress through your active course.';
         }
 
         if ($pendingOrderCount > 0) {
-            return 'Your course order is currently being reviewed. Our admin will contact you via WhatsApp for the next step.';
+            return 'Your course order is being reviewed. Our admin will contact you via WhatsApp for the next step.';
         }
 
-        return 'Welcome to your academic portal. Explore available courses and place your first order to start learning with Queens English Prestige.';
+        return 'Start your English learning journey with Queens English Prestige and explore the available course programs.';
+    }
+
+    private function learningStatusLabel(int $progress): string
+    {
+        if ($progress >= 100) {
+            return 'Modules completed';
+        }
+
+        if ($progress > 0) {
+            return 'In progress';
+        }
+
+        return 'Ready to start';
+    }
+
+    private function learningButtonText(int $progress): string
+    {
+        if ($progress >= 100) {
+            return 'Review Course';
+        }
+
+        if ($progress > 0) {
+            return 'Continue Learning';
+        }
+
+        return 'Start Learning';
     }
 
     private function courseImage($courseLevel): string
