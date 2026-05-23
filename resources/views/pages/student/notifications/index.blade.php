@@ -9,6 +9,10 @@ return match ($type) {
 'practice_reviewed' => 'Practice',
 'final_exam_reviewed' => 'Final Exam',
 'certificate_ready' => 'Certificate',
+'order_approved' => 'Order Approved',
+'order_rejected' => 'Order Rejected',
+'manual_access_granted' => 'Course Access',
+'access_cancelled' => 'Access Cancelled',
 default => ucfirst(str_replace('_', ' ', (string) $type)),
 };
 };
@@ -29,6 +33,26 @@ return match ($type) {
 'badge' => 'bg-emerald-100 text-emerald-700',
 'icon' => 'bg-emerald-50 text-emerald-700',
 'border' => 'border-emerald-100',
+],
+'order_approved' => [
+'badge' => 'bg-emerald-100 text-emerald-700',
+'icon' => 'bg-emerald-50 text-emerald-700',
+'border' => 'border-emerald-100',
+],
+'order_rejected' => [
+'badge' => 'bg-rose-100 text-rose-700',
+'icon' => 'bg-rose-50 text-rose-700',
+'border' => 'border-rose-100',
+],
+'manual_access_granted' => [
+'badge' => 'bg-blue-100 text-blue-700',
+'icon' => 'bg-blue-50 text-blue-700',
+'border' => 'border-blue-100',
+],
+'access_cancelled' => [
+'badge' => 'bg-slate-100 text-slate-700',
+'icon' => 'bg-slate-50 text-slate-700',
+'border' => 'border-slate-100',
 ],
 default => [
 'badge' => 'bg-slate-100 text-slate-700',
@@ -59,25 +83,40 @@ $inactiveFilter = 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50';
                     </h1>
 
                     <p class="mt-3 max-w-2xl text-sm font-semibold leading-7 text-white/80">
-                        Stay updated with your practice reviews, final exam results, and certificate availability.
+                        Stay updated with your course orders, access updates, practice reviews, final exam results, and certificates.
                     </p>
                 </div>
             </div>
 
             <div class="grid gap-3 bg-white p-6 sm:grid-cols-3">
                 <div class="rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4">
-                    <p class="text-[11px] font-black uppercase tracking-[0.16em] text-blue-500">Total</p>
-                    <p class="mt-2 text-3xl font-black text-blue-700">{{ $totalCount }}</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.16em] text-blue-500">
+                        Total
+                    </p>
+
+                    <p class="mt-2 text-3xl font-black text-blue-700">
+                        {{ $totalCount }}
+                    </p>
                 </div>
 
                 <div class="rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4">
-                    <p class="text-[11px] font-black uppercase tracking-[0.16em] text-amber-500">Unread</p>
-                    <p class="mt-2 text-3xl font-black text-amber-700">{{ $unreadCount }}</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.16em] text-amber-500">
+                        Unread
+                    </p>
+
+                    <p class="mt-2 text-3xl font-black text-amber-700">
+                        {{ $unreadCount }}
+                    </p>
                 </div>
 
                 <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4">
-                    <p class="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-500">Read</p>
-                    <p class="mt-2 text-3xl font-black text-emerald-700">{{ $readCount }}</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-500">
+                        Read
+                    </p>
+
+                    <p class="mt-2 text-3xl font-black text-emerald-700">
+                        {{ $readCount }}
+                    </p>
                 </div>
             </div>
         </div>
@@ -146,6 +185,14 @@ $inactiveFilter = 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50';
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 4h10a2 2 0 012 2v14l-3-2-3 2-3-2-3 2V6a2 2 0 012-2zM9 9h6M9 13h6" />
                             </svg>
+                            @elseif (in_array($notification->type, ['order_approved', 'manual_access_granted'], true))
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4M5 7a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7z" />
+                            </svg>
+                            @elseif (in_array($notification->type, ['order_rejected', 'access_cancelled'], true))
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v3.5M12 16h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                            </svg>
                             @else
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4M7 4h10a2 2 0 012 2v14l-3-2-3 2-3-2-3 2V6a2 2 0 012-2z" />
@@ -209,12 +256,18 @@ $inactiveFilter = 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50';
         </div>
         @empty
         <div class="rounded-[24px] border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <h3 class="text-xl font-black text-slate-900">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9" />
+                </svg>
+            </div>
+
+            <h3 class="mt-5 text-xl font-black text-slate-900">
                 No notifications found
             </h3>
 
             <p class="mx-auto mt-2 max-w-xl text-sm font-semibold leading-6 text-slate-500">
-                Your practice results, final exam updates, and certificates will appear here.
+                Your course order updates, access updates, practice results, final exam results, and certificates will appear here.
             </p>
         </div>
         @endforelse

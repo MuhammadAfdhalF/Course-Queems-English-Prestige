@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\StudentNotificationService;
 
 class CourseOrderController extends Controller
 {
@@ -173,8 +174,11 @@ class CourseOrderController extends Controller
         ]);
     }
 
-    public function recordPayment(Request $request, Order $order): RedirectResponse
-    {
+    public function recordPayment(
+        Request $request,
+        Order $order,
+        StudentNotificationService $studentNotificationService
+    ): RedirectResponse {
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:manual_transfer,cash,other'],
@@ -189,7 +193,7 @@ class CourseOrderController extends Controller
                 ->with('error', 'Only pending orders can be approved with payment.');
         }
 
-        DB::transaction(function () use ($request, $order, $validated) {
+        DB::transaction(function () use ($request, $order, $validated, $studentNotificationService) {
             $order->load(['courseLevel', 'payment']);
 
             $proofPath = $order->payment?->proof_file;
@@ -226,7 +230,9 @@ class CourseOrderController extends Controller
                 'note' => $validated['note'] ?? $order->note,
             ]);
 
-            $this->createOrUpdateEnrollment($order);
+            $enrollment = $this->createOrUpdateEnrollment($order);
+
+            $studentNotificationService->orderApproved($order->fresh(), $enrollment->fresh());
             $this->notifyActiveAdmins(
                 title: 'Payment Recorded',
                 message: 'Payment for order ' . $order->order_code . ' has been recorded and approved.',
@@ -254,8 +260,11 @@ class CourseOrderController extends Controller
             ->with('success', 'Please record payment before approving this order.');
     }
 
-    public function reject(Request $request, Order $order): RedirectResponse
-    {
+    public function reject(
+        Request $request,
+        Order $order,
+        StudentNotificationService $studentNotificationService
+    ): RedirectResponse {
         $validated = $request->validate([
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -272,6 +281,9 @@ class CourseOrderController extends Controller
             'approved_at' => null,
             'note' => $validated['note'] ?? $order->note,
         ]);
+
+        $studentNotificationService->orderRejected($order->fresh());
+
         $this->notifyActiveAdmins(
             title: 'Order Rejected',
             message: 'Order ' . $order->order_code . ' has been rejected.',
@@ -285,7 +297,7 @@ class CourseOrderController extends Controller
             ->with('success', 'Order has been rejected.');
     }
 
-    private function createOrUpdateEnrollment(Order $order): void
+    private function createOrUpdateEnrollment(Order $order): StudentCourseEnrollment
     {
         $expiredAt = null;
 
@@ -296,7 +308,7 @@ class CourseOrderController extends Controller
             $expiredAt = now()->addDays((int) $order->courseLevel->access_duration_days);
         }
 
-        StudentCourseEnrollment::updateOrCreate(
+        return StudentCourseEnrollment::updateOrCreate(
             [
                 'student_id' => $order->student_id,
                 'course_level_id' => $order->course_level_id,

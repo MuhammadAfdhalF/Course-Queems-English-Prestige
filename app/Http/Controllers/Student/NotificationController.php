@@ -151,6 +151,28 @@ class NotificationController extends Controller
             }
         }
 
+        if ($notification->reference_type === 'enrollment' && $notification->reference_id) {
+            $enrollment = StudentCourseEnrollment::query()
+                ->where('student_id', auth()->id())
+                ->find($notification->reference_id);
+
+            if ($enrollment) {
+                if ($notification->type === 'access_cancelled') {
+                    return route('student.my-courses');
+                }
+
+                if (in_array($enrollment->status, ['active', 'completed'], true)) {
+                    return route('student.learning-path', $enrollment);
+                }
+
+                return route('student.my-courses');
+            }
+        }
+
+        if ($notification->reference_type === 'order' && $notification->reference_id) {
+            return route('student.dashboard');
+        }
+
         return route('student.notifications.index');
     }
 }

@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use App\Services\StudentNotificationService;
 
 class CourseAccessController extends Controller
 {
@@ -107,8 +108,10 @@ class CourseAccessController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        StudentNotificationService $studentNotificationService
+    ): RedirectResponse {
         $validated = $request->validate([
             'student_id' => ['required', 'exists:users,id'],
             'course_level_id' => ['required', 'exists:course_levels,id'],
@@ -175,6 +178,8 @@ class CourseAccessController extends Controller
                 'note' => $validated['note'] ?: 'Manually granted by admin.',
             ]);
         });
+
+        $studentNotificationService->manualAccessGranted($enrollment->fresh());
 
         return redirect()
             ->route('admin.course-access.show', $enrollment)
@@ -264,8 +269,11 @@ class CourseAccessController extends Controller
         ]);
     }
 
-    public function cancel(Request $request, StudentCourseEnrollment $enrollment): RedirectResponse
-    {
+    public function cancel(
+        Request $request,
+        StudentCourseEnrollment $enrollment,
+        StudentNotificationService $studentNotificationService
+    ): RedirectResponse {
         $validated = $request->validate([
             'cancel_note' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -296,6 +304,7 @@ class CourseAccessController extends Controller
             'expired_at' => now(),
             'note' => $noteLines,
         ]);
+        $studentNotificationService->accessCancelled($enrollment->fresh());
 
         return redirect()
             ->route('admin.course-access.show', $enrollment)
