@@ -160,4 +160,42 @@ class StudentController extends Controller
             'finalExamAttempts' => $finalExamAttempts,
         ]);
     }
+
+    public function activate(User $student)
+    {
+        abort_unless($student->isStudent(), 404);
+
+        if ($student->is_active) {
+            return redirect()
+                ->route('admin.students.show', $student)
+                ->with('info', 'Student account is already active.');
+        }
+
+        $student->forceFill([
+            'is_active' => true,
+        ])->save();
+
+        return redirect()
+            ->route('admin.students.show', $student)
+            ->with('success', 'Student account has been activated.');
+    }
+
+    public function deactivate(User $student)
+    {
+        abort_unless($student->isStudent(), 404);
+
+        if (! $student->is_active) {
+            return redirect()
+                ->route('admin.students.show', $student)
+                ->with('info', 'Student account is already inactive.');
+        }
+
+        $student->forceFill([
+            'is_active' => false,
+        ])->save();
+
+        return redirect()
+            ->route('admin.students.show', $student)
+            ->with('success', 'Student account has been deactivated.');
+    }
 }

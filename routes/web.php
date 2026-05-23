@@ -198,7 +198,7 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])
             ->name('profile.password.update');
-            
+
         Route::get('/notifications', [NotificationController::class, 'index'])
             ->name('notifications.index');
 
@@ -432,6 +432,14 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('/students/{student}', [AdminStudentController::class, 'show'])
             ->name('students.show');
+
+        Route::put('/students/{student}/activate', [AdminStudentController::class, 'activate'])
+            ->name('students.activate');
+
+        Route::put('/students/{student}/deactivate', [AdminStudentController::class, 'deactivate'])
+            ->name('students.deactivate');
+
+            
         Route::get('/course-access', [CourseAccessController::class, 'index'])
             ->name('course-access.index');
 
