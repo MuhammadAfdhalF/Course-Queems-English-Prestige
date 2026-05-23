@@ -16,21 +16,20 @@
 
             <div class="relative">
                 <p class="text-xs font-black uppercase tracking-[0.2em] text-white/50">
-                    Testimonial Moderation
+                    Homepage Testimonials
                 </p>
 
                 <h2 class="mt-3 text-3xl font-black leading-tight">
-                    Student Testimonials
+                    Testimonial Display Control
                 </h2>
 
                 <p class="mt-3 max-w-3xl text-sm font-semibold leading-7 text-white/70">
-                    Review course testimonials for certificate feedback and company testimonials for public marketing content.
-                    Publishing or featuring testimonials only affects public website visibility.
+                    Choose which student testimonials should appear on the homepage. Showing a testimonial on home automatically marks it as active and featured.
                 </p>
             </div>
         </div>
 
-        <div class="grid gap-3 bg-white p-6 sm:grid-cols-2 xl:grid-cols-3">
+        <div class="grid gap-3 bg-white p-6 sm:grid-cols-2 xl:grid-cols-5">
             <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <p class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
                     Total
@@ -40,30 +39,21 @@
                 </p>
             </div>
 
-            <div class="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3">
-                <p class="text-[11px] font-black uppercase tracking-[0.14em] text-amber-500">
-                    Awaiting
-                </p>
-                <p class="mt-2 text-3xl font-black text-amber-700">
-                    {{ $awaitingTestimonials }}
-                </p>
-            </div>
-
             <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
                 <p class="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-500">
-                    Published
+                    On Home
                 </p>
                 <p class="mt-2 text-3xl font-black text-emerald-700">
-                    {{ $publishedTestimonials }}
+                    {{ $visibleTestimonials }}
                 </p>
             </div>
 
-            <div class="rounded-2xl border border-yellow-100 bg-yellow-50 px-4 py-3">
-                <p class="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--color-brand-gold)]">
-                    Featured
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+                    Hidden
                 </p>
-                <p class="mt-2 text-3xl font-black text-[var(--color-brand-gold)]">
-                    {{ $featuredTestimonials }}
+                <p class="mt-2 text-3xl font-black text-slate-700">
+                    {{ $hiddenTestimonials }}
                 </p>
             </div>
 

@@ -1,6 +1,6 @@
 @extends('layouts.admin', [
 'pageTitle' => 'Testimonials',
-'pageSubtitle' => 'CMS Moderation',
+'pageSubtitle' => 'Homepage Display',
 ])
 
 @section('content')
@@ -32,24 +32,24 @@ $inactiveFilterClass = 'bg-white text-slate-600 border-slate-200 hover:bg-slate-
         <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
                 <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-                    Filter Testimonials
+                    Testimonial Type
                 </p>
 
                 <div class="mt-3 flex flex-wrap gap-2">
                     <a
-                        href="{{ route('admin.cms.testimonials.index', ['type' => 'all', 'status' => $status]) }}"
+                        href="{{ route('admin.cms.testimonials.index', ['type' => 'all', 'visibility' => $visibility]) }}"
                         class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $type === 'all' ? $activeFilterClass : $inactiveFilterClass }}">
                         All Types
                     </a>
 
                     <a
-                        href="{{ route('admin.cms.testimonials.index', ['type' => 'course', 'status' => $status]) }}"
+                        href="{{ route('admin.cms.testimonials.index', ['type' => 'course', 'visibility' => $visibility]) }}"
                         class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $type === 'course' ? $activeFilterClass : $inactiveFilterClass }}">
                         Course
                     </a>
 
                     <a
-                        href="{{ route('admin.cms.testimonials.index', ['type' => 'company', 'status' => $status]) }}"
+                        href="{{ route('admin.cms.testimonials.index', ['type' => 'company', 'visibility' => $visibility]) }}"
                         class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $type === 'company' ? $activeFilterClass : $inactiveFilterClass }}">
                         Company
                     </a>
@@ -58,40 +58,34 @@ $inactiveFilterClass = 'bg-white text-slate-600 border-slate-200 hover:bg-slate-
 
             <div>
                 <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 xl:text-right">
-                    Visibility Status
+                    Homepage Visibility
                 </p>
 
                 <div class="mt-3 flex flex-wrap gap-2 xl:justify-end">
                     <a
-                        href="{{ route('admin.cms.testimonials.index', ['type' => $type, 'status' => 'all']) }}"
-                        class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $status === 'all' ? $activeFilterClass : $inactiveFilterClass }}">
-                        All Status
+                        href="{{ route('admin.cms.testimonials.index', ['type' => $type, 'visibility' => 'all']) }}"
+                        class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $visibility === 'all' ? $activeFilterClass : $inactiveFilterClass }}">
+                        All
                     </a>
 
                     <a
-                        href="{{ route('admin.cms.testimonials.index', ['type' => $type, 'status' => 'awaiting']) }}"
-                        class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $status === 'awaiting' ? $activeFilterClass : $inactiveFilterClass }}">
-                        Awaiting
+                        href="{{ route('admin.cms.testimonials.index', ['type' => $type, 'visibility' => 'visible']) }}"
+                        class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $visibility === 'visible' ? $activeFilterClass : $inactiveFilterClass }}">
+                        On Home
                     </a>
 
                     <a
-                        href="{{ route('admin.cms.testimonials.index', ['type' => $type, 'status' => 'published']) }}"
-                        class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $status === 'published' ? $activeFilterClass : $inactiveFilterClass }}">
-                        Published
+                        href="{{ route('admin.cms.testimonials.index', ['type' => $type, 'visibility' => 'hidden']) }}"
+                        class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $visibility === 'hidden' ? $activeFilterClass : $inactiveFilterClass }}">
+                        Hidden
                     </a>
 
+                    @if ($type !== 'all' || $visibility !== 'all')
                     <a
-                        href="{{ route('admin.cms.testimonials.index', ['type' => $type, 'status' => 'featured']) }}"
-                        class="inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-black transition {{ $status === 'featured' ? $activeFilterClass : $inactiveFilterClass }}">
-                        Featured
+                        href="{{ route('admin.cms.testimonials.index') }}"
+                        class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-black text-slate-600 transition hover:bg-slate-100">
+                        Reset
                     </a>
-
-                    @if ($type !== 'all' || $status !== 'all')
-                        <a
-                            href="{{ route('admin.cms.testimonials.index') }}"
-                            class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-black text-slate-600 transition hover:bg-slate-100">
-                            Reset
-                        </a>
                     @endif
                 </div>
             </div>
@@ -101,9 +95,9 @@ $inactiveFilterClass = 'bg-white text-slate-600 border-slate-200 hover:bg-slate-
     @include('partials.admin.cms.testimonials.table')
 
     @if ($testimonials->hasPages())
-        <div>
-            {{ $testimonials->links() }}
-        </div>
+    <div>
+        {{ $testimonials->links() }}
+    </div>
     @endif
 
     <x-admin.confirm-delete-modal

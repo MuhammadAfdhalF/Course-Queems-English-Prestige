@@ -512,17 +512,11 @@ Route::middleware(['auth', 'role:admin'])
                 Route::get('/testimonials', [AdminTestimonialController::class, 'index'])
                     ->name('testimonials.index');
 
-                Route::put('/testimonials/{testimonial}/publish', [AdminTestimonialController::class, 'publish'])
-                    ->name('testimonials.publish');
+                Route::put('/testimonials/{testimonial}/show-on-home', [AdminTestimonialController::class, 'showOnHome'])
+                    ->name('testimonials.show-on-home');
 
-                Route::put('/testimonials/{testimonial}/unpublish', [AdminTestimonialController::class, 'unpublish'])
-                    ->name('testimonials.unpublish');
-
-                Route::put('/testimonials/{testimonial}/feature', [AdminTestimonialController::class, 'feature'])
-                    ->name('testimonials.feature');
-
-                Route::put('/testimonials/{testimonial}/unfeature', [AdminTestimonialController::class, 'unfeature'])
-                    ->name('testimonials.unfeature');
+                Route::put('/testimonials/{testimonial}/hide-from-home', [AdminTestimonialController::class, 'hideFromHome'])
+                    ->name('testimonials.hide-from-home');
 
                 Route::delete('/testimonials/{testimonial}', [AdminTestimonialController::class, 'destroy'])
                     ->name('testimonials.destroy');

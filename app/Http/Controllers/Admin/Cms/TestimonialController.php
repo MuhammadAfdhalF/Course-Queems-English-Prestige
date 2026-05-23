@@ -13,14 +13,14 @@ class TestimonialController extends Controller
     public function index(Request $request): View
     {
         $type = $request->query('type', 'all');
-        $status = $request->query('status', 'all');
+        $visibility = $request->query('visibility', 'all');
 
         if (! in_array($type, ['all', 'course', 'company'], true)) {
             $type = 'all';
         }
 
-        if (! in_array($status, ['all', 'awaiting', 'published', 'featured'], true)) {
-            $status = 'all';
+        if (! in_array($visibility, ['all', 'visible', 'hidden'], true)) {
+            $visibility = 'all';
         }
 
         $baseQuery = Testimonial::query();
@@ -33,14 +33,15 @@ class TestimonialController extends Controller
             ->when($type !== 'all', function ($query) use ($type) {
                 $query->where('type', $type);
             })
-            ->when($status === 'awaiting', function ($query) {
-                $query->where('is_active', false);
+            ->when($visibility === 'visible', function ($query) {
+                $query->where('is_active', true)
+                    ->where('is_featured', true);
             })
-            ->when($status === 'published', function ($query) {
-                $query->where('is_active', true);
-            })
-            ->when($status === 'featured', function ($query) {
-                $query->where('is_featured', true);
+            ->when($visibility === 'hidden', function ($query) {
+                $query->where(function ($subQuery) {
+                    $subQuery->where('is_active', false)
+                        ->orWhere('is_featured', false);
+                });
             })
             ->latest()
             ->paginate(10)
@@ -49,40 +50,24 @@ class TestimonialController extends Controller
         return view('pages.admin.cms.testimonials.index', [
             'testimonials' => $testimonials,
             'type' => $type,
-            'status' => $status,
+            'visibility' => $visibility,
             'totalTestimonials' => (clone $baseQuery)->count(),
-            'awaitingTestimonials' => (clone $baseQuery)->where('is_active', false)->count(),
-            'publishedTestimonials' => (clone $baseQuery)->where('is_active', true)->count(),
-            'featuredTestimonials' => (clone $baseQuery)->where('is_featured', true)->count(),
+            'visibleTestimonials' => (clone $baseQuery)
+                ->where('is_active', true)
+                ->where('is_featured', true)
+                ->count(),
+            'hiddenTestimonials' => (clone $baseQuery)
+                ->where(function ($query) {
+                    $query->where('is_active', false)
+                        ->orWhere('is_featured', false);
+                })
+                ->count(),
             'courseTestimonials' => (clone $baseQuery)->where('type', 'course')->count(),
             'companyTestimonials' => (clone $baseQuery)->where('type', 'company')->count(),
         ]);
     }
 
-    public function publish(Testimonial $testimonial): RedirectResponse
-    {
-        $testimonial->update([
-            'is_active' => true,
-        ]);
-
-        return redirect()
-            ->route('admin.cms.testimonials.index')
-            ->with('success', 'Testimonial has been published successfully.');
-    }
-
-    public function unpublish(Testimonial $testimonial): RedirectResponse
-    {
-        $testimonial->update([
-            'is_active' => false,
-            'is_featured' => false,
-        ]);
-
-        return redirect()
-            ->route('admin.cms.testimonials.index')
-            ->with('success', 'Testimonial has been unpublished successfully.');
-    }
-
-    public function feature(Testimonial $testimonial): RedirectResponse
+    public function showOnHome(Testimonial $testimonial): RedirectResponse
     {
         $testimonial->update([
             'is_active' => true,
@@ -91,18 +76,19 @@ class TestimonialController extends Controller
 
         return redirect()
             ->route('admin.cms.testimonials.index')
-            ->with('success', 'Testimonial has been featured successfully.');
+            ->with('success', 'Testimonial is now visible on homepage.');
     }
 
-    public function unfeature(Testimonial $testimonial): RedirectResponse
+    public function hideFromHome(Testimonial $testimonial): RedirectResponse
     {
         $testimonial->update([
+            'is_active' => false,
             'is_featured' => false,
         ]);
 
         return redirect()
             ->route('admin.cms.testimonials.index')
-            ->with('success', 'Testimonial has been removed from featured list.');
+            ->with('success', 'Testimonial has been hidden from homepage.');
     }
 
     public function destroy(Testimonial $testimonial): RedirectResponse
