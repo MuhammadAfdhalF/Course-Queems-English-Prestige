@@ -15,24 +15,75 @@ use App\Models\Testimonial;
 
 class NotificationController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $notifications = Notification::query()
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->paginate(12);
+        $status = $request->query('status', 'all');
+        $type = $request->query('type', 'all');
 
-        $unreadCount = Notification::query()
-            ->where('user_id', auth()->id())
+        $allowedStatuses = ['all', 'unread', 'read'];
+        $allowedTypes = [
+            'all',
+            'order',
+            'payment',
+            'practice_review',
+            'final_exam_review',
+            'testimonial',
+        ];
+
+        if (! in_array($status, $allowedStatuses, true)) {
+            $status = 'all';
+        }
+
+        if (! in_array($type, $allowedTypes, true)) {
+            $type = 'all';
+        }
+
+        $baseQuery = Notification::query()
+            ->where('user_id', auth()->id());
+
+        $notifications = (clone $baseQuery)
+            ->when($status === 'unread', function ($query) {
+                $query->where('is_read', false);
+            })
+            ->when($status === 'read', function ($query) {
+                $query->where('is_read', true);
+            })
+            ->when($type !== 'all', function ($query) use ($type) {
+                $query->where('type', $type);
+            })
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
+        $totalCount = (clone $baseQuery)->count();
+
+        $unreadCount = (clone $baseQuery)
             ->where('is_read', false)
             ->count();
 
+        $readCount = (clone $baseQuery)
+            ->where('is_read', true)
+            ->count();
+
+        $typeOptions = [
+            'all' => 'All Types',
+            'order' => 'Orders',
+            'payment' => 'Payments',
+            'practice_review' => 'Practice Reviews',
+            'final_exam_review' => 'Final Exam Reviews',
+            'testimonial' => 'Testimonials',
+        ];
+
         return view('pages.admin.notifications.index', [
             'notifications' => $notifications,
+            'status' => $status,
+            'type' => $type,
+            'typeOptions' => $typeOptions,
+            'totalCount' => $totalCount,
             'unreadCount' => $unreadCount,
+            'readCount' => $readCount,
         ]);
     }
-
     public function open(Notification $notification): RedirectResponse
     {
         abort_unless($notification->user_id === auth()->id(), 403);
