@@ -75,7 +75,7 @@
 
     <div class="border-t border-slate-200">
         <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-xs text-slate-400 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-            <p>© 2025 Queens English Prestige. All rights reserved.</p>
+            <p>© 2003 Queens English Prestige. All rights reserved.</p>
 
             <div class="flex items-center gap-5">
                 <a href="#" class="hover:text-[var(--color-brand-blue)]">Terms of Service</a>
