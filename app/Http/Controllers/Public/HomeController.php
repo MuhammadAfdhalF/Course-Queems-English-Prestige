@@ -69,29 +69,18 @@ class HomeController extends Controller
             ->limit(4)
             ->get();
 
-        $featuredTestimonials = Testimonial::query()
+        $testimonials = Testimonial::query()
             ->where('is_active', true)
             ->where('is_featured', true)
             ->with([
                 'student',
                 'courseLevel.courseProgram',
             ])
+            ->orderByRaw("CASE WHEN type = 'company' THEN 0 ELSE 1 END")
             ->latest()
-            ->limit(4)
+            ->limit(10)
             ->get();
-
-        $testimonials = $featuredTestimonials->isNotEmpty()
-            ? $featuredTestimonials
-            : Testimonial::query()
-            ->where('is_active', true)
-            ->with([
-                'student',
-                'courseLevel.courseProgram',
-            ])
-            ->latest()
-            ->limit(4)
-            ->get();
-
+            
         $faqs = Faq::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
