@@ -1,66 +1,314 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🎓 Queens English Prestige – E-Course Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A web-based e-learning platform developed for **Queens English Prestige** to support English course learning activities digitally.
 
-## About Laravel
+This platform is built using **Laravel** with a modern and responsive interface powered by **Tailwind CSS**. The system helps manage the full learning process, starting from course information, student registration, course ordering, learning access, practice and final exam submission, certificate generation, testimonials, and admin management.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📌 About the Project
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Queens English Prestige – E-Course Platform** is designed to help an English course institution manage its learning and operational activities in a more structured, efficient, and centralized way.
 
-## Learning Laravel
+Through this application, visitors can explore course information, read institution details, take free tests, and register as students. After logging in, students can order courses, access learning materials after approval, complete modules, submit practice tests and final exams, view results, download certificates, and submit testimonials.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+On the admin side, the system provides a complete management panel to handle courses, students, orders, payments, revenue reports, course access, certificates, testimonials, notifications, and public website content.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Technologies
 
-## Laravel Sponsors
+- ⚙️ **Laravel 12** → backend framework
+- 🐘 **PHP 8.3** → server-side programming
+- 🗄️ **MySQL** → relational database
+- 🎨 **Tailwind CSS** → responsive user interface
+- ⚡ **Alpine.js** → lightweight frontend interactivity
+- 📦 **Vite** → frontend asset bundler
+- 📄 **Laravel DomPDF** → certificate PDF generation
+- 🔳 **Simple QR Code** → certificate verification QR code
+- 🔐 **Custom Authentication** → login, register, and role-based access control
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 🌐 System Architecture
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### Public Website
 
-## Contributing
+The public website is used by visitors to explore the institution and available English courses.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Main features:
 
-## Code of Conduct
+- Homepage
+- About page
+- Course listing
+- Course detail page
+- Free test
+- News and information
+- Contact page
+- Certificate verification
+- Homepage testimonial carousel
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+### Student Portal
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+The student portal is used by registered students to access and complete their learning activities.
 
-## License
+Main features:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Student dashboard
+- Profile management
+- All courses page
+- My courses page
+- Learning path
+- Module materials
+- Module completion
+- Practice submission
+- Final exam submission
+- Assessment result
+- Certificate download
+- Testimonial submission
+- Student notifications
+
+---
+
+### Admin Panel
+
+The admin panel is used to manage the operational side of the e-course system.
+
+Main features:
+
+- Admin dashboard
+- Student management
+- Course management
+- Order management
+- Payment management
+- Revenue report
+- Course access management
+- Practice and final exam review
+- Certificate management
+- Testimonial management
+- CMS management
+- Notification management
+- Admin profile/settings
+
+---
+
+## ⚙️ Main Features
+
+- 🏠 **Public Website**  
+  Displays institution information, course programs, free tests, news, contact information, and testimonials.
+
+- 👤 **Authentication & Role Management**  
+  Custom login and registration system with **admin** and **student** roles.
+
+- 📚 **Course Management**  
+  Admin can manage course programs, course levels, modules, materials, practices, and final exams.
+
+- 🛒 **Course Order System**  
+  Students can order courses directly from the course detail page.
+
+- 💳 **Manual Payment Recording**  
+  Payments are recorded manually by the admin before an order is approved.
+
+- 🔓 **Course Access Management**  
+  Students receive course access after their order is approved or through manual access granted by the admin.
+
+- 📖 **Student Learning Flow**  
+  Students can access learning modules, read materials, complete practices, and take final exams.
+
+- 📝 **Practice & Final Exam Review**  
+  Admin can review student practice submissions and final exam attempts.
+
+- 🎓 **Certificate Management**  
+  The system can generate digital certificates with PDF download and QR code verification.
+
+- 💬 **Testimonial Management**  
+  Students can submit testimonials, and admin can display selected testimonials on the homepage.
+
+- 🔔 **Notification System**  
+  Admin and students receive notifications for important system activities.
+
+- 📊 **Dashboard & Revenue Report**  
+  Admin can monitor students, orders, payments, revenue, certificates, and recent activities.
+
+- 🧩 **CMS Management**  
+  Admin can manage public website content such as homepage, about page, FAQ, mentors, contact, news, gallery, and free tests.
+
+---
+
+## 🔄 Main Application Flow
+
+```text
+Visitor opens the website
+↓
+Visitor views course information
+↓
+Visitor registers as a student
+↓
+Student logs in
+↓
+Student orders a course
+↓
+Admin reviews the order
+↓
+Admin records the payment
+↓
+Admin approves the order
+↓
+Course access is created automatically
+↓
+Student starts learning
+↓
+Student completes modules, practice tests, and final exam
+↓
+Admin reviews the assessment
+↓
+Certificate is issued
+↓
+Student submits a testimonial
+↓
+Admin can display the testimonial on the homepage
+```
+
+---
+
+## 👥 User Roles
+
+### 👨‍🎓 Student
+
+Students can:
+
+- Register and log in
+- Manage their profile
+- View available courses
+- Order courses
+- Access enrolled courses
+- Read module materials
+- Complete learning modules
+- Submit practice tests
+- Submit final exams
+- View assessment results
+- Download certificates
+- Submit testimonials
+- Receive notifications
+
+---
+
+### 👨‍💼 Admin
+
+Admins can:
+
+- Manage the dashboard
+- Manage students
+- Manage course programs and course levels
+- Manage modules and materials
+- Manage practices and final exams
+- Review student submissions
+- Manage course orders
+- Record payments
+- View revenue reports
+- Manage course access
+- Manage certificates
+- Manage testimonials
+- Manage notifications
+- Manage public website content through CMS
+
+---
+
+## 📊 Dashboard & Reports
+
+The admin dashboard provides a real-time overview of important system data, including:
+
+- Total students
+- Active enrollments
+- Active courses
+- Pending orders
+- Waiting reviews
+- Issued certificates
+- Locked certificates
+- Monthly revenue
+- Recent transactions
+- Recent activities
+- Action center
+
+The revenue report provides financial insights, including:
+
+- Total revenue
+- Today revenue
+- This month revenue
+- Payment count
+- Monthly revenue trend
+- Revenue by payment method
+- Revenue by course
+
+---
+
+## 🎓 Certificate & Verification
+
+The certificate feature supports:
+
+- Certificate preview
+- Certificate PDF download
+- QR code verification
+- Public certificate verification page
+- Certificate status management
+- Global signature setting
+
+Certificates can be verified through a public verification page using a verification token or QR code.
+
+---
+
+## 💬 Testimonials
+
+The system supports two types of testimonials:
+
+- **Course Testimonial**  
+  Used after a student completes a course.
+
+- **Company Testimonial**  
+  Used as a general testimonial for the institution.
+
+Admin can manage homepage testimonial visibility using **Show on Home** and **Hide from Home** actions.
+
+---
+
+## 📈 Impact
+
+✅ **Operational Efficiency**  
+Course, student, order, payment, and certificate management are handled in one centralized system.
+
+✅ **Structured Learning Process**  
+Students can follow a clear learning path from modules, practice tests, final exams, and certificates.
+
+✅ **Better Monitoring**  
+Admin can monitor orders, payments, revenue, student progress, and system activities through the dashboard.
+
+✅ **Verified Digital Certificates**  
+Certificates can be downloaded as PDF and verified using QR code.
+
+✅ **Professional Online Presence**  
+The public website, course information, testimonials, and CMS help improve the institution’s digital branding.
+
+---
+
+
+---
+
+## 🙋‍♂️ Author
+
+**Muhammad Afdhal F**
+
+📧 Email: cuyafdal@gmail.com  
+📷 Instagram: @holla.cuy  
+💼 LinkedIn: Muhammad Afdhal F  
+
+🧠 Passionate in Web Development, Mobile Development, QA Automation, and AI.
+
+```text
+Backend    : Laravel
+Frontend   : Blade, Tailwind CSS, Alpine.js
+Database   : MySQL
+PDF        : Laravel DomPDF
+QR Code    : Simple QR Code
+```
