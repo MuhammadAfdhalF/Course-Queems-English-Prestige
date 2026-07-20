@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use App\Models\Notification;
 use App\Models\User;
+use App\Mail\NewOrderAdminNotification;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class CourseOrderController extends Controller
 {
@@ -90,6 +93,32 @@ class CourseOrderController extends Controller
 
             return $order;
         });
+
+        $adminOrderEmail = config('mail.admin_order_email');
+
+        if (! $adminOrderEmail) {
+            Log::warning('Admin order email notification skipped: ADMIN_ORDER_EMAIL is empty', [
+                'order_id' => $order->id,
+                'order_code' => $order->order_code,
+            ]);
+        } else {
+            try {
+                $order->loadMissing([
+                    'student.studentProfile',
+                    'courseLevel.courseProgram',
+                ]);
+
+                Mail::to($adminOrderEmail)->send(new NewOrderAdminNotification($order));
+            } catch (\Throwable $e) {
+                Log::error('Failed sending admin order email notification', [
+                    'order_id' => $order->id,
+                    'order_code' => $order->order_code,
+                    'recipient' => $adminOrderEmail,
+                    'exception' => get_class($e),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect()
             ->route('courses.show', $courseLevel)
