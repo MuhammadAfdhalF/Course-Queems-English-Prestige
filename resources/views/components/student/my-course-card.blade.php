@@ -8,6 +8,8 @@
 'progressLabel' => 'Course Progress',
 'badge' => 'GOLD LEVEL',
 'image' => 'https://placehold.co/800x600',
+'poster' => null,
+'thumbnailType' => 'image',
 'primaryButton' => 'Continue Learning',
 'secondaryButton' => 'Chat Admin',
 'primaryHref' => '#',
@@ -54,6 +56,7 @@ default => 'border border-slate-300 bg-white text-slate-600',
 $primaryHrefValue = $primaryHref;
 
 $isPrimaryDisabled = in_array($status, ['pending', 'rejected', 'expired', 'cancelled'], true);
+$cardImage = ($thumbnailType === 'video' && $poster) ? $poster : $image;
 @endphp
 
 <div class="group overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
@@ -68,9 +71,20 @@ $isPrimaryDisabled = in_array($status, ['pending', 'rejected', 'expired', 'cance
             @endif
 
             <img
-                src="{{ $image }}"
+                src="{{ $cardImage }}"
                 alt="{{ $title }}"
-                class="h-full min-h-[220px] w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                class="h-full min-h-[220px] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                onerror="this.src='https://placehold.co/800x600/F3F4F6/1E293B?text=Queens+English';">
+
+            @if ($thumbnailType === 'video')
+            <div class="absolute inset-0 flex items-center justify-center bg-slate-950/20 transition group-hover:bg-slate-950/40">
+                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-[var(--color-brand-blue)] shadow-lg backdrop-blur-sm transition group-hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </span>
+            </div>
+            @endif
         </div>
 
         <div class="flex min-w-0 flex-col justify-between p-6 lg:p-7">

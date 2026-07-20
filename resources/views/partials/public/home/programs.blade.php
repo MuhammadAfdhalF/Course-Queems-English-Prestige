@@ -1,24 +1,30 @@
 @php
 $courseItems = ($featuredCourses ?? collect())->map(function ($courseLevel) {
-$thumbnail = $courseLevel->thumbnail_file
-? asset('storage/' . $courseLevel->thumbnail_file)
-: 'https://placehold.co/600x400/e7d8c7/1e293b?text=' . urlencode($courseLevel->name);
+    $thumbnail = $courseLevel->thumbnail_file
+        ? asset('storage/' . $courseLevel->thumbnail_file)
+        : 'https://placehold.co/600x400/e7d8c7/1e293b?text=' . urlencode($courseLevel->name);
 
-$mode = match ($courseLevel->learning_mode ?? 'online') {
-'offline' => 'Offline',
-'hybrid' => 'Hybrid',
-default => 'Online',
-};
+    $poster = $courseLevel->video_poster_file
+        ? asset('storage/' . $courseLevel->video_poster_file)
+        : null;
 
-return [
-'title' => $courseLevel->name,
-'level' => $courseLevel->courseProgram?->name ?? 'Program',
-'mode' => $mode,
-'price' => 'Rp ' . number_format((float) $courseLevel->price, 0, ',', '.'),
-'description' => $courseLevel->short_description ?: 'Explore this program and start building your English skills with Queens English Prestige.',
-'image' => $thumbnail,
-'href' => route('courses.show', $courseLevel),
-];
+    $mode = match ($courseLevel->learning_mode ?? 'online') {
+        'offline' => 'Offline',
+        'hybrid' => 'Hybrid',
+        default => 'Online',
+    };
+
+    return [
+        'title' => $courseLevel->name,
+        'level' => $courseLevel->courseProgram?->name ?? 'Program',
+        'mode' => $mode,
+        'price' => 'Rp ' . number_format((float) $courseLevel->price, 0, ',', '.'),
+        'description' => $courseLevel->short_description ?: 'Explore this program and start building your English skills with Queens English Prestige.',
+        'image' => $thumbnail,
+        'poster' => $poster,
+        'thumbnail_type' => $courseLevel->thumbnail_type ?? 'image',
+        'href' => route('courses.show', $courseLevel),
+    ];
 });
 
 if ($courseItems->isEmpty()) {

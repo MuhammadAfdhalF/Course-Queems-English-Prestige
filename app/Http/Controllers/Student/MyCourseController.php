@@ -39,6 +39,8 @@ class MyCourseController extends Controller
                     'progressLabel' => $this->courseProgressLabel($enrollment->status, $progress),
                     'badge' => $this->courseBadge($courseLevel?->learning_mode, $courseLevel?->access_type),
                     'image' => $this->courseImage($courseLevel),
+                    'poster' => $this->coursePoster($courseLevel),
+                    'thumbnailType' => $courseLevel?->thumbnail_type ?? 'image',
                     'primaryButton' => $this->primaryButtonLabel($enrollment->status, $progress),
                     'secondaryButton' => 'Chat Admin',
                     'primaryHref' => route('student.learning-path', $enrollment),
@@ -70,6 +72,8 @@ class MyCourseController extends Controller
                         'progressLabel' => 'This order was rejected. Please contact admin for more information.',
                         'badge' => 'REJECTED',
                         'image' => $this->courseImage($courseLevel),
+                        'poster' => $this->coursePoster($courseLevel),
+                        'thumbnailType' => $courseLevel?->thumbnail_type ?? 'image',
                         'primaryButton' => 'Order Rejected',
                         'secondaryButton' => 'Chat Admin',
                         'primaryHref' => '#',
@@ -88,6 +92,8 @@ class MyCourseController extends Controller
                     'progressLabel' => 'Waiting for administration approval. Our admin will contact you via WhatsApp.',
                     'badge' => 'PENDING',
                     'image' => $this->courseImage($courseLevel),
+                    'poster' => $this->coursePoster($courseLevel),
+                    'thumbnailType' => $courseLevel?->thumbnail_type ?? 'image',
                     'primaryButton' => 'Module Locked',
                     'secondaryButton' => 'Chat Admin',
                     'primaryHref' => '#',
@@ -204,10 +210,23 @@ class MyCourseController extends Controller
 
     private function courseImage($courseLevel): string
     {
-        if ($courseLevel?->thumbnail_file) {
+        if ($courseLevel?->thumbnail_type === 'image' && $courseLevel?->thumbnail_file) {
             return asset('storage/' . $courseLevel->thumbnail_file);
         }
 
+        if ($courseLevel?->video_poster_file) {
+            return asset('storage/' . $courseLevel->video_poster_file);
+        }
+
         return 'https://placehold.co/800x600/F3F4F6/1E293B?text=Queens+English';
+    }
+
+    private function coursePoster($courseLevel): ?string
+    {
+        if ($courseLevel?->video_poster_file) {
+            return asset('storage/' . $courseLevel->video_poster_file);
+        }
+
+        return null;
     }
 }

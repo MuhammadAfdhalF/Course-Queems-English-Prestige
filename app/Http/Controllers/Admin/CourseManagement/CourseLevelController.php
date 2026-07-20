@@ -42,6 +42,7 @@ class CourseLevelController extends Controller
             'slug' => ['nullable', 'string', 'max:255', 'unique:course_levels,slug'],
             'thumbnail_type' => ['required', 'in:image,video'],
             'thumbnail_file' => ['nullable', 'file', 'max:20480'],
+            'video_poster_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'short_description' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -56,11 +57,16 @@ class CourseLevelController extends Controller
             $request->validate([
                 'thumbnail_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             ]);
+            $validated['video_poster_file'] = null;
         }
 
         if ($validated['thumbnail_type'] === 'video') {
             $request->validate([
-                'thumbnail_file' => ['nullable', 'mimes:mp4,webm,mov', 'max:20480'],
+                'thumbnail_file' => ['required', 'file', 'mimes:mp4,webm,mov', 'max:20480'],
+                'video_poster_file' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            ], [
+                'thumbnail_file.required' => 'A course intro video file is required when video type is selected.',
+                'video_poster_file.required' => 'A video poster image is required when video type is selected.',
             ]);
         }
 
@@ -84,6 +90,11 @@ class CourseLevelController extends Controller
                 ->store('course-levels/thumbnails', 'public');
         }
 
+        if ($validated['thumbnail_type'] === 'video' && $request->hasFile('video_poster_file')) {
+            $validated['video_poster_file'] = $request->file('video_poster_file')
+                ->store('course-levels/video-posters', 'public');
+        }
+
         CourseLevel::create($validated);
 
         return redirect()
@@ -105,6 +116,7 @@ class CourseLevelController extends Controller
             'slug' => ['nullable', 'string', 'max:255', 'unique:course_levels,slug,' . $courseLevel->id],
             'thumbnail_type' => ['required', 'in:image,video'],
             'thumbnail_file' => ['nullable', 'file', 'max:20480'],
+            'video_poster_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'short_description' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -115,16 +127,47 @@ class CourseLevelController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $changingToImage = $validated['thumbnail_type'] === 'image' && $courseLevel->thumbnail_type === 'video';
+        $changingToVideo = $validated['thumbnail_type'] === 'video' && $courseLevel->thumbnail_type === 'image';
+
         if ($validated['thumbnail_type'] === 'image') {
-            $request->validate([
-                'thumbnail_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            ]);
+            if ($changingToImage && ! $request->hasFile('thumbnail_file')) {
+                return back()
+                    ->withErrors(['thumbnail_file' => 'A course image is required when switching thumbnail type to image.'])
+                    ->withInput();
+            }
+
+            if ($request->hasFile('thumbnail_file')) {
+                $request->validate([
+                    'thumbnail_file' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+                ]);
+            }
         }
 
         if ($validated['thumbnail_type'] === 'video') {
-            $request->validate([
-                'thumbnail_file' => ['nullable', 'mimes:mp4,webm,mov', 'max:20480'],
-            ]);
+            if ($changingToVideo && ! $request->hasFile('thumbnail_file')) {
+                return back()
+                    ->withErrors(['thumbnail_file' => 'A course intro video file is required when switching thumbnail type to video.'])
+                    ->withInput();
+            }
+
+            if ($changingToVideo && ! $request->hasFile('video_poster_file')) {
+                return back()
+                    ->withErrors(['video_poster_file' => 'A video poster image is required when switching thumbnail type to video.'])
+                    ->withInput();
+            }
+
+            if ($request->hasFile('thumbnail_file')) {
+                $request->validate([
+                    'thumbnail_file' => ['mimes:mp4,webm,mov', 'max:20480'],
+                ]);
+            }
+
+            if ($request->hasFile('video_poster_file')) {
+                $request->validate([
+                    'video_poster_file' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+                ]);
+            }
         }
 
         if ($validated['access_type'] === 'limited' && empty($validated['access_duration_days'])) {
@@ -145,16 +188,33 @@ class CourseLevelController extends Controller
             $validated['access_duration_days'] = null;
         }
 
-        if ($request->hasFile('thumbnail_file')) {
-            if ($courseLevel->thumbnail_file) {
-                Storage::disk('public')->delete($courseLevel->thumbnail_file);
-            }
+        $oldThumbnailFile = $courseLevel->thumbnail_file;
+        $oldVideoPosterFile = $courseLevel->video_poster_file;
 
+        if ($request->hasFile('thumbnail_file')) {
             $validated['thumbnail_file'] = $request->file('thumbnail_file')
                 ->store('course-levels/thumbnails', 'public');
         }
 
+        if ($validated['thumbnail_type'] === 'video') {
+            if ($request->hasFile('video_poster_file')) {
+                $validated['video_poster_file'] = $request->file('video_poster_file')
+                    ->store('course-levels/video-posters', 'public');
+            }
+        } else {
+            $validated['video_poster_file'] = null;
+        }
+
         $courseLevel->update($validated);
+
+        // Safe cleanup of old files after update succeeds
+        if ($request->hasFile('thumbnail_file') && $oldThumbnailFile && Storage::disk('public')->exists($oldThumbnailFile)) {
+            Storage::disk('public')->delete($oldThumbnailFile);
+        }
+
+        if (($request->hasFile('video_poster_file') || $validated['thumbnail_type'] === 'image') && $oldVideoPosterFile && Storage::disk('public')->exists($oldVideoPosterFile)) {
+            Storage::disk('public')->delete($oldVideoPosterFile);
+        }
 
         return redirect()
             ->route('admin.course-management.programs.levels.index', $courseLevel->courseProgram)
@@ -165,8 +225,12 @@ class CourseLevelController extends Controller
     {
         $courseProgram = $courseLevel->courseProgram;
 
-        if ($courseLevel->thumbnail_file) {
+        if ($courseLevel->thumbnail_file && Storage::disk('public')->exists($courseLevel->thumbnail_file)) {
             Storage::disk('public')->delete($courseLevel->thumbnail_file);
+        }
+
+        if ($courseLevel->video_poster_file && Storage::disk('public')->exists($courseLevel->video_poster_file)) {
+            Storage::disk('public')->delete($courseLevel->video_poster_file);
         }
 
         $courseLevel->delete();

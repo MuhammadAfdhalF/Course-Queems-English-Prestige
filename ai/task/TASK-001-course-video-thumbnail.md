@@ -1,145 +1,170 @@
-# TASK-001 — Course Thumbnail Ketika Menggunakan Video
+# TASK-001 — Course Video Poster Thumbnail
 
 ## Status
 
-AUDITING
+TESTING
 
 ## User Request
 
-Pada fitur course terdapat thumbnail ketika menggunakan video. Implementasi tersebut sebelumnya pernah ada atau pernah dihapus. Saya ingin mengetahui kondisi kode aktual terlebih dahulu sebelum menentukan perubahan.
+Ketika Course Level menggunakan media video, admin harus dapat mengunggah:
+1. File video utama (`thumbnail_file`).
+2. Gambar poster/thumbnail terpisah untuk video (`video_poster_file`).
+
+Poster digunakan pada card Homepage, Public Course Catalog, dan Student My Courses (dengan overlay ikon play). File video utama hanya ditampilkan pada halaman detail course (dengan atribut `poster`).
 
 ## Objective
 
-Memastikan thumbnail course berjenis video (`thumbnail_type = 'video'`) dapat tampil dan ter-render dengan benar sebagai elemen video pada Public Website (Catalog Card Grid & Home Page) dan Student Portal (My Course Card), tanpa merusak thumbnail berjenis gambar (`thumbnail_type = 'image'`) serta tanpa melakukan perubahan skema database atau admin controller existing.
+Menambahkan dukungan gambar poster terpisah (`video_poster_file`) untuk course yang berjenis video (`thumbnail_type = 'video'`) melalui migrasi baru, pembaruan model `CourseLevel`, penyesuaian validasi & pengunggahan file di `CourseLevelController`, pembaruan form & table admin panel, serta pembaruan tampilan card pada Public Homepage, Public Course Catalog, dan Student Portal.
 
 ## Current Behavior
 
-1. **Database & Model**: Tabel `course_levels` dan model `CourseLevel` sudah memiliki kolom `thumbnail_type` (`enum('image', 'video')`) dan `thumbnail_file` (`string`).
-2. **Admin Panel**:
-   * Admin Controller (`CourseLevelController`) sudah mendukung validasi upload file gambar (`jpg,jpeg,png,webp`, max 4MB) dan video (`mp4,webm,mov`, max 20MB).
-   * Form Admin (`partials/admin/course-management/levels/form.blade.php`) menyediakan opsi dropdown `Thumbnail Type` (`image` / `video`) dan preview thumbnail (menggunakan `<img ...>` untuk gambar dan `<video ...>` untuk video).
-   * Tabel Admin (`partials/admin/course-management/levels/table.blade.php`) sudah menampilkan indikator icon play untuk tipe video.
-3. **Public Detail Course** (`partials/public/course-detail/sidebar-card.blade.php`): Sudah mendukung pengecekan `thumbnail_type === 'video'` dan me-render elemen `<video controls>`.
-4. **Public Catalog Card Grid & Home Page** (`components/public/course-grid.blade.php` & `partials/public/home/programs.blade.php`):
-   * **Bermasalah**: Mengabaikan `thumbnail_type` dan selalu memaksakan URL file video ke dalam atribut `src` elemen `<img src="...">`.
-   * Akibatnya, browser gagal memuat file `.mp4` sebagai gambar, memicu handler `onerror`, dan mengganti tampilan thumbnail dengan gambar placeholder fallback (`https://placehold.co/...`).
-5. **Student Portal** (`MyCourseController.php` & `components/student/my-course-card.blade.php`):
-   * **Bermasalah**: `MyCourseController` hanya meneruskan atribut `image` tanpa menyertakan `thumbnail_type`.
-   * Component `my-course-card.blade.php` selalu me-render elemen `<img>` sehingga thumbnail video tidak dapat terputar atau tampil sebagai broken image/fallback.
+- Model `CourseLevel` dan tabel `course_levels` hanya memiliki 2 kolom media: `thumbnail_type` (`image`/`video`) dan `thumbnail_file`.
+- Saat `thumbnail_type = 'video'`, `thumbnail_file` menyimpan file video `.mp4`.
+- Tampilan card pada Public Catalog dan Student Portal mencoba memasukkan URL `.mp4` ke tag `<img src="...">`, menyebabkan gambar gagal muat dan jatuh ke placeholder.
 
 ## Expected Behavior
 
-1. Jika `thumbnail_type === 'image'`, komponen card di Public Website dan Student Portal me-render elemen `<img>` dengan gambar dari `storage`.
-2. Jika `thumbnail_type === 'video'`, komponen card di Public Website dan Student Portal me-render elemen `<video>` (dengan atribut pendukung seperti `autoplay loop muted playsinline` atau `controls` sesuai desain UI) agar video thumbnail dapat terputar dengan lancar.
-3. Jika file thumbnail kosong, sistem menampilkan fallback placeholder image secara aman.
+- **Image Course**:
+  - `thumbnail_type` = `image`
+  - `thumbnail_file` = file gambar (`.jpg`, `.png`, `.webp`)
+  - `video_poster_file` = `null`
+  - Card di Homepage, Catalog, dan Student Portal me-render gambar `thumbnail_file`.
+- **Video Course**:
+  - `thumbnail_type` = `video`
+  - `thumbnail_file` = file video (`.mp4`, `.webm`, `.mov`)
+  - `video_poster_file` = file gambar poster (`.jpg`, `.png`, `.webp`)
+  - Card di Homepage, Catalog, dan Student Portal me-render `video_poster_file` sebagai `<img>` dengan overlay ikon play.
+  - Halaman Detail Course (`sidebar-card.blade.php`) me-render elemen `<video src="..." poster="..." controls preload="metadata">`.
+  - Jika poster belum tersedia pada video course lama, card me-render image placeholder fallback + overlay ikon play.
 
 ## Audit Findings
 
-1. **Skema Database**:
-   * Migration `2026_05_01_141648_create_course_levels_table.php`:
-     * `$table->enum('thumbnail_type', ['image', 'video'])->nullable();`
-     * `$table->string('thumbnail_file')->nullable();`
-   * **Kesimpulan**: Struktur database **SUDAH LENGKAP** dan **TIDAK MEMERLUKAN MIGRASI BARU**.
-
-2. **Model & Controller Admin**:
-   * Model `CourseLevel.php` sudah mendaftarkan `thumbnail_type` dan `thumbnail_file` di `$fillable`.
-   * `CourseLevelController.php` pada method `store()` dan `update()` sudah memiliki aturan validasi terpisah untuk file image dan video.
-   * **Kesimpulan**: Controller Admin dan Model **SUDAH 100% BENAR** dan tidak perlu diubah.
-
-3. **View Component Publik & Student**:
-   * `components/public/course-grid.blade.php`: Menerima array/object course tetapi tidak membaca `thumbnail_type`.
-   * `partials/public/home/programs.blade.php`: Membuat array course item tanpa memasukkan data `thumbnail_type`.
-   * `app/Http/Controllers/Student/MyCourseController.php`: Mapper data course enrollment & order tidak memasukkan `thumbnail_type`.
-   * `components/student/my-course-card.blade.php`: Hanya memiliki markup `<img>` tanpa pengkondisian `@if ($thumbnailType === 'video')`.
-
-4. **Historis Kode**:
-   * Terdapat migrasi `2026_05_12_162226_drop_opening_media_columns_from_modules_table.php` yang dulu menghapus kolom media pada tabel `modules` (bukan `course_levels`).
-   * Pada level kursus (`course_levels`), fitur thumbnail video sebetulnya sudah setengah terimplementasi (tersimpan di DB, form admin, dan detail sidebar), namun lupa/belum diselesaikan pada komponen card grid publik dan student portal.
+- Skema existing `course_levels` memerlukan 1 kolom tambahan `video_poster_file` (string, nullable) via migrasi baru.
+- `CourseLevelController` memerlukan validasi terpisah untuk poster image saat `thumbnail_type = 'video'`.
+- Form Admin (`partials/admin/course-management/levels/form.blade.php`) perlu menampilkan field upload poster secara dinamis saat `Thumbnail Type` = `video`.
+- Presenter/Controller (`programs.blade.php`, `MyCourseController.php`) perlu meneruskan `thumbnail_type` dan `video_poster_file` ke komponen card.
+- Component card (`course-grid.blade.php` & `my-course-card.blade.php`) perlu me-render poster image + play icon overlay saat tipe video.
 
 ## Files Involved
 
-- `app/Http/Controllers/Student/MyCourseController.php` (Read & add `thumbnail_type` to mapped payload)
-- `resources/views/partials/public/home/programs.blade.php` (Pass `thumbnail_type` to course grid)
-- `resources/views/components/public/course-grid.blade.php` (Render `<video>` vs `<img>` conditionally)
-- `resources/views/components/student/my-course-card.blade.php` (Render `<video>` vs `<img>` conditionally)
+- `database/migrations/2026_07_20_000000_add_video_poster_file_to_course_levels_table.php` (NEW)
+- `app/Models/CourseLevel.php`
+- `app/Http/Controllers/Admin/CourseManagement/CourseLevelController.php`
+- `resources/views/partials/admin/course-management/levels/form.blade.php`
+- `resources/views/partials/admin/course-management/levels/table.blade.php`
+- `resources/views/partials/public/home/programs.blade.php`
+- `resources/views/components/public/course-grid.blade.php`
+- `resources/views/partials/public/course-detail/sidebar-card.blade.php`
+- `app/Http/Controllers/Student/MyCourseController.php`
+- `resources/views/components/student/my-course-card.blade.php`
 
 ## Root Cause
 
-Akar masalah berasal dari **kelalaian penanganan tipe media pada Blade View Components** (`course-grid.blade.php` dan `my-course-card.blade.php`) serta tidak diteruskannya atribut `thumbnail_type` dari controller/view presenter ke komponen tersebut. Database, model, dan admin panel sebenarnya sudah siap dan berfungsi dengan baik.
+Sebelumnya belum ada kolom khusus `video_poster_file` pada tabel `course_levels` untuk menyimpan gambar cover poster terpisah untuk course video, sehingga card view mencoba me-render file video langsung ke tag `<img>`.
 
 ## Scope
 
-- Memperbarui komponen `components/public/course-grid.blade.php` agar mendukung rendering `<video>` saat `thumbnail_type === 'video'`.
-- Memperbarui `partials/public/home/programs.blade.php` agar meneruskan atribut `thumbnail_type`.
-- Memperbarui `app/Http/Controllers/Student/MyCourseController.php` agar menyertakan `thumbnail_type` pada data array yang dikirim ke view.
-- Memperbarui `components/student/my-course-card.blade.php` agar mendukung rendering `<video>` saat `thumbnail_type === 'video'`.
+- Membuat migrasi baru `add_video_poster_file_to_course_levels_table` (tanpa menjalankan migrasi).
+- Menambahkan `video_poster_file` pada `$fillable` model `CourseLevel`.
+- Memperbarui `CourseLevelController` untuk menangani pengunggahan, validasi, dan penggantian file `video_poster_file` (folder `course-levels/video-posters`).
+- Memperbarui Form Admin (`form.blade.php`) dengan Alpine.js untuk menampilkan upload Video Poster saat tipe video dipilih.
+- Memperbarui View & Component (`programs.blade.php`, `course-grid.blade.php`, `sidebar-card.blade.php`, `MyCourseController.php`, `my-course-card.blade.php`) untuk me-render poster + play icon overlay.
 
 ## Out of Scope
 
-- Menambah atau mengedit kolom migrasi database (`course_levels` atau tabel lainnya).
-- Mengubah logika simpan/update di `CourseLevelController.php`.
-- Mengubah fungsionalitas admin panel.
-- Pengerjaan task lain (WhatsApp template, Email notification, Certificate layout).
+- Menjalankan migrasi database (`php artisan migrate`).
+- Mengubah alur bisnis order, payment, enrollment, learning, exam, certificate, atau notification.
+- Mengubah nama kolom existing (`thumbnail_type` dan `thumbnail_file`).
+- Melakukan refactor pada bagian yang tidak berkaitan.
 
 ## Proposed Solution
 
-### Opsi 1 (Rekomendasi Minimal & Paling Aman)
-* **Deskripsi**: Tanpa mengubah database atau controller admin. Cukup sesuaikan Data Transfer pada `home/programs.blade.php` & `MyCourseController.php` untuk menyertakan `thumbnail_type`, lalu tambahkan pengkondisian `@if ($thumbnailType === 'video') <video ...> @else <img ...> @endif` di dalam komponen `course-grid.blade.php` dan `my-course-card.blade.php`.
-* **Kelebihan**: Solusi sangat terarah, perubahan kode minimal (< 20 baris total), 0 risiko pada database/migration, dan langsung menyelesaikan masalah di tampilan publik & student.
-
-### Opsi 2 (Perubahan Struktur Media / Terpisah Image & Video)
-* **Deskripsi**: Menambah kolom baru `video_url` / `poster_image` via migrasi baru agar video memiliki gambar poster khusus ketika belum diputar.
-* **Kekurangan**: Memerlukan migrasi database, merubah form admin, dan menambah kompleksitas yang tidak diminta.
-
-**Rekomendasi**: Pilih **Opsi 1** karena struktur database existing sudah memiliki `thumbnail_type` (`image`/`video`) dan `thumbnail_file` yang bekerja sempurna di admin.
+Menambahkan kolom `video_poster_file` (nullable) pada `course_levels` via migrasi baru, memperbarui Controller Admin untuk memproses upload poster gambar saat `thumbnail_type = video`, serta memperbarui view card di Homepage, Catalog, Student Portal, dan Detail Course agar me-render poster gambar dengan overlay play icon.
 
 ## Risks
 
-- **Risiko Performa/Autoplay Video**: Video file ukuran besar (hingga 20MB) pada card grid jika diputar secara bersamaan dapat membebani bandwidth client.
-- **Mitigasi**: Gunakan atribut HTML5 `<video muted loop playsinline preload="metadata">` atau berikan controls ringkas / preview hover.
+- Data course video lama yang belum memiliki `video_poster_file` dapat menampilkan broken image jika fallback tidak ditangani.
+- **Mitigasi**: Implementasikan fallback ke image placeholder + overlay play icon jika `video_poster_file` bernilai `null` pada course berjenis video.
 
 ## Implementation Plan
 
-1. **[MODIFY] [MyCourseController.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Http/Controllers/Student/MyCourseController.php)**: Tambahkan `'thumbnailType' => $courseLevel?->thumbnail_type ?? 'image'` pada array item kursus.
-2. **[MODIFY] [programs.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/partials/public/home/programs.blade.php)**: Sertakan `'thumbnail_type' => $courseLevel->thumbnail_type ?? 'image'` pada array `$courseItems`.
-3. **[MODIFY] [course-grid.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/components/public/course-grid.blade.php)**: Tambahkan pengecekan `$type === 'video'` untuk me-render `<video src="..." muted loop playsinline autoplay>` atau `<img>`.
-4. **[MODIFY] [my-course-card.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/components/student/my-course-card.blade.php)**: Tambahkan prop `:thumbnail-type` dan render `<video>` jika tipe media adalah video.
+1. **[NEW] Migration**: Buat file `database/migrations/2026_07_20_000000_add_video_poster_file_to_course_levels_table.php`.
+2. **[MODIFY] Model**: Tambahkan `video_poster_file` ke `$fillable` di `CourseLevel.php`.
+3. **[MODIFY] Controller Admin**: Update `CourseLevelController.php` (store & update) untuk menangani validasi & upload `video_poster_file` ke `course-levels/video-posters`.
+4. **[MODIFY] View Admin Form**: Update `partials/admin/course-management/levels/form.blade.php` untuk menampilkan input file poster & preview poster existing saat `thumbnailType === 'video'`.
+5. **[MODIFY] View Admin Table**: Update `partials/admin/course-management/levels/table.blade.php` agar preview image pada table mendukung poster jika tipe video.
+6. **[MODIFY] Public Presenter & Card**: Update `programs.blade.php` dan `course-grid.blade.php` agar card me-render poster image + play icon overlay saat `thumbnail_type === 'video'`.
+7. **[MODIFY] Detail Course Sidebar**: Update `sidebar-card.blade.php` agar tag `<video>` menggunakan atribut `poster="{{ $posterUrl }}"`.
+8. **[MODIFY] Student Presenter & Card**: Update `MyCourseController.php` dan `my-course-card.blade.php` agar card me-render poster image + play icon overlay saat `thumbnail_type === 'video'`.
 
 ## Testing Checklist
 
-- [ ] Upload course level baru dengan thumbnail `image` di Admin Panel -> Pastikan tampil normal di Admin, Public, dan Student.
-- [ ] Upload course level baru dengan thumbnail `video` (`.mp4`) di Admin Panel -> Pastikan tampil & terputar sebagai video pada Public Course Catalog (`/courses`).
-- [ ] Pastikan video thumbnail tampil pada Home Page (`/`).
-- [ ] Pastikan video thumbnail tampil pada Student Portal My Courses (`/student/my-courses`).
-- [ ] Pastikan course tanpa thumbnail menampilkan image fallback placeholder dengan aman.
-- [ ] Verifikasi tidak ada error sintaks atau breakdown layout UI pada browser.
+### Admin Create
+- [ ] Create course tipe image dengan file gambar.
+- [ ] Create course tipe video dengan file video dan poster.
+- [ ] Video tanpa poster ditolak dengan pesan validasi yang jelas.
+- [ ] Poster dengan format tidak valid ditolak.
+- [ ] Poster melewati batas ukuran (4MB) ditolak.
 
-## Requirement Clarification Audit
+### Admin Edit
+- [ ] Edit teks course image tanpa upload ulang gambar.
+- [ ] Ganti gambar course image.
+- [ ] Ubah image menjadi video dengan video dan poster.
+- [ ] Edit course video tanpa mengganti video atau poster.
+- [ ] Ganti hanya video.
+- [ ] Ganti hanya poster.
+- [ ] Ganti video dan poster.
+- [ ] Ubah video menjadi image.
+- [ ] Pastikan file media lama dibersihkan dengan aman dari storage.
 
-### 1. Temuan Git History
-* **Commit Pertama (`909a00b` - 1 Mei 2026)**:
-  Tabel `course_levels` sejak awal didefinisikan hanya mempunyai 2 kolom media:
-  * `thumbnail_type`: `enum('image', 'video')`
-  * `thumbnail_file`: `string`
-* **Pemeriksaan Field Historis**:
-  * **TIDAK DITEMUKAN** history commit yang pernah menambahkan kolom terpisah seperti `poster`, `video_thumbnail`, `preview_image`, atau `video_url` pada tabel `course_levels`.
-  * **Ditemukan** hapus media pada tabel `modules` (`2026_05_12_162226_drop_opening_media_columns_from_modules_table.php`), yaitu penghapusan `opening_media_type` & `opening_media_file` pada modul pembelajaran (bukan pada level kursus).
-  * Model `ProfileVideo` (`profile_videos`) memiliki 2 field (`video_file` & `thumbnail`), namun ini khusus untuk CMS Video Profil Lembaga di landing page.
+### Public
+- [ ] Homepage menampilkan image course normal.
+- [ ] Homepage menampilkan poster video + ikon play overlay.
+- [ ] Course catalog menampilkan image normal.
+- [ ] Course catalog menampilkan poster video + ikon play overlay.
+- [ ] Video lama tanpa poster menampilkan fallback image + ikon play.
 
-### 2. Implementasi Eksisting pada Repository
-* **Admin Form & Admin Table**: Memiliki dropdown `Thumbnail Type` (`image`/`video`) dan 1 file input `thumbnail_file`. Jika `video` dipilih, file `.mp4` disimpan ke `thumbnail_file`.
-* **Detail Course Sidebar (`sidebar-card.blade.php`)**: Sudah mengimplementasikan rendering `<video src="..." controls>` jika `thumbnail_type === 'video'`.
-* **Card Grid & Student Portal**: Mencoba menampilkan `thumbnail_file` di dalam tag `<img>`, sehingga file video gagal muat dan jatuh ke image placeholder.
+### Student
+- [ ] My Courses menampilkan image normal.
+- [ ] My Courses menampilkan poster video + ikon play overlay.
+- [ ] Progress, status, dan tombol course tidak berubah.
 
-### 3. Analisis Kebutuhan UX (A vs B)
-* **Kemungkinan A (Direct `<video>` rendering)**:
-  * Memanfaatkan file video pada `thumbnail_file` untuk langsung di-render sebagai HTML5 `<video>` (dengan `muted loop playsinline` atau `controls`) di komponen card grid.
-  * **Kondisi**: Sangat sesuai dengan struktur database dan admin controller yang saat ini terpasang di repository.
-* **Kemungkinan B (Gambar Poster Terpisah)**:
-  * Admin mengunggah gambar cover/poster terpisah khusus untuk course yang tipe thumbnail-nya video.
-  * **Kondisi**: Struktur 2 file terpisah ini **belum pernah ada di skema database `course_levels` repository**. Jika ingin menggunakan cara ini, diperlukan migrasi database baru dan perombakan form admin.
+### Detail Course
+- [ ] Image course tetap tampil normal.
+- [ ] Video course tampil dengan controls.
+- [ ] Poster muncul sebelum video diputar (`poster="..."`).
+- [ ] Video tanpa poster tetap dapat diputar tanpa error.
 
-### 4. Informasi yang Masih NEEDS DISCUSSION
-* Apakah user menginginkan **Kemungkinan A** (video diputar langsung pada card via tag `<video>`) atau **Kemungkinan B** (menambah fitur upload gambar poster cover terpisah untuk video)?
-* Keputusan ini membutuhkan konfirmasi dari user sebelum status task diubah menjadi `READY` atau `IN_PROGRESS`.
+### Regression
+- [ ] Tidak ada broken image dari file `.mp4`.
+- [ ] Tidak ada perubahan flow course access, learning, atau payment.
+- [ ] Migration belum dijalankan (file migration siap).
+- [ ] Tidak ada error build atau syntax.
 
+## Implementation Result
+
+Semua tahap perubahan kode dan view telah selesai dilakukan secara presisi:
+1. File migrasi `add_video_poster_file_to_course_levels_table` dibuat (belum dijalankan).
+2. Model `CourseLevel` telah ditambahi `video_poster_file` pada `$fillable`.
+3. Controller Admin `CourseLevelController` telah disesuaikan untuk memvalidasi dan menyimpan poster gambar ke `course-levels/video-posters`, serta menghapus file lama dengan aman saat diganti atau diubah tipe ke image.
+4. Form Admin Level telah diperbarui menggunakan Alpine.js untuk secara dinamis menampilkan upload Video Poster dan preview poster existing.
+5. Presenter `programs.blade.php`, controller `MyCourseController.php`, serta view component `course-grid.blade.php`, `my-course-card.blade.php`, dan `sidebar-card.blade.php` telah disesuaikan agar card me-render poster gambar dengan ikon play overlay, dan halaman detail me-render atribut `poster="..."` pada tag `<video>`.
+6. Seluruh pengujian sintaks PHP (`php -l`) dan pengujian Vite build (`npm run build`) telah lolos 100% tanpa error.
+
+## Files Changed
+
+- `database/migrations/2026_07_20_000000_add_video_poster_file_to_course_levels_table.php` (NEW - Migrasi penambahan kolom `video_poster_file`)
+- `app/Models/CourseLevel.php` (MODIFIED - Menambahkan `video_poster_file` ke `$fillable`)
+- `app/Http/Controllers/Admin/CourseManagement/CourseLevelController.php` (MODIFIED - Logika store, update, destroy untuk video poster)
+- `resources/views/partials/admin/course-management/levels/form.blade.php` (MODIFIED - Input dinamis upload & preview poster)
+- `resources/views/partials/admin/course-management/levels/table.blade.php` (MODIFIED - Preview modal poster pada tabel admin)
+- `resources/views/partials/public/home/programs.blade.php` (MODIFIED - Meneruskan `thumbnail_type` & `poster` URL)
+- `resources/views/components/public/course-grid.blade.php` (MODIFIED - Render poster image + play icon overlay)
+- `resources/views/partials/public/course-detail/sidebar-card.blade.php` (MODIFIED - Tag `<video>` dengan atribut `poster="..."`)
+- `app/Http/Controllers/Student/MyCourseController.php` (MODIFIED - Mapper payload item `thumbnailType` & `poster`)
+- `resources/views/components/student/my-course-card.blade.php` (MODIFIED - Render poster image + play icon overlay)
+
+## Remaining Notes
+
+- Migrasi database `2026_07_20_000000_add_video_poster_file_to_course_levels_table.php` sengaja **TIDAK DIJALANKAN** oleh AI. User perlu menjalankan command `php artisan migrate` secara manual ketika siap menguji di database.
+- Status task saat ini adalah **`TESTING`** dan tidak boleh diubah menjadi `COMPLETED` sampai user melakukan pengujian manual pada antarmuka web dan memberikan konfirmasi final.
