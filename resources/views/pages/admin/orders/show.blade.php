@@ -40,9 +40,34 @@ $accessTypeLabel = $courseLevel?->access_type
 ? str($courseLevel->access_type)->replace('_', ' ')->title()
 : '-';
 
-$whatsappNumber = $profile?->whatsapp
-? preg_replace('/[^0-9]/', '', $profile->whatsapp)
-: null;
+$rawWhatsapp = $profile?->whatsapp;
+$normalizedWhatsapp = $rawWhatsapp
+    ? preg_replace('/[^0-9]/', '', $rawWhatsapp)
+    : null;
+
+if ($normalizedWhatsapp) {
+    if (str_starts_with($normalizedWhatsapp, '0')) {
+        $normalizedWhatsapp = '62' . substr($normalizedWhatsapp, 1);
+    } elseif (str_starts_with($normalizedWhatsapp, '8')) {
+        $normalizedWhatsapp = '62' . $normalizedWhatsapp;
+    }
+}
+
+$whatsappMessage = "Halo Kak *" . ($student?->name ?? 'Student') . "* 👋\n\n"
+    . "Perkenalkan, kami dari *Queens English Prestige*.\n\n"
+    . "Kami telah menerima pemesanan kursus Kakak dengan detail berikut:\n\n"
+    . "*Kode Order:* " . ($order->order_code ?? '-') . "\n"
+    . "*Kursus:* " . ($courseLevel?->name ?? '-') . "\n"
+    . "*Biaya Kursus:* Rp " . number_format((float) $order->price, 0, ',', '.') . "\n"
+    . "*Tanggal Pemesanan:* " . (($order->order_date ?? $order->created_at)?->format('d-m-Y H:i') ?? '-') . "\n\n"
+    . "Saat ini pesanan Kakak masih menunggu konfirmasi pembayaran.\n\n"
+    . "Silakan balas pesan ini agar kami dapat memberikan informasi pembayaran dan membantu proses aktivasi kursus Kakak.\n\n"
+    . "Terima kasih 🙏\n"
+    . "*Queens English Prestige*";
+
+$whatsappUrl = $normalizedWhatsapp
+    ? 'https://wa.me/' . $normalizedWhatsapp . ($order->status === 'pending' ? '?text=' . rawurlencode($whatsappMessage) : '')
+    : null;
 @endphp
 
 <section class="mx-auto max-w-7xl space-y-6">
@@ -425,13 +450,18 @@ $whatsappNumber = $profile?->whatsapp
                             {{ $profile?->whatsapp ?? '-' }}
                         </p>
 
-                        @if ($whatsappNumber)
+                        @if ($whatsappUrl)
                         <a
-                            href="https://wa.me/{{ $whatsappNumber }}"
+                            href="{{ $whatsappUrl }}"
                             target="_blank"
+                            rel="noopener noreferrer"
                             class="mt-3 inline-flex h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 text-xs font-bold text-white transition hover:bg-emerald-700">
-                            Open WhatsApp
+                            {{ $order->status === 'pending' ? 'Follow Up via WhatsApp' : 'Open WhatsApp' }}
                         </a>
+                        @else
+                        <span class="mt-3 inline-flex h-10 items-center justify-center rounded-xl bg-slate-200 px-4 text-xs font-bold text-slate-500 cursor-not-allowed">
+                            WhatsApp Not Available
+                        </span>
                         @endif
                     </div>
 
