@@ -174,7 +174,7 @@ class DashboardController extends Controller
                     'status' => $this->statusLabel($order->status),
                     'statusVariant' => $this->statusVariant($order->status),
                     'date' => $order->order_date?->format('d M Y') ?? $order->created_at?->format('d M Y') ?? '-',
-                    'href' => route('admin.orders.index'),
+                    'href' => route('admin.orders.show', $order),
                 ];
             })
             ->all();
@@ -268,6 +268,14 @@ class DashboardController extends Controller
             'currentYear' => now()->year,
             'actionItems' => $actionItems,
             'waitingReviewItems' => $waitingReviewItems,
+
+            'totalStudents' => $totalStudents,
+            'activeEnrollments' => $activeEnrollments,
+            'totalCourses' => $totalCourses,
+            'pendingOrders' => $pendingOrders,
+            'waitingReviews' => $waitingReviews,
+            'issuedCertificates' => $issuedCertificates,
+            'lockedCertificates' => $lockedCertificates,
         ]);
     }
 

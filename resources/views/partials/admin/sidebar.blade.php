@@ -83,7 +83,7 @@
                     </x-slot:icon>
                     Course Programs
                 </x-admin.sidebar-item>
-
+<!-- 
                 <x-admin.sidebar-item href="#">
                     <x-slot:icon>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,7 +92,7 @@
                         </svg>
                     </x-slot:icon>
                     Course Levels
-                </x-admin.sidebar-item>
+                </x-admin.sidebar-item> -->
                 </nav>
             </div>
 
