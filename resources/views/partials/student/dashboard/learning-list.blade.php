@@ -30,11 +30,22 @@
             <div class="grid gap-4 lg:grid-cols-[140px_1fr_auto] lg:items-center">
                 <div class="relative h-28 overflow-hidden rounded-[20px] bg-[#F4F6FF] lg:h-32">
                     <img
-                        src="{{ $course['image'] }}"
+                        src="{{ (($course['thumbnailType'] ?? 'image') === 'video' && !empty($course['poster'])) ? $course['poster'] : $course['image'] }}"
                         alt="{{ $course['title'] }}"
-                        class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                        class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                        onerror="this.src='https://placehold.co/800x500/E9ECEF/1E293B?text=Queens+English';">
 
+                    @if (($course['thumbnailType'] ?? 'image') === 'video')
+                    <div class="absolute inset-0 flex items-center justify-center bg-slate-950/20 transition group-hover:bg-slate-950/40">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#080D4D] shadow-lg backdrop-blur-sm transition group-hover:scale-110">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </span>
+                    </div>
+                    @else
                     <div class="absolute inset-0 bg-[#080D4D]/5"></div>
+                    @endif
                 </div>
 
                 <div class="min-w-0">

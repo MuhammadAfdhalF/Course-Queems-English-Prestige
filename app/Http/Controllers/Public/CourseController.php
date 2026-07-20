@@ -44,15 +44,23 @@ class CourseController extends Controller
             ->get();
 
         $courseItems = $courseLevels->map(function (CourseLevel $courseLevel) {
+            $thumbnail = ($courseLevel->thumbnail_type === 'image' && $courseLevel->thumbnail_file)
+                ? asset('storage/' . $courseLevel->thumbnail_file)
+                : 'https://placehold.co/800x500/EEF3FF/2457E6?text=' . urlencode($courseLevel->name);
+
+            $poster = $courseLevel->video_poster_file
+                ? asset('storage/' . $courseLevel->video_poster_file)
+                : null;
+
             return [
                 'title' => $courseLevel->name,
                 'level' => $courseLevel->courseProgram?->name ?? 'Course Program',
                 'mode' => $this->formatLearningMode($courseLevel->learning_mode),
                 'price' => 'Rp ' . number_format((float) $courseLevel->price, 0, ',', '.'),
                 'description' => $courseLevel->short_description ?: 'Course description will be available soon.',
-                'image' => $courseLevel->thumbnail_file
-                    ? asset('storage/' . $courseLevel->thumbnail_file)
-                    : 'https://placehold.co/800x500/EEF3FF/2457E6?text=Queens+English',
+                'image' => $thumbnail,
+                'poster' => $poster,
+                'thumbnail_type' => $courseLevel->thumbnail_type ?? 'image',
                 'buttonText' => 'View Detail',
                 'href' => route('courses.show', $courseLevel),
             ];

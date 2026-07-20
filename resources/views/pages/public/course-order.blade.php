@@ -16,6 +16,10 @@ $thumbnailUrl = $courseLevel->thumbnail_file
 ? asset('storage/' . $courseLevel->thumbnail_file)
 : 'https://placehold.co/900x600/EEF3FF/2457E6?text=Queens+English';
 
+$videoPosterUrl = $courseLevel->video_poster_file
+? asset('storage/' . $courseLevel->video_poster_file)
+: null;
+
 $studentWhatsapp = $student->studentProfile?->whatsapp ?? '-';
 @endphp
 
@@ -41,7 +45,9 @@ $studentWhatsapp = $student->studentProfile?->whatsapp ?? '-';
                     @if ($courseLevel->thumbnail_file && $courseLevel->thumbnail_type === 'video')
                     <video
                         src="{{ $thumbnailUrl }}"
+                        @if($videoPosterUrl) poster="{{ $videoPosterUrl }}" @endif
                         controls
+                        preload="metadata"
                         class="h-[260px] w-full bg-slate-900 object-cover lg:h-[360px]">
                     </video>
                     @else

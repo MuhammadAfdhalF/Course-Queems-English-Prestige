@@ -109,6 +109,8 @@ class DashboardController extends Controller
                     'program' => $courseLevel?->courseProgram?->name ?? 'Course Program',
                     'progress' => $progress,
                     'image' => $this->courseImage($courseLevel),
+                    'poster' => $this->coursePoster($courseLevel),
+                    'thumbnailType' => $courseLevel?->thumbnail_type ?? 'image',
                     'href' => route('student.learning-path', $enrollment),
                     'statusLabel' => $this->learningStatusLabel($progress),
                     'buttonText' => $this->learningButtonText($progress),
@@ -230,10 +232,23 @@ class DashboardController extends Controller
 
     private function courseImage($courseLevel): string
     {
-        if ($courseLevel?->thumbnail_file) {
+        if ($courseLevel?->thumbnail_type === 'image' && $courseLevel?->thumbnail_file) {
             return asset('storage/' . $courseLevel->thumbnail_file);
         }
 
+        if ($courseLevel?->video_poster_file) {
+            return asset('storage/' . $courseLevel->video_poster_file);
+        }
+
         return 'https://placehold.co/800x500/E9ECEF/1E293B?text=Queens+English';
+    }
+
+    private function coursePoster($courseLevel): ?string
+    {
+        if ($courseLevel?->video_poster_file) {
+            return asset('storage/' . $courseLevel->video_poster_file);
+        }
+
+        return null;
     }
 }

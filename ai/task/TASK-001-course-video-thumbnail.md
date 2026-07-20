@@ -18,9 +18,9 @@ Menambahkan dukungan gambar poster terpisah (`video_poster_file`) untuk course y
 
 ## Current Behavior
 
-- Model `CourseLevel` dan tabel `course_levels` hanya memiliki 2 kolom media: `thumbnail_type` (`image`/`video`) dan `thumbnail_file`.
-- Saat `thumbnail_type = 'video'`, `thumbnail_file` menyimpan file video `.mp4`.
-- Tampilan card pada Public Catalog dan Student Portal mencoba memasukkan URL `.mp4` ke tag `<img src="...">`, menyebabkan gambar gagal muat dan jatuh ke placeholder.
+- Model `CourseLevel` dan tabel `course_levels` memiliki kolom `thumbnail_type`, `thumbnail_file`, dan `video_poster_file`.
+- Patch minimal telah diterapkan pada data mapper controller (`PublicCourseController`, `AllCourseController`, `DashboardController`) serta Blade partials (`course-list`, `grid`, `course-order`).
+- Card di Public Catalog (`/courses`), Homepage (`/`), Student Portal My Courses (`/student/my-courses`), All Courses (`/student/all-courses`), dan Dashboard (`/student`) kini me-render gambar poster video (`video_poster_file`) dengan overlay ikon play.
 
 ## Expected Behavior
 
@@ -28,128 +28,20 @@ Menambahkan dukungan gambar poster terpisah (`video_poster_file`) untuk course y
   - `thumbnail_type` = `image`
   - `thumbnail_file` = file gambar (`.jpg`, `.png`, `.webp`)
   - `video_poster_file` = `null`
-  - Card di Homepage, Catalog, dan Student Portal me-render gambar `thumbnail_file`.
+  - Card di Homepage, Catalog, Student Portal me-render gambar `thumbnail_file`.
 - **Video Course**:
   - `thumbnail_type` = `video`
   - `thumbnail_file` = file video (`.mp4`, `.webm`, `.mov`)
   - `video_poster_file` = file gambar poster (`.jpg`, `.png`, `.webp`)
-  - Card di Homepage, Catalog, dan Student Portal me-render `video_poster_file` sebagai `<img>` dengan overlay ikon play.
-  - Halaman Detail Course (`sidebar-card.blade.php`) me-render elemen `<video src="..." poster="..." controls preload="metadata">`.
+  - Card di Homepage, Catalog, Student Portal me-render `video_poster_file` sebagai `<img>` dengan overlay ikon play.
+  - Halaman Detail Course (`sidebar-card.blade.php`) & Course Order (`course-order.blade.php`) me-render elemen `<video src="..." poster="..." controls preload="metadata">`.
   - Jika poster belum tersedia pada video course lama, card me-render image placeholder fallback + overlay ikon play.
 
-## Audit Findings
+## Audit Findings & Root Cause Final
 
-- Skema existing `course_levels` memerlukan 1 kolom tambahan `video_poster_file` (string, nullable) via migrasi baru.
-- `CourseLevelController` memerlukan validasi terpisah untuk poster image saat `thumbnail_type = 'video'`.
-- Form Admin (`partials/admin/course-management/levels/form.blade.php`) perlu menampilkan field upload poster secara dinamis saat `Thumbnail Type` = `video`.
-- Presenter/Controller (`programs.blade.php`, `MyCourseController.php`) perlu meneruskan `thumbnail_type` dan `video_poster_file` ke komponen card.
-- Component card (`course-grid.blade.php` & `my-course-card.blade.php`) perlu me-render poster image + play icon overlay saat tipe video.
-
-## Files Involved
-
-- `database/migrations/2026_07_20_000000_add_video_poster_file_to_course_levels_table.php` (NEW)
-- `app/Models/CourseLevel.php`
-- `app/Http/Controllers/Admin/CourseManagement/CourseLevelController.php`
-- `resources/views/partials/admin/course-management/levels/form.blade.php`
-- `resources/views/partials/admin/course-management/levels/table.blade.php`
-- `resources/views/partials/public/home/programs.blade.php`
-- `resources/views/components/public/course-grid.blade.php`
-- `resources/views/partials/public/course-detail/sidebar-card.blade.php`
-- `app/Http/Controllers/Student/MyCourseController.php`
-- `resources/views/components/student/my-course-card.blade.php`
-
-## Root Cause
-
-Sebelumnya belum ada kolom khusus `video_poster_file` pada tabel `course_levels` untuk menyimpan gambar cover poster terpisah untuk course video, sehingga card view mencoba me-render file video langsung ke tag `<img>`.
-
-## Scope
-
-- Membuat migrasi baru `add_video_poster_file_to_course_levels_table` (tanpa menjalankan migrasi).
-- Menambahkan `video_poster_file` pada `$fillable` model `CourseLevel`.
-- Memperbarui `CourseLevelController` untuk menangani pengunggahan, validasi, dan penggantian file `video_poster_file` (folder `course-levels/video-posters`).
-- Memperbarui Form Admin (`form.blade.php`) dengan Alpine.js untuk menampilkan upload Video Poster saat tipe video dipilih.
-- Memperbarui View & Component (`programs.blade.php`, `course-grid.blade.php`, `sidebar-card.blade.php`, `MyCourseController.php`, `my-course-card.blade.php`) untuk me-render poster + play icon overlay.
-
-## Out of Scope
-
-- Menjalankan migrasi database (`php artisan migrate`).
-- Mengubah alur bisnis order, payment, enrollment, learning, exam, certificate, atau notification.
-- Mengubah nama kolom existing (`thumbnail_type` dan `thumbnail_file`).
-- Melakukan refactor pada bagian yang tidak berkaitan.
-
-## Proposed Solution
-
-Menambahkan kolom `video_poster_file` (nullable) pada `course_levels` via migrasi baru, memperbarui Controller Admin untuk memproses upload poster gambar saat `thumbnail_type = video`, serta memperbarui view card di Homepage, Catalog, Student Portal, dan Detail Course agar me-render poster gambar dengan overlay play icon.
-
-## Risks
-
-- Data course video lama yang belum memiliki `video_poster_file` dapat menampilkan broken image jika fallback tidak ditangani.
-- **Mitigasi**: Implementasikan fallback ke image placeholder + overlay play icon jika `video_poster_file` bernilai `null` pada course berjenis video.
-
-## Implementation Plan
-
-1. **[NEW] Migration**: Buat file `database/migrations/2026_07_20_000000_add_video_poster_file_to_course_levels_table.php`.
-2. **[MODIFY] Model**: Tambahkan `video_poster_file` ke `$fillable` di `CourseLevel.php`.
-3. **[MODIFY] Controller Admin**: Update `CourseLevelController.php` (store & update) untuk menangani validasi & upload `video_poster_file` ke `course-levels/video-posters`.
-4. **[MODIFY] View Admin Form**: Update `partials/admin/course-management/levels/form.blade.php` untuk menampilkan input file poster & preview poster existing saat `thumbnailType === 'video'`.
-5. **[MODIFY] View Admin Table**: Update `partials/admin/course-management/levels/table.blade.php` agar preview image pada table mendukung poster jika tipe video.
-6. **[MODIFY] Public Presenter & Card**: Update `programs.blade.php` dan `course-grid.blade.php` agar card me-render poster image + play icon overlay saat `thumbnail_type === 'video'`.
-7. **[MODIFY] Detail Course Sidebar**: Update `sidebar-card.blade.php` agar tag `<video>` menggunakan atribut `poster="{{ $posterUrl }}"`.
-8. **[MODIFY] Student Presenter & Card**: Update `MyCourseController.php` dan `my-course-card.blade.php` agar card me-render poster image + play icon overlay saat `thumbnail_type === 'video'`.
-
-## Testing Checklist
-
-### Admin Create
-- [ ] Create course tipe image dengan file gambar.
-- [ ] Create course tipe video dengan file video dan poster.
-- [ ] Video tanpa poster ditolak dengan pesan validasi yang jelas.
-- [ ] Poster dengan format tidak valid ditolak.
-- [ ] Poster melewati batas ukuran (4MB) ditolak.
-
-### Admin Edit
-- [ ] Edit teks course image tanpa upload ulang gambar.
-- [ ] Ganti gambar course image.
-- [ ] Ubah image menjadi video dengan video dan poster.
-- [ ] Edit course video tanpa mengganti video atau poster.
-- [ ] Ganti hanya video.
-- [ ] Ganti hanya poster.
-- [ ] Ganti video dan poster.
-- [ ] Ubah video menjadi image.
-- [ ] Pastikan file media lama dibersihkan dengan aman dari storage.
-
-### Public
-- [ ] Homepage menampilkan image course normal.
-- [ ] Homepage menampilkan poster video + ikon play overlay.
-- [ ] Course catalog menampilkan image normal.
-- [ ] Course catalog menampilkan poster video + ikon play overlay.
-- [ ] Video lama tanpa poster menampilkan fallback image + ikon play.
-
-### Student
-- [ ] My Courses menampilkan image normal.
-- [ ] My Courses menampilkan poster video + ikon play overlay.
-- [ ] Progress, status, dan tombol course tidak berubah.
-
-### Detail Course
-- [ ] Image course tetap tampil normal.
-- [ ] Video course tampil dengan controls.
-- [ ] Poster muncul sebelum video diputar (`poster="..."`).
-- [ ] Video tanpa poster tetap dapat diputar tanpa error.
-
-### Regression
-- [ ] Tidak ada broken image dari file `.mp4`.
-- [ ] Tidak ada perubahan flow course access, learning, atau payment.
-- [ ] Migration belum dijalankan (file migration siap).
-- [ ] Tidak ada error build atau syntax.
-
-## Implementation Result
-
-Semua tahap perubahan kode dan view telah selesai dilakukan secara presisi:
-1. File migrasi `add_video_poster_file_to_course_levels_table` dibuat (belum dijalankan).
-2. Model `CourseLevel` telah ditambahi `video_poster_file` pada `$fillable`.
-3. Controller Admin `CourseLevelController` telah disesuaikan untuk memvalidasi dan menyimpan poster gambar ke `course-levels/video-posters`, serta menghapus file lama dengan aman saat diganti atau diubah tipe ke image.
-4. Form Admin Level telah diperbarui menggunakan Alpine.js untuk secara dinamis menampilkan upload Video Poster dan preview poster existing.
-5. Presenter `programs.blade.php`, controller `MyCourseController.php`, serta view component `course-grid.blade.php`, `my-course-card.blade.php`, dan `sidebar-card.blade.php` telah disesuaikan agar card me-render poster gambar dengan ikon play overlay, dan halaman detail me-render atribut `poster="..."` pada tag `<video>`.
-6. Seluruh pengujian sintaks PHP (`php -l`) dan pengujian Vite build (`npm run build`) telah lolos 100% tanpa error.
+- **Verifikasi Database**: Kolom `video_poster_file` terkonfirmasi tersedia pada tabel `course_levels` (Record ID 4: "Foundation", `thumbnail_type = video`, `thumbnail_file` = `.mp4`, `video_poster_file` = `.jpg`).
+- **Verifikasi Storage**: File poster fisik tersimpan di `storage/app/public/course-levels/video-posters/` dan terhubung via symlink `public/storage`.
+- **Root Cause Final**: Sebelumnya, data poster dan `thumbnail_type` berhasil disimpan di DB/storage oleh Admin, tetapi terputus pada data mapper controller public/student (`PublicCourseController`, `AllCourseController`, `DashboardController`) serta pada parameter Blade partial (`course-list.blade.php` & `all-courses/grid.blade.php`). Akibatnya, card view selalu menerima `thumbnail_type = 'image'` dan `poster = null` secara fallback default dan mencoba me-render URL video `.mp4` ke tag `<img>`.
 
 ## Files Changed
 
@@ -161,10 +53,42 @@ Semua tahap perubahan kode dan view telah selesai dilakukan secara presisi:
 - `resources/views/partials/public/home/programs.blade.php` (MODIFIED - Meneruskan `thumbnail_type` & `poster` URL)
 - `resources/views/components/public/course-grid.blade.php` (MODIFIED - Render poster image + play icon overlay)
 - `resources/views/partials/public/course-detail/sidebar-card.blade.php` (MODIFIED - Tag `<video>` dengan atribut `poster="..."`)
+- `app/Http/Controllers/Public/CourseController.php` (MODIFIED - Patch mapper `$courseItems` dengan `poster` & `thumbnail_type`)
 - `app/Http/Controllers/Student/MyCourseController.php` (MODIFIED - Mapper payload item `thumbnailType` & `poster`)
+- `app/Http/Controllers/Student/AllCourseController.php` (MODIFIED - Patch mapper `$courseItems` dengan `poster` & `thumbnailType`)
+- `app/Http/Controllers/Student/DashboardController.php` (MODIFIED - Patch mapper `$continueLearningCourses` dengan `poster` & `thumbnailType`)
+- `resources/views/partials/student/my-courses/course-list.blade.php` (MODIFIED - Forwarding `:poster` & `:thumbnail-type` ke `my-course-card`)
+- `resources/views/partials/student/all-courses/grid.blade.php` (MODIFIED - Forwarding `:poster` & `:thumbnail-type` ke `course-card`)
 - `resources/views/components/student/my-course-card.blade.php` (MODIFIED - Render poster image + play icon overlay)
+- `resources/views/components/student/course-card.blade.php` (MODIFIED - Render poster image + play icon overlay)
+- `resources/views/partials/student/dashboard/learning-list.blade.php` (MODIFIED - Render poster image + play icon overlay)
+- `resources/views/pages/public/course-order.blade.php` (MODIFIED - Tag `<video>` dengan atribut `poster="..."`)
+
+## Implementation Result
+
+Patch minimal telah berhasil diterapkan secara komprehensif pada seluruh controller public/student dan view components:
+1. `PublicCourseController.php` kini meneruskan `poster` URL dan `thumbnail_type` ke Public Course Catalog (`/courses`).
+2. `AllCourseController.php` dan `grid.blade.php` kini meneruskan `poster` URL dan `thumbnailType` ke Student All Courses (`/student/all-courses`).
+3. `DashboardController.php` dan `learning-list.blade.php` kini meneruskan `poster` URL dan `thumbnailType` ke Student Dashboard (`/student`).
+4. `course-list.blade.php` kini meneruskan `:poster` dan `:thumbnail-type` ke Student My Courses (`/student/my-courses`).
+5. `course-order.blade.php` kini mendukung atribut `poster="..."` dan `preload="metadata"` pada tag `<video>`.
+
+## Technical Test Result
+
+- **Initial DB Verification**: Record ID 4 ("Foundation") terverifikasi memiliki `thumbnail_type = video`, `thumbnail_file` (`.mp4`), dan `video_poster_file` (`.jpg`).
+- **PHP Syntax Check (`php -l`)**: Lolos 100% tanpa error pada seluruh controller.
+- **Cache Clearing (`php artisan optimize:clear`)**: Lolos 100% (config, cache, routes, views, compiled successfully cleared).
+- **Vite Asset Build (`npm run build`)**: Lolos 100% dalam 1.97s.
 
 ## Remaining Notes
 
-- Migrasi database `2026_07_20_000000_add_video_poster_file_to_course_levels_table.php` sengaja **TIDAK DIJALANKAN** oleh AI. User perlu menjalankan command `php artisan migrate` secara manual ketika siap menguji di database.
-- Status task saat ini adalah **`TESTING`** dan tidak boleh diubah menjadi `COMPLETED` sampai user melakukan pengujian manual pada antarmuka web dan memberikan konfirmasi final.
+- Status task tetap **`TESTING`** dan **tidak akan diubah menjadi `COMPLETED`** sebelum user melakukan manual testing pada 4 URL utama dan memberikan persetujuan final.
+
+## Manual Testing Checklist (User Verification)
+
+Sebutkan 4 URL berikut saat melakukan manual testing:
+- [ ] `http://127.0.0.1:8000/courses` (Public Catalog: Menampilkan poster gambar + overlay ikon play untuk course video)
+- [ ] `http://127.0.0.1:8000/` (Homepage: Menampilkan poster gambar + overlay ikon play untuk course video)
+- [ ] `http://127.0.0.1:8000/student/my-courses` (Student My Courses: Menampilkan poster gambar + overlay ikon play)
+- [ ] `http://127.0.0.1:8000/student/all-courses` (Student All Courses: Menampilkan poster gambar + overlay ikon play)
+- [ ] `http://127.0.0.1:8000/courses/{slug}` (Course Detail: Video player menggunakan poster sebelum diputar)
