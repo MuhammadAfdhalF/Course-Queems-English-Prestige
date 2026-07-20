@@ -39,9 +39,9 @@ $isAttemptLimitReached = $latestAttempt && ! $canRetake;
                 {{ $title }}
             </h3>
 
-            <p class="mt-4 max-w-xl text-lg leading-8 text-blue-100">
-                {{ $description ?: 'This comprehensive exam covers all materials from this course. Your certificate will be processed after passing the required assessment.' }}
-            </p>
+            <div class="rich-text-content rich-text-content-dark mt-4 max-w-2xl text-base leading-7">
+                {!! $description ?: '<p>This comprehensive exam covers all materials from this course. Your certificate will be processed after passing the required assessment.</p>' !!}
+            </div>
 
             <div class="mt-5 flex flex-wrap items-center gap-2">
                 <span class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-[var(--color-brand-gold)] ring-1 ring-white/10">
