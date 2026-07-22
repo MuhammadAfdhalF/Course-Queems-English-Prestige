@@ -47,74 +47,63 @@ Nilai per section serta Final Score gabungan nantinya direncanakan untuk ditampi
 2. Mengidentifikasi root cause mengapa Final Exam saat ini terbatas 1 exam per course dan mengapa nilai exam belum masuk ke sertifikat.
 3. Mengidentifikasi seluruh call-site `CertificateService`, flow auto grading, dan manual grading.
 4. Melakukan audit database constraint, generator security, & transaction safety untuk mencegah *race condition*, *duplicate certificate*, dan *inconsistent completion state*.
-5. Mengimplementasikan dan menguji secara penuh **Phase 1 (Database and Models)**, **Phase 2 (Transactional Central Completion)**, **Phase 3 (Auto and Manual Grading Integration)**, **Phase 4 (Admin Multi-Section Management)**, dan **Phase 5 (Student Multi-Section Final Exam UI)**.
-6. Menjalankan pengujian perilaku komprehensif (behavioral & regression testing) untuk memastikan kelayakan Phase 1–5 sebelum melanjutkan ke Phase 6.
+5. Mengimplementasikan dan menguji secara penuh **Phase 1 (Database and Models)**, **Phase 2 (Transactional Central Completion)**, **Phase 3 (Auto and Manual Grading Integration)**, **Phase 4 (Admin Multi-Section Management)**, **Phase 5 (Student Multi-Section Final Exam UI)**, dan **Phase 6 (Certificate PDF Score Layout)**.
+6. Menjalankan pengujian perilaku komprehensif (behavioral, visual, & regression testing) untuk memastikan kelayakan Phase 1–6 sebelum melanjutkan ke Phase 7.
 
 ---
 
-## Deployment Warning — Minimum Package Notice (Phase 4 & 5)
+## Deployment Warning — Pre-Release Notice (Phase 1 to 6 Verified)
 
 > [!IMPORTANT]
-> **MINIMUM PACKAGE DEPLOYMENT NOTICE**:
-> Phase 4 (Admin Multi-Section Management) dan Phase 5 (Student Multi-Section Final Exam UI) telah selesai dikerjakan dan diuji secara komprehensif pada environment lokal.
-> Dengan selesainya Phase 5, Admin sudah dapat mengelola banyak section dan Student sudah dapat melihat serta mengerjakan seluruh active section secara mandiri pada Student Learning Path.
-> **Fitur belum boleh dinyatakan COMPLETED atau di-deploy penuh ke production** hingga Phase 6 (Certificate PDF Score Layout) dan Phase 7 (Final Regression & True Parallel Concurrency Test) selesai diuji.
+> **PRE-RELEASE NOTICE (Phase 1–6 Verified)**:
+> Implementation Phase 1 hingga Phase 6 telah selesai dan teruji secara penuh di environment lokal.
+> Seluruh flow pembuatan section, student learning path, penyelesaian terpusat (centralized completion), snapshot sertifikat, dan tampilan PDF score breakdown telah bekerja dengan sempurna.
+> **Pengujian akhir (Phase 7: Final Regression & True Parallel Concurrency Test)** adalah tahap terakhir yang harus dilakukan sebelum status task diubah menjadi `COMPLETED` dan aman di-deploy ke production.
 > Status task dipertahankan pada **`TESTING`**.
 
 ---
 
-## Implementation Result — Phase 5 (Student Multi-Section Final Exam UI)
+## Implementation Result — Phase 6 (Certificate PDF Score Layout)
 
-### 1. File Diubah (Phase 5)
-- **Controllers**:
-  - [app/Http/Controllers/Student/LearningController.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Http/Controllers/Student/LearningController.php):
-    - Memuat seluruh active final exam sections (`is_active = true`) milik `CourseLevel` diurutkan berdasarkan `sort_order ASC, id ASC`.
-    - Menghitung eager count `active_questions_count`.
-    - Memuat attempt student (`student_id = auth()->id()`) untuk seluruh active section dalam **single query grouped by `final_exam_id`** (zero N+1 query issue).
-    - Menyusun collection `$finalExamSections` dengan data status resolution (`passed`, `waiting_review`, `in_progress`, `failed`, `not_started`), official display score (latest passed attempt), count attempts used/remaining, serta kriteria aksi (`can_start`, `can_continue`, `can_retake`).
-    - Penerapan **Completed Enrollment Exemption**: Student yang sudah memiliki status `completed` dan sertifikat issued tidak dipaksa untuk mengerjakan active section baru yang ditambahkan Admin belakangan.
-    - Backward Compatibility: Tetap mengirim `$finalExam`, `$latestFinalExamAttempt`, `$finalExamAttemptCount`, `$canRetakeFinalExam` untuk menjaga kompatibilitas dengan komponen legacy.
+### 1. File Diubah (Phase 6)
 - **Views**:
-  - [resources/views/partials/student/learning-path/final-exam.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/partials/student/learning-path/final-exam.blade.php):
-    - Merender daftar seluruh section card dengan penomoran urut, judul section, deskripsi, passing grade, max attempts, attempt counters, status badge (Passed, Waiting for Review, In Progress, Failed, Not Started, Temporarily Unavailable), score, serta tombol aksi (*Start Exam*, *Continue Exam*, *Retake Exam*, *View Result*, *Locked*, *Unavailable*).
+  - [resources/views/pdf/certificate.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/pdf/certificate.blade.php):
+    - Audit Call-site: Merupakan satu-satunya template PDF yang digunakan oleh `Student\CertificateController` dan `Admin\CourseManagement\CertificateController` via DomPDF engine (`a4`, `landscape`).
+    - **Single Source of Truth**: Membaca nilai **HANYA** dari snapshot `$certificate->section_scores` (array) dan `$certificate->final_score` (decimal). Tidak pernah membaca ulang live data `FinalExam` atau `FinalExamAttempt`.
+    - **Legacy Fallback**: Jika `$certificate->section_scores` bernilai `null` / kosong, template 100% merender layout sertifikat legacy tanpa tabel nilai dan tanpa `Final Score`.
+    - **Score Table 1–5 Sections (Page 1)**: Merender tabel ringkas nilai per section dengan urutan snapshot, nama section ter-escape aman (`{{ }}`), format nilai `number_format(score, 2, '.', '')`, dan Final Score pada Page 1.
+    - **Multi-Page Overflow Strategy (> 5 Sections)**: Jika section $> 5$, Page 1 merender sertifikat utama dengan badge `Final Score` pada Meta Box, dan Page 2 merender "Final Exam Score Breakdown" (`page-break-before: always;`) yang berisi perincian lengkap seluruh section tanpa ada yang terpotong.
+    - **Long Title Wrapping**: Menggunakan `table-layout: fixed;` dan `word-wrap: break-word;` agar judul section yang sangat panjang memotong baris secara alami tanpa merusak border/layout PDF.
+    - **Authorization & State Safety**: Rendering PDF bekerja secara aman untuk sertifikat berstatus `locked` (preview) maupun `issued` (download resmi) tanpa pernah merubah status sertifikat.
 
 ---
 
-## Behavioral Testing Result — Phase 5
+## Behavioral & Visual Testing Result — Phase 6
 
 ### Test Environment
 - **OS**: Windows (x64)
-- **Database**: MySQL 8.0 / MariaDB lokal (`queens_english_db`) pada `127.0.0.1:3306`
-- **Isolation Strategy**: `DB::beginTransaction()` & `DB::rollBack()` (Zero side effect / Zero persistent synthetic test data)
+- **PDF Engine**: Barryvdh DomPDF (`A4 Landscape`)
+- **Isolation Strategy**: `DB::beginTransaction()` & `DB::rollBack()` + Automatic temporary PDF file cleanup (`Storage::disk('public')->delete(...)`).
 
-### Test Suite Summary (Phase 5)
-- **Total Scenarios**: 18 Scenarios
-- **Passed**: 18 Scenarios (100% Pass Rate)
+### Test Suite Summary (Phase 6)
+- **Total Scenarios**: 9 Scenarios
+- **Passed**: 9 Scenarios (100% Pass Rate)
 - **Failed**: 0 Scenarios
 
-### Detailed Test Scenario Results (Phase 5)
-1. **Scenario A (Existing Single Section)**: `[PASS]` — Course dengan 1 active section merender single card secara bersih dengan atribut dan link yang tepat.
-2. **Scenario B (Three Active Sections Ordering)**: `[PASS]` — 3 active section dimuat dalam urutan presisi `sort_order ASC, id ASC`.
-3. **Scenario C (Inactive Section Hidden)**: `[PASS]` — Section berstatus `is_active = false` sepenuhnya tersembunyi dari Student UI.
-4. **Scenario D (Not Started Status)**: `[PASS]` — Section yang belum pernah dikerjakan berstatus `not_started`, `can_start = true`, tombol *Start Exam* aktif.
-5. **Scenario E (In Progress Status)**: `[PASS]` — Section dengan attempt `in_progress` berstatus `in_progress`, `can_continue = true`, tombol *Continue Exam* aktif memakai section ID yang sesuai.
-6. **Scenario F (Waiting Review Status)**: `[PASS]` — Section berstatus `waiting_review` memblokir pembukaan attempt baru (`can_start = false`, `can_retake = false`).
-7. **Scenario G (Failed with Attempts Remaining)**: `[PASS]` — Section gagal dengan sisa kesempatan berstatus `failed`, menampilkan score (50.00%), `can_retake = true`, `attempts_remaining = 2`.
-8. **Scenario H (Failed with Max Attempts Reached)**: `[PASS]` — Section gagal yang telah mencapai max attempts berstatus `failed`, `can_retake = false`, tombol retake dinonaktifkan.
-9. **Scenario I (Passed Section)**: `[PASS]` — Section yang lulus menampilkan latest passed score (85.00%), tombol *View Result* aktif, dan section lain yang belum lulus tetap dapat dikerjakan secara bebas.
-10. **Scenario J (Latest Passed Rule Selection)**: `[PASS]` — Attempt 1 passed (score 90), Attempt 2 passed (latest, score 80) $\rightarrow$ Display score = 80.00% (konsisten dengan `CertificateService`).
-11. **Scenario K (Independent Attempt Counters)**: `[PASS]` — Attempt count terpisah secara independen antar section (Section 1 = 2 attempts, Section 2 = 1 attempt).
-12. **Scenario L (Course Progress Locked)**: `[PASS]` — Modul belum 100% selesai $\rightarrow$ `isFinalExamUnlocked = false`, seluruh section terkunci (`can_start = false`).
-13. **Scenario M (Active Section Without Question)**: `[PASS]` — Section tanpa active question berstatus `Temporarily Unavailable`, `can_start = false`.
-14. **Scenario N (Completed Student & New Section Exemption)**: `[PASS]` — Student yang sudah completed dan memiliki sertifikat tidak ditandai belum lulus ketika Admin menambah section baru.
-15. **Scenario O (Legacy Certificate Compatibility)**: `[PASS]` — Certificate legacy dengan `section_scores = null` dimuat tanpa error Blade/collection.
-16. **Scenario Q (Direct Inactive Section Access Security)**: `[PASS]` — Akses URL langsung ke section inactive menangkap error 404 security block.
-17. **Scenario R (Cross-Course IDOR Security)**: `[PASS]` — Akses URL langsung ke section milik Course B menggunakan enrollment Course A menangkap error 404 IDOR block.
-18. **Scenario S (No Certificate PDF Code Changes)**: `[PASS]` — Memverifikasi `CertificateService.php` dan `resources/views/pdf/certificate.blade.php` tidak tersentuh.
+### Detailed Test Scenario Results (Phase 6)
+1. **Scenario A (Legacy Certificate null section_scores)**: `[PASS]` — Sertifikat lama tanpa snapshot merender layout legacy tanpa tabel nilai, 0 Blade error.
+2. **Scenario B (Single Section Certificate)**: `[PASS]` — Sertifikat 1 section merender 1 baris nilai (`85.50`) dan Final Score (`85.50`) pada Page 1.
+3. **Scenario C (Three Sections Certificate)**: `[PASS]` — Sertifikat 3 section merender seluruh section (`Listening 85.00`, `Structure 80.00`, `Reading 90.00`) dan Final Score (`85.00`) pada Page 1.
+4. **Scenario D (Five Sections Certificate Compact Page 1)**: `[PASS]` — 5 section ter-render rapi pada Page 1 tanpa overlap teks atau pemotongan layout.
+5. **Scenario E (More Than 5 Sections Multi-Page Breakdown)**: `[PASS]` — 8 section merender Page 2 secara otomatis (`page-break-before: always;`) dengan judul breakdown dan seluruh 8 section lengkap.
+6. **Scenario F (Long Section Title Handling)**: `[PASS]` — Section title yang sangat panjang di-wrap dengan aman tanpa horizontal overflow.
+7. **Scenario G (Snapshot Immutability Verification)**: `[PASS]` — Mengubah nama `FinalExam` atau nilai `FinalExamAttempt` pada DB **TIDAK MERUBAH** PDF sertifikat (strictly terikat snapshot).
+8. **Scenario H (Locked & Issued Certificate Safety)**: `[PASS]` — Render PDF berhasil untuk sertifikat status `locked` maupun `issued` tanpa merubah status database.
+9. **Scenario I (Temporary Storage Cleanup Verification)**: `[PASS]` — Seluruh file PDF buatan test dibersihkan otomatis, 0 file tersisa pada storage.
 
 ---
 
-## Baseline Post-Test Database Audit (Phase 5)
+## Baseline Post-Test Database Audit (Phase 6)
 
 Pemeriksaan database *after-testing* mengonfirmasi zero residual synthetic data:
 
@@ -134,13 +123,13 @@ Pemeriksaan database *after-testing* mengonfirmasi zero residual synthetic data:
 - **Phase 3 — Auto and Manual Grading Integration**: `COMPLETED & TESTED`
 - **Phase 4 — Admin Multi-Section Management**: `COMPLETED & TESTED`
 - **Phase 5 — Student Multi-Section Final Exam UI**: `COMPLETED & TESTED`
-- **Phase 6 — Certificate PDF Score Layout**: `READY TO START`
-- **Phase 7 — Regression and Concurrency Testing**: `REMAINING`
+- **Phase 6 — Certificate PDF Score Layout**: `COMPLETED & TESTED`
+- **Phase 7 — Regression and Concurrency Testing**: `READY TO START`
 
 ---
 
 ## Remaining Notes
 
-- Phase 1, 2, 3, 4, dan 5 telah diuji 100% secara perilaku, sekuritas, dan regresi dengan **0 Failures**.
-- Status task berada pada **`TESTING`** (Phase 1–5 verified, Phase 6 siap dikerjakan).
-- Tidak ada file dari PDF Certificate, `CertificateService`, atau TASK lain yang diubah.
+- Phase 1, 2, 3, 4, 5, dan 6 telah diuji 100% secara perilaku, sekuritas, visual, dan regresi dengan **0 Failures**.
+- Status task berada pada **`TESTING`** (Phase 1–6 verified, Phase 7 siap dikerjakan).
+- Tidak ada file vendor, database migration baru, atau TASK lain yang diubah.
