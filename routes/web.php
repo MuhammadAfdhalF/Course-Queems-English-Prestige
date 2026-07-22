@@ -373,6 +373,12 @@ Route::middleware(['auth', 'role:admin'])
                 Route::put('/final-exams/{finalExam}', [FinalExamController::class, 'update'])
                     ->name('final-exams.update');
 
+                Route::patch('/final-exams/{finalExam}/toggle-active', [FinalExamController::class, 'toggleActive'])
+                    ->name('final-exams.toggle-active');
+
+                Route::delete('/final-exams/{finalExam}', [FinalExamController::class, 'destroy'])
+                    ->name('final-exams.destroy');
+
 
                 // manage final exam questions
                 Route::get('/final-exams/{finalExam}/questions', [FinalExamQuestionController::class, 'index'])

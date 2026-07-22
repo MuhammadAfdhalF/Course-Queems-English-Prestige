@@ -1,5 +1,5 @@
 @extends('layouts.admin', [
-'pageTitle' => 'Create Final Exam',
+'pageTitle' => 'Add Final Exam Section',
 'pageSubtitle' => $courseLevel->name,
 ])
 
@@ -7,7 +7,7 @@
 <section class="mx-auto max-w-5xl space-y-6">
     <x-admin.page-toolbar
         :back-url="route('admin.course-management.levels.final-exam.index', $courseLevel)"
-        back-label="Back to Final Exam" />
+        back-label="Back to Final Exam Sections" />
 
     <x-admin.flash-message />
 
@@ -16,7 +16,7 @@
     'finalExam' => null,
     'action' => route('admin.course-management.levels.final-exam.store', $courseLevel),
     'method' => 'POST',
-    'submitLabel' => 'Save Final Exam',
+    'submitLabel' => 'Save Section',
     ])
 </section>
 @endsection

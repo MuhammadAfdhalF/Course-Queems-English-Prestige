@@ -1,5 +1,5 @@
 @extends('layouts.admin', [
-'pageTitle' => 'Edit Final Exam',
+'pageTitle' => 'Edit Final Exam Section',
 'pageSubtitle' => $finalExam->courseLevel->name,
 ])
 
@@ -7,7 +7,7 @@
 <section class="mx-auto max-w-5xl space-y-6">
     <x-admin.page-toolbar
         :back-url="route('admin.course-management.levels.final-exam.index', $finalExam->courseLevel)"
-        back-label="Back to Final Exam" />
+        back-label="Back to Final Exam Sections" />
 
     <x-admin.flash-message />
 

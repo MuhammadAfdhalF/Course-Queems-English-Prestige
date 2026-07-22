@@ -28,16 +28,16 @@ $backCourseLevel = $courseLevel ?? $finalExam->courseLevel;
             </h2>
 
             <p class="mt-1 text-sm text-slate-500">
-                Configure the final exam for this course level. One course level can only have one final exam.
+                Configure this Final Exam section for the course level. You can add multiple sections (e.g., Listening, Structure, Reading).
             </p>
         </div>
 
         <x-admin.form.input
-            label="Final Exam Title"
+            label="Section Title"
             name="title"
             id="title"
             :value="old('title', $finalExam?->title)"
-            placeholder="Example: Basic 1 Final Exam"
+            placeholder="Example: Listening Comprehension Section"
             :required="true" />
 
         <x-admin.form.rich-text
@@ -45,10 +45,20 @@ $backCourseLevel = $courseLevel ?? $finalExam->courseLevel;
             name="description"
             id="description"
             :value="old('description', $finalExam?->description)"
-            hint="Write instructions for students before they start the final exam."
+            hint="Write instructions for students before they start this section."
             :height="420" />
 
-        <div class="grid gap-6 md:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-4">
+            <x-admin.form.input
+                label="Sort Order"
+                name="sort_order"
+                id="sort_order"
+                type="number"
+                min="1"
+                :value="old('sort_order', $finalExam?->sort_order ?? 1)"
+                placeholder="Example: 1"
+                :required="true" />
+
             <x-admin.form.input
                 label="Passing Grade"
                 name="passing_grade"

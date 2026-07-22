@@ -223,7 +223,7 @@ class FinalExamController extends Controller
         }
 
         if ($status === 'passed') {
-            $certificateService->createLockedCertificateFromAttempt($attempt->fresh());
+            $certificateService->evaluateAndCreateForEnrollment($enrollment);
         }
         return redirect()
             ->route('student.final-exam-result', [
