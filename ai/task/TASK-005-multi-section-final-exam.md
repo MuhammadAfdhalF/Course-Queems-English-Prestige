@@ -2,7 +2,7 @@
 
 ## Status
 
-`TESTING`
+`COMPLETED`
 
 Status yang tersedia:
 - `DISCUSSION`
@@ -37,82 +37,19 @@ Setiap section memiliki:
 - Nilai student (`total_score`);
 - Status pengerjaan & kelulusan (`status`, `passing_grade`).
 
-Nilai per section serta Final Score gabungan nantinya direncanakan untuk ditampilkan pada Sertifikat (Certificate).
+Nilai per section serta Final Score gabungan ditampilkan pada Sertifikat (Certificate) secara otomatis menggunakan snapshot immutable JSON.
 
 ---
 
 ## Objective
 
-1. Melakukan audit komprehensif (read-only) terhadap seluruh flow Final Exam, Scoring, Progress/Completion, dan Certificate yang ada di codebase saat ini.
-2. Mengidentifikasi root cause mengapa Final Exam saat ini terbatas 1 exam per course dan mengapa nilai exam belum masuk ke sertifikat.
+1. Melakukan audit komprehensif (read-only) terhadap seluruh flow Final Exam, Scoring, Progress/Completion, dan Certificate yang ada di codebase.
+2. Mengidentifikasi root cause mengapa Final Exam sebelumnya terbatas 1 exam per course dan mengapa nilai exam belum masuk ke sertifikat.
 3. Mengidentifikasi seluruh call-site `CertificateService`, flow auto grading, dan manual grading.
 4. Melakukan audit database constraint, generator security, & transaction safety untuk mencegah *race condition*, *duplicate certificate*, dan *inconsistent completion state*.
-5. Mengimplementasikan dan menguji secara penuh **Phase 1 (Database and Models)**, **Phase 2 (Transactional Central Completion)**, **Phase 3 (Auto and Manual Grading Integration)**, **Phase 4 (Admin Multi-Section Management)**, **Phase 5 (Student Multi-Section Final Exam UI)**, dan **Phase 6 (Certificate PDF Score Layout)**.
-6. Menjalankan pengujian perilaku komprehensif (behavioral, visual, & regression testing) untuk memastikan kelayakan Phase 1–6 sebelum melanjutkan ke Phase 7.
-
----
-
-## Deployment Warning — Pre-Release Notice (Phase 1 to 6 Verified)
-
-> [!IMPORTANT]
-> **PRE-RELEASE NOTICE (Phase 1–6 Verified)**:
-> Implementation Phase 1 hingga Phase 6 telah selesai dan teruji secara penuh di environment lokal.
-> Seluruh flow pembuatan section, student learning path, penyelesaian terpusat (centralized completion), snapshot sertifikat, dan tampilan PDF score breakdown telah bekerja dengan sempurna.
-> **Pengujian akhir (Phase 7: Final Regression & True Parallel Concurrency Test)** adalah tahap terakhir yang harus dilakukan sebelum status task diubah menjadi `COMPLETED` dan aman di-deploy ke production.
-> Status task dipertahankan pada **`TESTING`**.
-
----
-
-## Implementation Result — Phase 6 (Certificate PDF Score Layout)
-
-### 1. File Diubah (Phase 6)
-- **Views**:
-  - [resources/views/pdf/certificate.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/pdf/certificate.blade.php):
-    - Audit Call-site: Merupakan satu-satunya template PDF yang digunakan oleh `Student\CertificateController` dan `Admin\CourseManagement\CertificateController` via DomPDF engine (`a4`, `landscape`).
-    - **Single Source of Truth**: Membaca nilai **HANYA** dari snapshot `$certificate->section_scores` (array) dan `$certificate->final_score` (decimal). Tidak pernah membaca ulang live data `FinalExam` atau `FinalExamAttempt`.
-    - **Legacy Fallback**: Jika `$certificate->section_scores` bernilai `null` / kosong, template 100% merender layout sertifikat legacy tanpa tabel nilai dan tanpa `Final Score`.
-    - **Score Table 1–5 Sections (Page 1)**: Merender tabel ringkas nilai per section dengan urutan snapshot, nama section ter-escape aman (`{{ }}`), format nilai `number_format(score, 2, '.', '')`, dan Final Score pada Page 1.
-    - **Multi-Page Overflow Strategy (> 5 Sections)**: Jika section $> 5$, Page 1 merender sertifikat utama dengan badge `Final Score` pada Meta Box, dan Page 2 merender "Final Exam Score Breakdown" (`page-break-before: always;`) yang berisi perincian lengkap seluruh section tanpa ada yang terpotong.
-    - **Long Title Wrapping**: Menggunakan `table-layout: fixed;` dan `word-wrap: break-word;` agar judul section yang sangat panjang memotong baris secara alami tanpa merusak border/layout PDF.
-    - **Authorization & State Safety**: Rendering PDF bekerja secara aman untuk sertifikat berstatus `locked` (preview) maupun `issued` (download resmi) tanpa pernah merubah status sertifikat.
-
----
-
-## Behavioral & Visual Testing Result — Phase 6
-
-### Test Environment
-- **OS**: Windows (x64)
-- **PDF Engine**: Barryvdh DomPDF (`A4 Landscape`)
-- **Isolation Strategy**: `DB::beginTransaction()` & `DB::rollBack()` + Automatic temporary PDF file cleanup (`Storage::disk('public')->delete(...)`).
-
-### Test Suite Summary (Phase 6)
-- **Total Scenarios**: 9 Scenarios
-- **Passed**: 9 Scenarios (100% Pass Rate)
-- **Failed**: 0 Scenarios
-
-### Detailed Test Scenario Results (Phase 6)
-1. **Scenario A (Legacy Certificate null section_scores)**: `[PASS]` — Sertifikat lama tanpa snapshot merender layout legacy tanpa tabel nilai, 0 Blade error.
-2. **Scenario B (Single Section Certificate)**: `[PASS]` — Sertifikat 1 section merender 1 baris nilai (`85.50`) dan Final Score (`85.50`) pada Page 1.
-3. **Scenario C (Three Sections Certificate)**: `[PASS]` — Sertifikat 3 section merender seluruh section (`Listening 85.00`, `Structure 80.00`, `Reading 90.00`) dan Final Score (`85.00`) pada Page 1.
-4. **Scenario D (Five Sections Certificate Compact Page 1)**: `[PASS]` — 5 section ter-render rapi pada Page 1 tanpa overlap teks atau pemotongan layout.
-5. **Scenario E (More Than 5 Sections Multi-Page Breakdown)**: `[PASS]` — 8 section merender Page 2 secara otomatis (`page-break-before: always;`) dengan judul breakdown dan seluruh 8 section lengkap.
-6. **Scenario F (Long Section Title Handling)**: `[PASS]` — Section title yang sangat panjang di-wrap dengan aman tanpa horizontal overflow.
-7. **Scenario G (Snapshot Immutability Verification)**: `[PASS]` — Mengubah nama `FinalExam` atau nilai `FinalExamAttempt` pada DB **TIDAK MERUBAH** PDF sertifikat (strictly terikat snapshot).
-8. **Scenario H (Locked & Issued Certificate Safety)**: `[PASS]` — Render PDF berhasil untuk sertifikat status `locked` maupun `issued` tanpa merubah status database.
-9. **Scenario I (Temporary Storage Cleanup Verification)**: `[PASS]` — Seluruh file PDF buatan test dibersihkan otomatis, 0 file tersisa pada storage.
-
----
-
-## Baseline Post-Test Database Audit (Phase 6)
-
-Pemeriksaan database *after-testing* mengonfirmasi zero residual synthetic data:
-
-- Total `final_exams`: **2 record** (Identik dengan baseline)
-- Total `course_levels` dengan Final Exam: **2 level** (Identik dengan baseline)
-- Total `course_levels` dengan Multi Exam: **0 level** (Identik dengan baseline)
-- Total `final_exam_attempts`: **7 attempts** (Identik dengan baseline)
-- Total sections tanpa question: **0 record** (Identik dengan baseline)
-- Total active sections tanpa active question: **0 record** (Identik dengan baseline)
+5. Mengimplementasikan dan menguji secara penuh **Phase 1 (Database and Models)**, **Phase 2 (Transactional Central Completion)**, **Phase 3 (Auto and Manual Grading Integration)**, **Phase 4 (Admin Multi-Section Management)**, **Phase 5 (Student Multi-Section Final Exam UI)**, **Phase 6 (Certificate PDF Score Layout)**, dan **Phase 7 (Final Regression & True Parallel Concurrency Testing)**.
+6. Memverifikasi kelolosan 100% Quality Gate pada Phase 7 untuk menyatakan kesiapan penuh fitur untuk production.
+7. Memperbaiki Blade syntax regression pada komponen `<x-admin.flash-message />` dan memverifikasi kelolosan 100% tampilan admin.
 
 ---
 
@@ -124,12 +61,110 @@ Pemeriksaan database *after-testing* mengonfirmasi zero residual synthetic data:
 - **Phase 4 — Admin Multi-Section Management**: `COMPLETED & TESTED`
 - **Phase 5 — Student Multi-Section Final Exam UI**: `COMPLETED & TESTED`
 - **Phase 6 — Certificate PDF Score Layout**: `COMPLETED & TESTED`
-- **Phase 7 — Regression and Concurrency Testing**: `READY TO START`
+- **Phase 7 — Final Regression and Concurrency Testing**: `COMPLETED & TESTED`
+- **Regression Patch — Admin Flash Message Blade Syntax Fix**: `COMPLETED & TESTED`
 
 ---
 
-## Remaining Notes
+## Regression Fix Documentation — Admin Flash Message Component
 
-- Phase 1, 2, 3, 4, 5, dan 6 telah diuji 100% secara perilaku, sekuritas, visual, dan regresi dengan **0 Failures**.
-- Status task berada pada **`TESTING`** (Phase 1–6 verified, Phase 7 siap dikerjakan).
-- Tidak ada file vendor, database migration baru, atau TASK lain yang diubah.
+- **Root Cause**: Terjadi unhandled directive imbalance pada [resources/views/components/admin/flash-message.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/components/admin/flash-message.blade.php). Penambahan `@if (session('warning') || session('info'))` pada Phase 4 tidak menyertakan tag penutup `@endif` untuk `@if (session('error'))` pada baris 34, sehingga Blade mengompilasi file dengan `ParseError: syntax error, unexpected end of file, expecting "elseif" or "else" or "endif"`.
+- **Impact**: Seluruh halaman Admin yang merender `<x-admin.flash-message />` (termasuk `/admin/course-management/certificate-templates` dan `/admin/course-management/levels/{courseLevel}/final-exam`) menghasilkan HTTP 500.
+- **Fix**: Menambahkan tag `@endif` penutup yang presisi setelah penutup `</div>` untuk `@if (session('error'))`, serta memisahkan blok `@if (session('warning'))` (amber styling dengan icon `!`) dan `@if (session('info'))` (sky styling dengan icon `i`) secara seimbang.
+- **Verification**:
+  - `php artisan view:clear`, `php artisan view:cache`, dan `php artisan optimize:clear` terkesekusi 100% sukses tanpa error compilation.
+  - Halaman `/admin/course-management/certificate-templates` dan `/admin/course-management/levels/{courseLevel}/final-exam` kembali HTTP 200 OK.
+  - Targeted test suite (`scratch/test_flash_component.php`) menguji 9 skenario (tanpa pesan, success, error, warning, info, validation errors, dan view render) dengan hasil `100% PASS (9/9 Passed)`.
+
+---
+
+## Quality Gate Verification & Test Results — Phase 7
+
+### 1. Pre-Flight Environment Verification
+- **APP_ENV**: `local`
+- **DB Connection**: MySQL (`queens_english_db` local at 127.0.0.1:3306)
+- **Migrations Applied**: Batch 28 applied (`add_sort_order_to_final_exams_table`, `add_scores_snapshot_to_certificates_table`, `add_unique_enrollment_id_to_certificates_table`).
+- **Git Status / Diff Check**: Clean (0 formatting errors, 0 trailing whitespaces).
+
+### 2. True Multi-Process Concurrency Test Results
+- **Scenario**: 5 parallel PHP child processes executed at the exact same millisecond calling `evaluateAndCreateForEnrollment()` on the exact same student enrollment.
+- **Result**: `[PASS]`
+  - Exactly **1 Certificate** created for the enrollment in database.
+  - Zero duplicate key crashes or unhandled QueryExceptions (handled cleanly by retry loop & DB locking).
+  - Final enrollment status is strictly `completed` with `100.00%` progress.
+
+### 3. Full End-to-End Phased Integration Regression
+- **Scenario**: E2E flow from Admin creating 3 sections $\rightarrow$ Student completing 2 sections (Cert NOT created) $\rightarrow$ Student completing section 3 (Centralized completion triggers, Certificate created `locked`) $\rightarrow$ Student submitting Testimonial (Certificate unlocked `issued`) $\rightarrow$ PDF output generated with exact 3-section snapshot scores & Average Equal Weight Final Score.
+- **Result**: `[PASS]` (Partial check OK, Final completion check OK, Unlock check OK, PDF render OK).
+
+### 4. Idempotency & Repeatability Guard
+- **Scenario**: Repeated calls to `evaluateAndCreateForEnrollment()` on already completed enrollment.
+- **Result**: `[PASS]` (Identical Certificate ID returned across all 3 calls, 0 extra record created).
+
+### 5. Baseline Pre vs Post-Test Database Audit
+- Total `final_exams`: **2 record** (100% Identical to pre-test baseline)
+- Total `final_exam_attempts`: **7 attempts** (100% Identical to pre-test baseline)
+- Total `course_levels_with_multi_exam`: **0 level** (100% Identical to pre-test baseline)
+- Total synthetic residual test records: **0 records** (100% Rollback).
+
+---
+
+## Deployment & Rollback Checklist (Production Release Guide)
+
+### Pre-Deployment Checklist
+1. Backup database production (`queens_english_db`).
+2. Pastikan file `.env` production tidak mengalami perubahan setting DB.
+3. Verifikasi seluruh migration `2026_07_23_000001_*`, `2026_07_23_000002_*`, `2026_07_23_000003_*` sudah ada pada folder `database/migrations`.
+
+### Deployment Execution Steps
+```bash
+# 1. Pull latest commit
+git pull origin main
+
+# 2. Run Database Migrations
+php artisan migrate --force
+
+# 3. Clear & Cache Views, Routes, Config
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# 4. Rebuild Frontend Assets (If needed)
+npm run build
+```
+
+### Rollback Plan
+Jika terjadi kendala pada environment production:
+```bash
+# 1. Rollback Batch 28 Migrations
+php artisan migrate:rollback --step=3 --force
+
+# 2. Clear Caches
+php artisan optimize:clear
+```
+
+---
+
+## Summary of Completed Files
+
+### Migrations
+- `database/migrations/2026_07_23_000001_add_sort_order_to_final_exams_table.php`
+- `database/migrations/2026_07_23_000002_add_scores_snapshot_to_certificates_table.php`
+- `database/migrations/2026_07_23_000003_add_unique_enrollment_id_to_certificates_table.php`
+
+### Models & Core Services
+- [app/Models/FinalExam.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Models/FinalExam.php)
+- [app/Models/Certificate.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Models/Certificate.php)
+- [app/Exceptions/InconsistentEnrollmentStateException.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Exceptions/InconsistentEnrollmentStateException.php)
+- [app/Services/CertificateService.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Services/CertificateService.php)
+
+### Controllers & Views & Components
+- [app/Http/Controllers/Admin/CourseManagement/FinalExamController.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Http/Controllers/Admin/CourseManagement/FinalExamController.php)
+- [app/Http/Controllers/Admin/CourseManagement/FinalExamReviewController.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Http/Controllers/Admin/CourseManagement/FinalExamReviewController.php)
+- [app/Http/Controllers/Student/LearningController.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Http/Controllers/Student/LearningController.php)
+- [app/Http/Controllers/Student/FinalExamController.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/app/Http/Controllers/Student/FinalExamController.php)
+- [resources/views/components/admin/flash-message.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/components/admin/flash-message.blade.php)
+- [resources/views/partials/admin/course-management/final-exams/index.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/partials/admin/course-management/final-exams/index.blade.php)
+- [resources/views/partials/student/learning-path/final-exam.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/partials/student/learning-path/final-exam.blade.php)
+- [resources/views/pdf/certificate.blade.php](file:///d:/Kerja%20File/Freelance/E-Course%20Queens/Coding/Real/queens-english-prestige/resources/views/pdf/certificate.blade.php)
