@@ -17,11 +17,21 @@ $courseItems = collect($courses);
     $price = $isArray ? ($course['price'] ?? 'Rp 0') : 'Rp ' . number_format((float) ($course->price ?? 0), 0, ',', '.');
     $description = $isArray ? ($course['description'] ?? '') : ($course->short_description ?? '');
 
-    $image = $isArray
-    ? ($course['image'] ?? 'https://placehold.co/800x500/e8eef8/1e293b?text=Course')
-    : (($course->thumbnail_file ?? null)
-    ? asset('storage/' . $course->thumbnail_file)
-    : 'https://placehold.co/800x500/e8eef8/1e293b?text=' . urlencode($title));
+    $thumbnailType = $isArray
+        ? ($course['thumbnail_type'] ?? 'image')
+        : ($course->thumbnail_type ?? 'image');
+
+    $posterUrl = $isArray
+        ? ($course['poster'] ?? null)
+        : (($course->video_poster_file ?? null) ? asset('storage/' . $course->video_poster_file) : null);
+
+    $imageUrl = $isArray
+        ? ($course['image'] ?? 'https://placehold.co/800x500/e8eef8/1e293b?text=Course')
+        : (($thumbnailType === 'image' && ($course->thumbnail_file ?? null))
+            ? asset('storage/' . $course->thumbnail_file)
+            : 'https://placehold.co/800x500/e8eef8/1e293b?text=' . urlencode($title));
+
+    $cardImage = ($thumbnailType === 'video' && $posterUrl) ? $posterUrl : $imageUrl;
 
     $href = $isArray ? ($course['href'] ?? '#') : route('courses.show', $course);
 
@@ -33,10 +43,20 @@ $courseItems = collect($courses);
         <a href="{{ $href }}" class="block">
             <div class="relative aspect-[16/10] overflow-hidden bg-slate-100">
                 <img
-                    src="{{ $image }}"
+                    src="{{ $cardImage }}"
                     alt="{{ $title }}"
                     class="motion-image h-full w-full object-cover"
                     onerror="this.src='https://placehold.co/800x500/e8eef8/1e293b?text=Course';">
+
+                @if ($thumbnailType === 'video')
+                <div class="absolute inset-0 flex items-center justify-center bg-slate-950/20 transition group-hover:bg-slate-950/40">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-[var(--color-brand-blue)] shadow-lg backdrop-blur-sm transition group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </span>
+                </div>
+                @endif
 
                 <div class="absolute left-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-2">
                     <span class="inline-flex items-center rounded-lg bg-emerald-400 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-900">

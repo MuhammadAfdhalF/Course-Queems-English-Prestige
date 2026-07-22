@@ -13,6 +13,10 @@ $thumbnailUrl = $courseLevel->thumbnail_file
 ? asset('storage/' . $courseLevel->thumbnail_file)
 : 'https://placehold.co/800x500/EEF3FF/2457E6?text=Queens+English';
 
+$videoPosterUrl = $courseLevel->video_poster_file
+? asset('storage/' . $courseLevel->video_poster_file)
+: null;
+
 $isGuest = auth()->guest();
 $isStudent = auth()->check() && auth()->user()->isStudent();
 $isAdmin = auth()->check() && auth()->user()->isAdmin();
@@ -64,7 +68,9 @@ $buttonLabel = 'Pesan Sekarang';
                 @if ($courseLevel->thumbnail_file && $courseLevel->thumbnail_type === 'video')
                 <video
                     src="{{ $thumbnailUrl }}"
+                    @if($videoPosterUrl) poster="{{ $videoPosterUrl }}" @endif
                     controls
+                    preload="metadata"
                     class="motion-image h-[165px] w-full bg-slate-900 object-cover">
                 </video>
                 @else

@@ -93,7 +93,7 @@ $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? '
                 Media
             </h2>
             <p class="mt-1 text-sm text-slate-500">
-                Upload an image or video thumbnail for this course level.
+                Upload an image or video with poster image for this course level.
             </p>
         </div>
 
@@ -108,35 +108,83 @@ $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? '
             ]"
             :required="true" />
 
-        @if ($isEdit && $courseLevel?->thumbnail_file)
-        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p class="text-sm font-bold text-slate-700">
-                Current Thumbnail
-            </p>
+        <!-- IMAGE THUMBNAIL INPUT -->
+        <div x-show="thumbnailType === 'image'" class="space-y-6">
+            @if ($isEdit && $courseLevel?->thumbnail_type === 'image' && $courseLevel?->thumbnail_file)
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p class="text-sm font-bold text-slate-700">
+                    Current Image
+                </p>
 
-            <div class="mt-3">
-                @if ($courseLevel->thumbnail_type === 'image')
-                <img
-                    src="{{ asset('storage/' . $courseLevel->thumbnail_file) }}"
-                    alt="{{ $courseLevel->name }}"
-                    class="h-40 w-64 rounded-xl object-cover">
-                @else
-                <video
-                    src="{{ asset('storage/' . $courseLevel->thumbnail_file) }}"
-                    controls
-                    class="h-40 w-64 rounded-xl bg-slate-900 object-cover">
-                </video>
+                <div class="mt-3">
+                    <img
+                        src="{{ asset('storage/' . $courseLevel->thumbnail_file) }}"
+                        alt="{{ $courseLevel->name }}"
+                        class="h-40 w-64 rounded-xl object-cover">
+                </div>
+            </div>
+            @endif
+
+            <x-admin.form.file
+                label="{{ ($isEdit && $courseLevel?->thumbnail_type === 'image' && $courseLevel?->thumbnail_file) ? 'Replace Course Image' : 'Course Image' }}"
+                name="thumbnail_file"
+                id="thumbnail_file_image"
+                accept="image/jpeg,image/png,image/webp"
+                hint="Image max 4MB (JPG, PNG, WEBP). Recommended aspect ratio 16:9." />
+        </div>
+
+        <!-- VIDEO THUMBNAIL & POSTER INPUTS -->
+        <div x-show="thumbnailType === 'video'" class="space-y-6">
+            @if ($isEdit && $courseLevel?->thumbnail_type === 'video' && ($courseLevel?->thumbnail_file || $courseLevel?->video_poster_file))
+            <div class="grid gap-4 sm:grid-cols-2">
+                @if ($courseLevel->thumbnail_file)
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-sm font-bold text-slate-700">
+                        Current Video File
+                    </p>
+
+                    <div class="mt-3">
+                        <video
+                            src="{{ asset('storage/' . $courseLevel->thumbnail_file) }}"
+                            poster="{{ $courseLevel->video_poster_file ? asset('storage/' . $courseLevel->video_poster_file) : '' }}"
+                            controls
+                            class="h-40 w-full rounded-xl bg-slate-900 object-cover">
+                        </video>
+                    </div>
+                </div>
+                @endif
+
+                @if ($courseLevel->video_poster_file)
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-sm font-bold text-slate-700">
+                        Current Video Poster
+                    </p>
+
+                    <div class="mt-3">
+                        <img
+                            src="{{ asset('storage/' . $courseLevel->video_poster_file) }}"
+                            alt="Video Poster"
+                            class="h-40 w-full rounded-xl object-cover">
+                    </div>
+                </div>
                 @endif
             </div>
-        </div>
-        @endif
+            @endif
 
-        <x-admin.form.file
-            label="{{ $isEdit ? 'Replace Thumbnail File' : 'Thumbnail File' }}"
-            name="thumbnail_file"
-            id="thumbnail_file"
-            accept="image/*,video/*"
-            hint="Image max 4MB. Video max 20MB. Leave empty on edit if you do not want to replace it." />
+            <x-admin.form.file
+                label="{{ ($isEdit && $courseLevel?->thumbnail_type === 'video' && $courseLevel?->thumbnail_file) ? 'Replace Course Video' : 'Course Video File' }}"
+                name="thumbnail_file"
+                id="thumbnail_file_video"
+                accept="video/mp4,video/webm,video/quicktime"
+                hint="Video file max 20MB (MP4, WEBM, MOV). Displayed on course detail page." />
+
+            <x-admin.form.file
+                label="{{ ($isEdit && $courseLevel?->video_poster_file) ? 'Replace Video Poster Image' : 'Video Poster Image' }}"
+                name="video_poster_file"
+                id="video_poster_file"
+                accept="image/jpeg,image/png,image/webp"
+                hint="Poster image max 4MB. Used on Homepage, Course Catalog, and Student My Courses cards. Recommended aspect ratio 16:9." />
+        </div>
 
         <div class="border-t border-slate-200 pt-8">
             <h2 class="text-xl font-bold text-slate-900">

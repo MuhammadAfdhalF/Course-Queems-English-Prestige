@@ -72,7 +72,7 @@
                             Password
                         </label>
 
-                        <a href="#" class="text-xs font-bold text-[#2457E6] hover:underline">
+                        <a href="{{ route('password.request') }}" class="text-xs font-bold text-[#2457E6] hover:underline">
                             Forgot password?
                         </a>
                     </div>

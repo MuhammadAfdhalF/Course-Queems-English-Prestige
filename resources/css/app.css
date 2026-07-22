@@ -238,6 +238,53 @@
     text-decoration: underline;
 }
 
+/* Rich text dark theme modifier (for dark navy cards) */
+.rich-text-content.rich-text-content-dark,
+.rich-text-content-dark {
+    color: #dbeafe;
+}
+
+.rich-text-content-dark h1,
+.rich-text-content-dark h2,
+.rich-text-content-dark h3,
+.rich-text-content-dark h4,
+.rich-text-content-dark strong,
+.rich-text-content-dark b {
+    color: #ffffff;
+}
+
+.rich-text-content-dark p {
+    color: #dbeafe;
+    margin-bottom: 0.75rem;
+}
+
+.rich-text-content-dark p:last-child {
+    margin-bottom: 0;
+}
+
+.rich-text-content-dark ul,
+.rich-text-content-dark ol {
+    color: #dbeafe;
+    margin-bottom: 0.75rem;
+}
+
+.rich-text-content-dark li {
+    color: #dbeafe;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.rich-text-content-dark a {
+    color: #f59e0b;
+    text-decoration: underline;
+}
+
+.rich-text-content-dark blockquote {
+    border-left-color: #3b82f6;
+    background: rgba(255, 255, 255, 0.08);
+    color: #eff6ff;
+}
+
 .practice-preview-question+.practice-preview-question {
     border-top: 1px solid #e2e8f0;
     padding-top: 2.5rem;

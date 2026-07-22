@@ -5,6 +5,8 @@
 'price' => 'Rp 0',
 'description' => 'Short description about this course.',
 'image' => 'https://placehold.co/800x500',
+'poster' => null,
+'thumbnailType' => 'image',
 'href' => '#',
 'buttonText' => 'View Detail',
 'statusLabel' => 'Available',
@@ -19,14 +21,27 @@ $modeClasses = match ($mode) {
 'Hybrid' => 'bg-yellow-100 text-[var(--color-brand-blue)]',
 default => 'bg-[#58E19A] text-[var(--color-brand-blue)]',
 };
+
+$cardImage = ($thumbnailType === 'video' && $poster) ? $poster : $image;
 @endphp
 
 <div {{ $attributes->merge(['class' => 'group motion-card overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-sm']) }}>
     <div class="relative aspect-[4/3] overflow-hidden bg-slate-100">
         <img
-            src="{{ $image }}"
+            src="{{ $cardImage }}"
             alt="{{ $title }}"
-            class="motion-image h-full w-full object-cover">
+            class="motion-image h-full w-full object-cover"
+            onerror="this.src='https://placehold.co/800x500/EEF3FF/2457E6?text=Queens+English';">
+
+        @if ($thumbnailType === 'video')
+        <div class="absolute inset-0 flex items-center justify-center bg-slate-950/20 transition group-hover:bg-slate-950/40">
+            <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-[var(--color-brand-blue)] shadow-lg backdrop-blur-sm transition group-hover:scale-110">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </span>
+        </div>
+        @endif
 
         <div class="absolute left-3 top-3">
             <span class="inline-flex items-center rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] {{ $modeClasses }}">

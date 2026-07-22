@@ -12,27 +12,32 @@
 
     @forelse ($courseLevels as $level)
     @php
+    $thumbnailUrl = match ($level->thumbnail_type) {
+        'video' => $level->video_poster_file ? asset('storage/' . $level->video_poster_file) : null,
+        default => $level->thumbnail_file ? asset('storage/' . $level->thumbnail_file) : null,
+    };
+
     $thumbnailPayload = [
-    'title' => $level->name,
-    'url' => $level->thumbnail_file ? asset('storage/' . $level->thumbnail_file) : null,
+        'title' => $level->name,
+        'url' => $thumbnailUrl,
     ];
 
     $deletePayload = [
-    'id' => $level->id,
-    'title' => $level->name,
-    'delete_url' => route('admin.course-management.levels.destroy', $level),
+        'id' => $level->id,
+        'title' => $level->name,
+        'delete_url' => route('admin.course-management.levels.destroy', $level),
     ];
 
     $learningModeLabel = match ($level->learning_mode) {
-    'offline' => 'Offline',
-    'hybrid' => 'Hybrid',
-    default => 'Online',
+        'offline' => 'Offline',
+        'hybrid' => 'Hybrid',
+        default => 'Online',
     };
 
     $learningModeClass = match ($level->learning_mode) {
-    'offline' => 'bg-slate-100 text-slate-700',
-    'hybrid' => 'bg-amber-50 text-amber-700',
-    default => 'bg-emerald-50 text-emerald-700',
+        'offline' => 'bg-slate-100 text-slate-700',
+        'hybrid' => 'bg-amber-50 text-amber-700',
+        default => 'bg-emerald-50 text-emerald-700',
     };
     @endphp
 
@@ -54,10 +59,22 @@
                         <x-admin.icon name="eye" class="h-5 w-5 opacity-0 transition group-hover:opacity-100" />
                     </span>
                 </button>
-                @elseif ($level->thumbnail_file && $level->thumbnail_type === 'video')
-                <div class="flex h-14 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white">
-                    <x-admin.icon name="play" class="h-5 w-5" />
-                </div>
+                @elseif ($level->thumbnail_type === 'video')
+                <button
+                    type="button"
+                    title="Preview Video Poster"
+                    @click='openImagePreview(@json($thumbnailPayload))'
+                    class="group relative flex h-14 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-900 text-white">
+                    @if ($level->video_poster_file)
+                    <img
+                        src="{{ asset('storage/' . $level->video_poster_file) }}"
+                        alt="{{ $level->name }}"
+                        class="h-full w-full object-cover opacity-80 transition duration-200 group-hover:scale-105 group-hover:opacity-100">
+                    @endif
+                    <span class="absolute inset-0 flex items-center justify-center bg-slate-900/30 text-white transition group-hover:bg-slate-900/50">
+                        <x-admin.icon name="play" class="h-5 w-5" />
+                    </span>
+                </button>
                 @else
                 <div class="flex h-14 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
                     <x-admin.icon name="image" class="h-5 w-5" />

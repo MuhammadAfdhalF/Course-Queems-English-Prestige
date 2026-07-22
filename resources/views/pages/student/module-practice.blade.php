@@ -22,9 +22,9 @@
             </h1>
 
             @if ($practice->description)
-            <p class="mt-4 text-base leading-7 text-slate-600">
-                {{ $practice->description }}
-            </p>
+            <div class="rich-text-content mt-4 text-base leading-7 text-slate-600">
+                {!! $practice->description !!}
+            </div>
             @endif
 
             <div class="mt-5 flex flex-wrap gap-2">

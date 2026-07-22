@@ -19,6 +19,8 @@
                 :price="$course['price']"
                 :description="$course['description']"
                 :image="$course['image']"
+                :poster="$course['poster'] ?? null"
+                :thumbnail-type="$course['thumbnailType'] ?? 'image'"
                 :href="$course['href']"
                 :button-text="$course['buttonText']"
                 :status-label="$course['statusLabel']"

@@ -22,6 +22,8 @@
             :progress-label="$course['progressLabel']"
             :badge="$course['badge']"
             :image="$course['image']"
+            :poster="$course['poster'] ?? null"
+            :thumbnail-type="$course['thumbnailType'] ?? 'image'"
             :primary-button="$course['primaryButton']"
             :secondary-button="$course['secondaryButton']"
             :primary-href="$course['primaryHref'] ?? '#'" />

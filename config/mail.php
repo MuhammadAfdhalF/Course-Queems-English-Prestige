@@ -18,6 +18,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Admin Order Notification Recipient
+    |--------------------------------------------------------------------------
+    |
+    | The email address that receives notifications when a new course order
+    | is placed by a student.
+    |
+    */
+
+    'admin_order_email' => env('ADMIN_ORDER_EMAIL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Mailer Configurations
     |--------------------------------------------------------------------------
     |

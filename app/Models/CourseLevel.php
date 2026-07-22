@@ -14,6 +14,7 @@ class CourseLevel extends Model
         'slug',
         'thumbnail_type',
         'thumbnail_file',
+        'video_poster_file',
         'short_description',
         'description',
         'price',

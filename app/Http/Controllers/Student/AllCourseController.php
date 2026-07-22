@@ -69,6 +69,14 @@ class AllCourseController extends Controller
 
                 $statusData = $this->resolveStudentCourseStatus($courseLevel, $enrollment, $latestOrder);
 
+                $thumbnail = ($courseLevel->thumbnail_type === 'image' && $courseLevel->thumbnail_file)
+                    ? asset('storage/' . $courseLevel->thumbnail_file)
+                    : 'https://placehold.co/800x500/EEF3FF/2457E6?text=' . urlencode($courseLevel->name);
+
+                $poster = $courseLevel->video_poster_file
+                    ? asset('storage/' . $courseLevel->video_poster_file)
+                    : null;
+
                 return array_merge([
                     'id' => $courseLevel->id,
                     'title' => $courseLevel->name,
@@ -76,9 +84,9 @@ class AllCourseController extends Controller
                     'mode' => $this->formatLearningMode($courseLevel->learning_mode),
                     'price' => 'Rp ' . number_format((float) $courseLevel->price, 0, ',', '.'),
                     'description' => $courseLevel->short_description ?: 'Course description will be available soon.',
-                    'image' => $courseLevel->thumbnail_file
-                        ? asset('storage/' . $courseLevel->thumbnail_file)
-                        : 'https://placehold.co/800x500/EEF3FF/2457E6?text=Queens+English',
+                    'image' => $thumbnail,
+                    'poster' => $poster,
+                    'thumbnailType' => $courseLevel->thumbnail_type ?? 'image',
                 ], $statusData);
             })
             ->when(
