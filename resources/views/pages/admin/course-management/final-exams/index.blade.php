@@ -77,10 +77,14 @@
     </x-admin.table-card>
     @else
     <div class="space-y-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-lg font-bold text-slate-900">
                 Final Exam Sections ({{ $finalExams->count() }})
             </h3>
+
+            <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                Active Final Exam Sections ({{ $finalExams->where('is_active', true)->count() }})
+            </span>
         </div>
 
         @foreach ($finalExams as $section)

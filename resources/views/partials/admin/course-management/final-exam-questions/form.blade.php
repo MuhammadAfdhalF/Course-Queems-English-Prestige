@@ -5,6 +5,7 @@
 'method' => 'POST',
 'submitLabel' => 'Save Question',
 'nextSortOrder' => null,
+'activateWhenReady' => false,
 ])
 
 @php
@@ -13,6 +14,7 @@ $currentType = old('question_type', $question?->question_type ?? 'multiple_choic
 
 $options = collect($question?->options ?? [])->keyBy('option_label');
 $correctOption = old('correct_option', optional($options->firstWhere('is_correct', true))->option_label ?? 'A');
+$shouldActivateWhenReady = (bool) old('activate_when_ready', request('activate_when_ready', $activateWhenReady ? 1 : 0));
 @endphp
 
 <x-admin.table-card>
@@ -27,6 +29,10 @@ $correctOption = old('correct_option', optional($options->firstWhere('is_correct
 
         @if ($method !== 'POST')
         @method($method)
+        @endif
+
+        @if ($shouldActivateWhenReady)
+        <input type="hidden" name="activate_when_ready" value="1">
         @endif
 
         <div>
