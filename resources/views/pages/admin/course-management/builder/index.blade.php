@@ -375,8 +375,88 @@
                 });
             },
 
-            closeDrawer() {
+            openCreateMaterialDrawer(moduleId, storeUrl) {
+                this.drawerType = 'create_material';
+                this.drawerTitle = 'Add Module Material';
+                this.drawerParentContext = 'Module Material';
+                this.drawerActionUrl = storeUrl;
+                this.drawerMethod = 'POST';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = false;
+                this.drawerSaving = false;
+
+                this.drawerData = {
+                    module_id: moduleId,
+                    title: '',
+                    material_type: 'text',
+                    content: '',
+                    file_path: null,
+                    file_url: null,
+                    is_active: true
+                };
+
+                this.drawerOpen = true;
+            },
+
+            openEditMaterialDrawer(editUrl) {
+                this.drawerType = 'edit_material';
+                this.drawerTitle = 'Edit Module Material';
+                this.drawerParentContext = 'Module Material';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = true;
+                this.drawerSaving = false;
+                this.drawerOpen = true;
+
+                fetch(editUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        const d = res.data;
+                        this.drawerActionUrl = d.update_url;
+                        this.drawerMethod = 'PUT';
+                        this.drawerData = {
+                            id: d.id,
+                            module_id: d.module_id,
+                            title: d.title || '',
+                            material_type: d.material_type || 'text',
+                            content: d.content || '',
+                            file_path: d.file_path,
+                            file_url: d.file_url,
+                            sort_order: d.sort_order,
+                            is_active: !!d.is_active
+                        };
+                    } else {
+                        this.drawerGeneralError = res.message || 'Failed to fetch material details.';
+                    }
+                })
+                .catch(err => {
+                    this.drawerGeneralError = err.message || 'Server error loading material.';
+                })
+                .finally(() => {
+                    this.drawerLoading = false;
+                });
+            },
+
+            isDrawerDirty() {
+                if (!this.drawerOpen || this.drawerSaving || this.drawerLoading) return false;
+                if (this.drawerType === 'create_level' && (this.drawerData.name || this.drawerData.short_description)) return true;
+                if (this.drawerType === 'create_module' && (this.drawerData.title || this.drawerData.short_description)) return true;
+                if (this.drawerType === 'create_material' && (this.drawerData.title || this.drawerData.content)) return true;
+                return false;
+            },
+
+            closeDrawer(force = false) {
                 if (this.drawerSaving) return;
+                if (!force && this.isDrawerDirty()) {
+                    if (!confirm('You have unsaved changes. Are you sure you want to close?')) return;
+                }
                 this.drawerOpen = false;
             },
 
@@ -397,6 +477,8 @@
                     formData.append('_method', 'PUT');
                 }
 
+                formData.append('expected_program_id', this.programId);
+
                 if (this.drawerType.includes('level')) {
                     formData.set('name', this.drawerData.name || '');
                     formData.set('slug', this.drawerData.slug || '');
@@ -409,7 +491,9 @@
                     if (this.drawerData.access_type === 'limited' && this.drawerData.access_duration_days) {
                         formData.set('access_duration_days', this.drawerData.access_duration_days);
                     }
-                    formData.set('sort_order', this.drawerData.sort_order || 0);
+                    if (this.drawerData.sort_order !== undefined) {
+                        formData.set('sort_order', this.drawerData.sort_order);
+                    }
                     if (this.drawerData.is_active) {
                         formData.set('is_active', '1');
                     } else {
@@ -432,11 +516,32 @@
                     formData.set('title', this.drawerData.title || '');
                     formData.set('slug', this.drawerData.slug || '');
                     formData.set('short_description', this.drawerData.short_description || '');
-                    formData.set('sort_order', this.drawerData.sort_order || 0);
+                    if (this.drawerData.sort_order !== undefined) {
+                        formData.set('sort_order', this.drawerData.sort_order);
+                    }
                     if (this.drawerData.is_preview) {
                         formData.set('is_preview', '1');
                     } else {
                         formData.delete('is_preview');
+                    }
+                    if (this.drawerData.is_active) {
+                        formData.set('is_active', '1');
+                    } else {
+                        formData.delete('is_active');
+                    }
+                } else if (this.drawerType.includes('material')) {
+                    formData.set('title', this.drawerData.title || '');
+                    formData.set('material_type', this.drawerData.material_type || 'text');
+                    if (this.drawerData.sort_order !== undefined) {
+                        formData.set('sort_order', this.drawerData.sort_order);
+                    }
+                    if (this.drawerData.material_type === 'text') {
+                        formData.set('content', this.drawerData.content || (document.getElementById('drawer_material_content')?.value || ''));
+                    } else {
+                        const matFileInput = document.getElementById('drawer_material_file_path');
+                        if (matFileInput && matFileInput.files.length > 0) {
+                            formData.set('file_path', matFileInput.files[0]);
+                        }
                     }
                     if (this.drawerData.is_active) {
                         formData.set('is_active', '1');
@@ -492,7 +597,7 @@
 
             // DELETE MODAL ACTIONS
             confirmDelete(type, id, title, deleteUrl, redirectNode = null) {
-                this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : 'Delete Module';
+                this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : (type === 'module' ? 'Delete Module' : 'Delete Material');
                 this.deleteModalItemTitle = title;
                 this.deleteModalUrl = deleteUrl;
                 this.deleteRedirectNode = redirectNode || { level: null, module: null, exam: null, tab: 'overview' };
@@ -517,10 +622,16 @@
                     }
                 })
                 .then(res => {
+                    if (res.status === 422) {
+                        return res.json().then(errData => {
+                            this.deleteModalError = errData.message || 'Cannot delete item.';
+                        });
+                    }
                     if (!res.ok) throw new Error(`Delete failed (${res.status})`);
                     return res.json();
                 })
                 .then(data => {
+                    if (!data) return;
                     if (data.status === 'success') {
                         this.deleteModalOpen = false;
                         this.refreshTree();
@@ -530,7 +641,9 @@
                     }
                 })
                 .catch(err => {
-                    this.deleteModalError = err.message || 'Server error deleting item.';
+                    if (!this.deleteModalError) {
+                        this.deleteModalError = err.message || 'Server error deleting item.';
+                    }
                 })
                 .finally(() => {
                     this.deleteModalDeleting = false;

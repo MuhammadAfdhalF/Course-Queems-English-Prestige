@@ -307,6 +307,18 @@ class CourseLevelController extends Controller
     {
         $courseProgram = $courseLevel->courseProgram;
 
+        // Delete Guard: Prevent forced cascade delete if level contains modules or final exams
+        if ($courseLevel->modules()->exists() || $courseLevel->finalExams()->exists()) {
+            $msg = 'Cannot delete level "' . $courseLevel->name . '" because it contains modules or exam sections. Please remove or reassign them first.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $msg
+                ], 422);
+            }
+            return back()->withErrors(['delete' => $msg]);
+        }
+
         if ($courseLevel->thumbnail_file && Storage::disk('public')->exists($courseLevel->thumbnail_file)) {
             Storage::disk('public')->delete($courseLevel->thumbnail_file);
         }

@@ -65,7 +65,7 @@
             class="border-b-2 px-4 py-2.5 transition flex items-center gap-1.5"
             :class="selectedParams.tab === 'materials' ? 'border-[var(--color-brand-blue)] text-[var(--color-brand-blue)]' : 'border-transparent text-slate-500 hover:text-slate-700'">
             <span>Materials</span>
-            <span class="rounded-full bg-slate-100 px-2 py-0.2 text-[10px] text-slate-600">{{ $module->materials->count() }}</span>
+            <span class="rounded-full bg-slate-100 px-2 py-0.2 text-[10px] text-slate-600">{{ $selectedModule->materials_count ?? $module->materials->count() }}</span>
         </button>
 
         <button
@@ -82,69 +82,163 @@
     {{-- Content --}}
     <div class="space-y-4">
         @if ($tab === 'materials')
-            <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-slate-800">Materials List ({{ $module->materials->count() }})</h3>
-                    <div class="flex items-center gap-2">
-                        <a
-                            href="{{ route('admin.course-management.modules.materials.create', $module->id) }}"
-                            class="inline-flex items-center gap-1 rounded-lg bg-[var(--color-brand-blue)] px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:opacity-90">
-                            + Add Material
-                        </a>
+            @php
+                $materialsList = isset($materialsPaginator) ? $materialsPaginator->items() : $module->materials;
+            @endphp
+            <div class="space-y-4">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">Learning Materials ({{ $selectedModule->materials_count ?? count($materialsList) }})</h3>
+                        <p class="text-xs text-slate-400">Manage all materials for {{ $module->title }}</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
                         <a
                             href="{{ route('admin.course-management.modules.materials.index', $module->id) }}"
-                            class="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline">
+                            class="text-xs font-medium text-slate-400 hover:text-slate-600 hover:underline">
                             Legacy Materials Page &rarr;
                         </a>
+
+                        <button
+                            type="button"
+                            @click="openCreateMaterialDrawer('{{ $module->id }}', '{{ route('admin.course-management.programs.builder.materials.store', ['courseProgram' => $courseProgram->id, 'module' => $module->id]) }}')"
+                            class="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-brand-blue)] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span>+ Add Material</span>
+                        </button>
                     </div>
                 </div>
 
-                @if ($module->materials->isEmpty())
+                @if (empty($materialsList) || count($materialsList) === 0)
                     <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-                        <p class="text-xs font-semibold text-slate-500">No materials uploaded for this module yet.</p>
-                        <div class="mt-3">
-                            <a
-                                href="{{ route('admin.course-management.modules.materials.create', $module->id) }}"
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h4 class="mt-3 text-sm font-bold text-slate-800">No materials yet</h4>
+                        <p class="mt-1 text-xs text-slate-500 max-w-sm mx-auto">Add the first material to this module to provide learning content to students.</p>
+                        <div class="mt-4">
+                            <button
+                                type="button"
+                                @click="openCreateMaterialDrawer('{{ $module->id }}', '{{ route('admin.course-management.programs.builder.materials.store', ['courseProgram' => $courseProgram->id, 'module' => $module->id]) }}')"
                                 class="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-brand-blue)] px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-90">
-                                <span>Upload First Material</span> &rarr;
-                            </a>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span>Add First Material</span>
+                            </button>
                         </div>
                     </div>
                 @else
-                    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        <table class="w-full text-left text-xs text-slate-600">
-                            <thead class="bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200">
-                                <tr>
-                                    <th class="px-4 py-3">Sort</th>
-                                    <th class="px-4 py-3">Title</th>
-                                    <th class="px-4 py-3">Type</th>
-                                    <th class="px-4 py-3">Status</th>
-                                    <th class="px-4 py-3 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                @foreach ($module->materials as $mat)
-                                <tr class="hover:bg-slate-50/50">
-                                    <td class="px-4 py-3 font-extrabold text-slate-400">#{{ $mat->sort_order }}</td>
-                                    <td class="px-4 py-3 font-bold text-slate-800">{{ $mat->title }}</td>
-                                    <td class="px-4 py-3 uppercase font-semibold text-blue-600">{{ $mat->material_type ?? 'Document/Video' }}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase {{ $mat->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">
-                                            {{ $mat->is_active ? 'Active' : 'Inactive' }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                        <a
-                                            href="{{ route('admin.course-management.modules.materials.index', $module->id) }}"
-                                            class="text-xs font-bold text-[var(--color-brand-blue)] hover:underline">
-                                            Manage &rarr;
-                                        </a>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="grid gap-3">
+                        @foreach ($materialsList as $mat)
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex items-start gap-3">
+                                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-xs font-extrabold text-slate-600 shrink-0">
+                                        #{{ $mat->sort_order }}
+                                    </span>
+
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                                                {{ $mat->material_type }}
+                                            </span>
+                                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase {{ $mat->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">
+                                                {{ $mat->is_active ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        </div>
+
+                                        <h4 class="mt-1 text-sm font-bold text-slate-900">
+                                            {{ $mat->title }}
+                                        </h4>
+
+                                        @if ($mat->material_type === 'text')
+                                        <p class="mt-1 text-xs text-slate-500 line-clamp-1">
+                                            {{ Str::limit(strip_tags($mat->content), 120) }}
+                                        </p>
+                                        @elseif ($mat->file_path)
+                                        <p class="mt-1 text-[11px] text-slate-400 font-mono">
+                                            {{ basename($mat->file_path) }}
+                                        </p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2 border-t border-slate-100 pt-3 sm:border-t-0 sm:pt-0 shrink-0">
+                                    {{-- Open / Preview Action --}}
+                                    @if ($mat->material_type === 'text')
+                                    <button
+                                        type="button"
+                                        @click="openEditMaterialDrawer('{{ route('admin.course-management.programs.builder.materials.edit', ['courseProgram' => $courseProgram->id, 'moduleMaterial' => $mat->id]) }}')"
+                                        class="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition">
+                                        <span>Read / Edit</span>
+                                    </button>
+                                    @elseif ($mat->file_path)
+                                    <a
+                                        href="{{ asset('storage/' . $mat->file_path) }}"
+                                        target="_blank"
+                                        class="inline-flex items-center gap-1 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-[var(--color-brand-blue)] hover:bg-blue-100 transition">
+                                        <span>Preview File</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                    @endif
+
+                                    {{-- Edit Material --}}
+                                    <button
+                                        type="button"
+                                        @click="openEditMaterialDrawer('{{ route('admin.course-management.programs.builder.materials.edit', ['courseProgram' => $courseProgram->id, 'moduleMaterial' => $mat->id]) }}')"
+                                        class="rounded-xl border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
+                                        title="Edit Material">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+
+                                    {{-- Delete Material --}}
+                                    <button
+                                        type="button"
+                                        @click="confirmDelete('material', '{{ $mat->id }}', '{{ addslashes($mat->title) }}', '{{ route('admin.course-management.programs.builder.materials.destroy', ['courseProgram' => $courseProgram->id, 'moduleMaterial' => $mat->id]) }}', { level: '{{ $level->id }}', module: '{{ $module->id }}', exam: null, tab: 'materials' })"
+                                        class="rounded-xl bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 transition"
+                                        title="Delete Material">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
+
+                    @if (isset($materialsPaginator) && $materialsPaginator->hasPages())
+                        <div class="flex items-center justify-between border-t border-slate-200 pt-4 text-xs font-semibold">
+                            <span class="text-slate-500">Page {{ $materialsPaginator->currentPage() }} of {{ $materialsPaginator->lastPage() }}</span>
+                            <div class="flex items-center gap-2">
+                                @if (!$materialsPaginator->onFirstPage())
+                                    <button
+                                        type="button"
+                                        @click="selectNode({ level: '{{ $level->id }}', module: '{{ $module->id }}', exam: null, tab: 'materials', page: {{ $materialsPaginator->currentPage() - 1 }} })"
+                                        class="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-100">
+                                        &larr; Previous
+                                    </button>
+                                @endif
+                                @if ($materialsPaginator->hasMorePages())
+                                    <button
+                                        type="button"
+                                        @click="selectNode({ level: '{{ $level->id }}', module: '{{ $module->id }}', exam: null, tab: 'materials', page: {{ $materialsPaginator->currentPage() + 1 }} })"
+                                        class="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-100">
+                                        Next &rarr;
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 @endif
             </div>
         @elseif ($tab === 'practice')
@@ -170,7 +264,7 @@
                             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Materials Count</h4>
                             <button type="button" @click="selectNode({ level: '{{ $level->id }}', module: '{{ $module->id }}', exam: null, tab: 'materials' })" class="text-xs font-bold text-[var(--color-brand-blue)] hover:underline">Manage Materials &rarr;</button>
                         </div>
-                        <p class="mt-2 text-3xl font-black text-slate-800">{{ $module->materials->count() }} Items</p>
+                        <p class="mt-2 text-3xl font-black text-slate-800">{{ $selectedModule->materials_count ?? $module->materials->count() }} Items</p>
                     </div>
 
                     <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

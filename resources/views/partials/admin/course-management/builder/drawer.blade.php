@@ -20,7 +20,7 @@
 
     <div class="fixed inset-0 overflow-hidden">
         <div class="absolute inset-0 overflow-hidden">
-            <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+            <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full sm:pl-10">
                 <div
                     x-show="drawerOpen"
                     x-transition:enter="transform transition ease-in-out duration-300"
@@ -29,7 +29,7 @@
                     x-transition:leave="transform transition ease-in-out duration-300"
                     x-transition:leave-start="translate-x-0"
                     x-transition:leave-end="translate-x-full"
-                    class="pointer-events-auto w-screen max-w-2xl bg-white shadow-2xl flex flex-col">
+                    class="pointer-events-auto w-screen max-w-full sm:max-w-2xl bg-white shadow-2xl flex flex-col">
 
                     {{-- Drawer Header --}}
                     <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50">
@@ -64,7 +64,7 @@
                             </div>
                         </template>
 
-                        {{-- Level Form --}}
+                        {{-- Form Body --}}
                         <form
                             id="builderDrawerForm"
                             x-show="!drawerLoading"
@@ -232,26 +232,15 @@
                                         </div>
                                     </div>
 
-                                    {{-- Settings --}}
-                                    <div class="border-t border-slate-200 pt-4 grid gap-4 sm:grid-cols-2">
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Sort Order</label>
+                                    {{-- Status Checkbox --}}
+                                    <div class="border-t border-slate-200 pt-4">
+                                        <label class="inline-flex items-center gap-2 cursor-pointer">
                                             <input
-                                                type="number"
-                                                x-model="drawerData.sort_order"
-                                                min="0"
-                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
-                                        </div>
-
-                                        <div class="flex items-center pt-5">
-                                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    x-model="drawerData.is_active"
-                                                    class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                                                <span class="text-xs font-bold text-slate-700">Active Level</span>
-                                            </label>
-                                        </div>
+                                                type="checkbox"
+                                                x-model="drawerData.is_active"
+                                                class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                            <span class="text-xs font-bold text-slate-700">Active Level</span>
+                                        </label>
                                     </div>
                                 </div>
                             </template>
@@ -297,17 +286,8 @@
                                             class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
                                     </div>
 
-                                    <div class="grid gap-4 sm:grid-cols-3">
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Sort Order</label>
-                                            <input
-                                                type="number"
-                                                x-model="drawerData.sort_order"
-                                                min="0"
-                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
-                                        </div>
-
-                                        <div class="flex items-center pt-5">
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div class="flex items-center pt-2">
                                             <label class="inline-flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -317,7 +297,7 @@
                                             </label>
                                         </div>
 
-                                        <div class="flex items-center pt-5">
+                                        <div class="flex items-center pt-2">
                                             <label class="inline-flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -326,6 +306,110 @@
                                                 <span class="text-xs font-bold text-slate-700">Active Module</span>
                                             </label>
                                         </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- MATERIAL FORM FIELDS (PHASE C) --}}
+                            <template x-if="drawerType === 'create_material' || drawerType === 'edit_material'">
+                                <div class="space-y-6">
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Material Title <span class="text-rose-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                x-model="drawerData.title"
+                                                placeholder="e.g. Introduction & Grammar Rules"
+                                                required
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
+                                            <template x-if="drawerErrors.title">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.title[0]"></p>
+                                            </template>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Material Type <span class="text-rose-500">*</span></label>
+                                            <select
+                                                x-model="drawerData.material_type"
+                                                required
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+                                                <option value="text">Text / Rich Content</option>
+                                                <option value="image">Image</option>
+                                                <option value="video">Video</option>
+                                                <option value="audio">Audio / Voice Note</option>
+                                                <option value="pdf">PDF Document</option>
+                                                <option value="file">File (DOC, PPT, ZIP)</option>
+                                            </select>
+                                            <template x-if="drawerErrors.material_type">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.material_type[0]"></p>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    {{-- Text Material Content --}}
+                                    <div x-show="drawerData.material_type === 'text'">
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Learning Content <span class="text-rose-500">*</span></label>
+                                        <textarea
+                                            id="drawer_material_content"
+                                            name="content"
+                                            x-model="drawerData.content"
+                                            rows="8"
+                                            placeholder="Write formatted learning content..."
+                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                        <template x-if="drawerErrors.content">
+                                            <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.content[0]"></p>
+                                        </template>
+                                    </div>
+
+                                    {{-- File Upload Material Content --}}
+                                    <div x-show="drawerData.material_type !== 'text'" class="space-y-4">
+                                        <template x-if="drawerData.file_url">
+                                            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                                <p class="text-xs font-bold text-slate-700">Current Attached File:</p>
+                                                <a :href="drawerData.file_url" target="_blank" class="mt-1 inline-flex text-xs font-bold text-blue-600 hover:underline">
+                                                    Open Current File &rarr;
+                                                </a>
+                                                <template x-if="drawerData.material_type === 'image'">
+                                                    <img :src="drawerData.file_url" class="mt-2 h-32 w-48 rounded-xl object-cover border" />
+                                                </template>
+                                                <template x-if="drawerData.material_type === 'video'">
+                                                    <video :src="drawerData.file_url" controls class="mt-2 h-32 w-64 rounded-xl bg-slate-900 object-cover"></video>
+                                                </template>
+                                                <template x-if="drawerData.material_type === 'audio'">
+                                                    <audio :src="drawerData.file_url" controls class="mt-2 w-full"></audio>
+                                                </template>
+                                            </div>
+                                        </template>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                                <span x-text="drawerData.file_url ? 'Replace File' : 'Upload File'"></span>
+                                                <span x-show="!drawerData.file_url" class="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="file"
+                                                id="drawer_material_file_path"
+                                                name="file_path"
+                                                accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
+                                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                                            <p class="mt-1 text-[10px] text-slate-400">
+                                                Max size: Image (4MB), Audio/PDF (20MB), Video/File (50MB).
+                                            </p>
+                                            <template x-if="drawerErrors.file_path">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.file_path[0]"></p>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    {{-- Status Checkbox --}}
+                                    <div class="border-t border-slate-200 pt-4">
+                                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                x-model="drawerData.is_active"
+                                                class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                            <span class="text-xs font-bold text-slate-700">Active Material</span>
+                                        </label>
                                     </div>
                                 </div>
                             </template>

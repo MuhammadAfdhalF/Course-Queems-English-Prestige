@@ -27,7 +27,7 @@ const initCourseBuilder = () => {
 
         // Drawer State
         drawerOpen: false,
-        drawerType: null, // 'create_level', 'edit_level', 'create_module', 'edit_module'
+        drawerType: null, // 'create_level', 'edit_level', 'create_module', 'edit_module', 'create_material', 'edit_material'
         drawerTitle: '',
         drawerParentContext: '',
         drawerLoading: false,
@@ -238,7 +238,6 @@ const initCourseBuilder = () => {
                 learning_mode: 'online',
                 access_type: 'lifetime',
                 access_duration_days: '',
-                sort_order: 0,
                 is_active: true
             };
 
@@ -281,7 +280,7 @@ const initCourseBuilder = () => {
                         learning_mode: d.learning_mode || 'online',
                         access_type: d.access_type || 'lifetime',
                         access_duration_days: d.access_duration_days || '',
-                        sort_order: d.sort_order || 0,
+                        sort_order: d.sort_order,
                         is_active: !!d.is_active
                     };
                 } else {
@@ -312,7 +311,6 @@ const initCourseBuilder = () => {
                 slug: '',
                 manualSlug: false,
                 short_description: '',
-                sort_order: 0,
                 is_preview: false,
                 is_active: true
             };
@@ -348,7 +346,7 @@ const initCourseBuilder = () => {
                         slug: d.slug || '',
                         manualSlug: true,
                         short_description: d.short_description || '',
-                        sort_order: d.sort_order || 0,
+                        sort_order: d.sort_order,
                         is_preview: !!d.is_preview,
                         is_active: !!d.is_active
                     };
@@ -364,8 +362,88 @@ const initCourseBuilder = () => {
             });
         },
 
-        closeDrawer() {
+        openCreateMaterialDrawer(moduleId, storeUrl) {
+            this.drawerType = 'create_material';
+            this.drawerTitle = 'Add Module Material';
+            this.drawerParentContext = 'Module Material';
+            this.drawerActionUrl = storeUrl;
+            this.drawerMethod = 'POST';
+            this.drawerErrors = {};
+            this.drawerGeneralError = null;
+            this.drawerLoading = false;
+            this.drawerSaving = false;
+
+            this.drawerData = {
+                module_id: moduleId,
+                title: '',
+                material_type: 'text',
+                content: '',
+                file_path: null,
+                file_url: null,
+                is_active: true
+            };
+
+            this.drawerOpen = true;
+        },
+
+        openEditMaterialDrawer(editUrl) {
+            this.drawerType = 'edit_material';
+            this.drawerTitle = 'Edit Module Material';
+            this.drawerParentContext = 'Module Material';
+            this.drawerErrors = {};
+            this.drawerGeneralError = null;
+            this.drawerLoading = true;
+            this.drawerSaving = false;
+            this.drawerOpen = true;
+
+            fetch(editUrl, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    const d = res.data;
+                    this.drawerActionUrl = d.update_url;
+                    this.drawerMethod = 'PUT';
+                    this.drawerData = {
+                        id: d.id,
+                        module_id: d.module_id,
+                        title: d.title || '',
+                        material_type: d.material_type || 'text',
+                        content: d.content || '',
+                        file_path: d.file_path,
+                        file_url: d.file_url,
+                        sort_order: d.sort_order,
+                        is_active: !!d.is_active
+                    };
+                } else {
+                    this.drawerGeneralError = res.message || 'Failed to fetch material details.';
+                }
+            })
+            .catch(err => {
+                this.drawerGeneralError = err.message || 'Server error loading material.';
+            })
+            .finally(() => {
+                this.drawerLoading = false;
+            });
+        },
+
+        isDrawerDirty() {
+            if (!this.drawerOpen || this.drawerSaving || this.drawerLoading) return false;
+            if (this.drawerType === 'create_level' && (this.drawerData.name || this.drawerData.short_description)) return true;
+            if (this.drawerType === 'create_module' && (this.drawerData.title || this.drawerData.short_description)) return true;
+            if (this.drawerType === 'create_material' && (this.drawerData.title || this.drawerData.content)) return true;
+            return false;
+        },
+
+        closeDrawer(force = false) {
             if (this.drawerSaving) return;
+            if (!force && this.isDrawerDirty()) {
+                if (!confirm('You have unsaved changes. Are you sure you want to close?')) return;
+            }
             this.drawerOpen = false;
         },
 
@@ -382,12 +460,12 @@ const initCourseBuilder = () => {
             const formEl = document.getElementById('builderDrawerForm');
             const formData = new FormData(formEl);
 
-            // Append method override for PUT requests
             if (this.drawerMethod === 'PUT') {
                 formData.append('_method', 'PUT');
             }
 
-            // Append values from drawerData
+            formData.append('expected_program_id', this.programId);
+
             if (this.drawerType.includes('level')) {
                 formData.set('name', this.drawerData.name || '');
                 formData.set('slug', this.drawerData.slug || '');
@@ -400,14 +478,15 @@ const initCourseBuilder = () => {
                 if (this.drawerData.access_type === 'limited' && this.drawerData.access_duration_days) {
                     formData.set('access_duration_days', this.drawerData.access_duration_days);
                 }
-                formData.set('sort_order', this.drawerData.sort_order || 0);
+                if (this.drawerData.sort_order !== undefined) {
+                    formData.set('sort_order', this.drawerData.sort_order);
+                }
                 if (this.drawerData.is_active) {
                     formData.set('is_active', '1');
                 } else {
                     formData.delete('is_active');
                 }
 
-                // Append files if selected
                 const imgInput = document.getElementById('drawer_thumbnail_file_image');
                 if (imgInput && imgInput.files.length > 0) {
                     formData.set('thumbnail_file', imgInput.files[0]);
@@ -424,7 +503,9 @@ const initCourseBuilder = () => {
                 formData.set('title', this.drawerData.title || '');
                 formData.set('slug', this.drawerData.slug || '');
                 formData.set('short_description', this.drawerData.short_description || '');
-                formData.set('sort_order', this.drawerData.sort_order || 0);
+                if (this.drawerData.sort_order !== undefined) {
+                    formData.set('sort_order', this.drawerData.sort_order);
+                }
                 if (this.drawerData.is_preview) {
                     formData.set('is_preview', '1');
                 } else {
@@ -435,13 +516,31 @@ const initCourseBuilder = () => {
                 } else {
                     formData.delete('is_active');
                 }
+            } else if (this.drawerType.includes('material')) {
+                formData.set('title', this.drawerData.title || '');
+                formData.set('material_type', this.drawerData.material_type || 'text');
+                if (this.drawerData.sort_order !== undefined) {
+                    formData.set('sort_order', this.drawerData.sort_order);
+                }
+                if (this.drawerData.material_type === 'text') {
+                    formData.set('content', this.drawerData.content || (document.getElementById('drawer_material_content')?.value || ''));
+                } else {
+                    const matFileInput = document.getElementById('drawer_material_file_path');
+                    if (matFileInput && matFileInput.files.length > 0) {
+                        formData.set('file_path', matFileInput.files[0]);
+                    }
+                }
+                if (this.drawerData.is_active) {
+                    formData.set('is_active', '1');
+                } else {
+                    formData.delete('is_active');
+                }
             }
 
-            // CSRF token
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
             fetch(this.drawerActionUrl, {
-                method: 'POST', // standard POST with _method = PUT if applicable
+                method: 'POST',
                 body: formData,
                 headers: {
                     'Accept': 'application/json',
@@ -453,13 +552,11 @@ const initCourseBuilder = () => {
                 if (res.status === 422) {
                     return res.json().then(errData => {
                         this.drawerErrors = errData.errors || {};
-                        this.drawerGeneralError = errData.message || 'Please check the validation errors below.';
+                        this.drawerGeneralError = errData.message || 'Please check validation errors.';
                         throw new Error('Validation Error');
                     });
                 }
-                if (!res.ok) {
-                    throw new Error(`Server error (${res.status})`);
-                }
+                if (!res.ok) throw new Error(`Server error (${res.status})`);
                 return res.json();
             })
             .then(data => {
@@ -487,7 +584,7 @@ const initCourseBuilder = () => {
 
         // DELETE MODAL ACTIONS
         confirmDelete(type, id, title, deleteUrl, redirectNode = null) {
-            this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : 'Delete Module';
+            this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : (type === 'module' ? 'Delete Module' : 'Delete Material');
             this.deleteModalItemTitle = title;
             this.deleteModalUrl = deleteUrl;
             this.deleteRedirectNode = redirectNode || { level: null, module: null, exam: null, tab: 'overview' };
@@ -512,10 +609,16 @@ const initCourseBuilder = () => {
                 }
             })
             .then(res => {
+                if (res.status === 422) {
+                    return res.json().then(errData => {
+                        this.deleteModalError = errData.message || 'Cannot delete item.';
+                    });
+                }
                 if (!res.ok) throw new Error(`Delete failed (${res.status})`);
                 return res.json();
             })
             .then(data => {
+                if (!data) return;
                 if (data.status === 'success') {
                     this.deleteModalOpen = false;
                     this.refreshTree();
@@ -525,7 +628,9 @@ const initCourseBuilder = () => {
                 }
             })
             .catch(err => {
-                this.deleteModalError = err.message || 'Server error deleting item.';
+                if (!this.deleteModalError) {
+                    this.deleteModalError = err.message || 'Server error deleting item.';
+                }
             })
             .finally(() => {
                 this.deleteModalDeleting = false;

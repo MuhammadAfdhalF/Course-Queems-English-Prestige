@@ -175,11 +175,22 @@ class CourseBuilderController extends Controller
                 'practice' => $practice,
             ])->render();
         } elseif ($selectedModule) {
+            $materialsPaginator = null;
+            if ($tab === 'materials') {
+                $page = max(1, (int)$request->query('page', 1));
+                $materialsPaginator = $selectedModule->materials()
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->paginate(15, ['*'], 'page', $page);
+            }
+
             $html = view('partials.admin.course-management.builder.workspace.module', [
                 'courseProgram' => $courseProgram,
                 'level' => $selectedLevel,
                 'module' => $selectedModule,
+                'selectedModule' => $selectedModule,
                 'tab' => $tab ?: 'overview',
+                'materialsPaginator' => $materialsPaginator,
             ])->render();
         } elseif ($selectedExam) {
             $html = view('partials.admin.course-management.builder.workspace.final-exam-section', [

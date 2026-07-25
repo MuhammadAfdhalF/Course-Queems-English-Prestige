@@ -136,6 +136,18 @@ class ModuleController extends Controller
     {
         $courseLevel = $module->courseLevel;
 
+        // Delete Guard: Prevent forced cascade delete if module contains materials or practices
+        if ($module->materials()->exists() || $module->practices()->exists()) {
+            $msg = 'Cannot delete module "' . $module->title . '" because it contains learning materials or practice quizzes. Please remove them first.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $msg
+                ], 422);
+            }
+            return back()->withErrors(['delete' => $msg]);
+        }
+
         $module->delete();
 
         if ($request->wantsJson() || $request->ajax()) {

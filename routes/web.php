@@ -259,6 +259,19 @@ Route::middleware(['auth', 'role:admin'])
                 Route::get('/programs/{courseProgram}/builder/tree', [CourseBuilderController::class, 'tree'])
                     ->name('programs.builder.tree');
 
+                // Scoped Builder Material Routes (Ironclad Security)
+                Route::post('/programs/{courseProgram}/builder/modules/{module}/materials', [ModuleMaterialController::class, 'builderStore'])
+                    ->name('programs.builder.materials.store');
+
+                Route::get('/programs/{courseProgram}/builder/materials/{moduleMaterial}/edit', [ModuleMaterialController::class, 'builderEdit'])
+                    ->name('programs.builder.materials.edit');
+
+                Route::put('/programs/{courseProgram}/builder/materials/{moduleMaterial}', [ModuleMaterialController::class, 'builderUpdate'])
+                    ->name('programs.builder.materials.update');
+
+                Route::delete('/programs/{courseProgram}/builder/materials/{moduleMaterial}', [ModuleMaterialController::class, 'builderDestroy'])
+                    ->name('programs.builder.materials.destroy');
+
                 // Course Programs Reorder
                 Route::post('/programs/reorder', [CourseProgramController::class, 'reorder'])
                     ->name('programs.reorder');
