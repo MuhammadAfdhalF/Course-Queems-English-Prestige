@@ -149,25 +149,12 @@ $qrSvg = $verificationUrl
                 <div class="bg-white p-4 lg:p-6">
                     <div class="rounded-[24px] border border-slate-200 bg-slate-50 p-3 shadow-sm lg:p-4">
                         <div
-                            class="admin-certificate-preview-frame relative mx-auto w-full overflow-hidden rounded-[22px] bg-[#fffdf6] text-center shadow-[0_18px_48px_rgba(15,23,42,0.12)]">
+                            class="admin-certificate-preview-frame relative mx-auto w-full overflow-hidden rounded-[22px] bg-white text-center shadow-[0_18px_48px_rgba(15,23,42,0.12)]">
 
-                            @if ($templateBackgroundUrl)
                             <img
-                                src="{{ $templateBackgroundUrl }}"
+                                src="{{ $templateBackgroundUrl ?: asset('images/certificates/certificate-default-background.jpg') }}"
                                 alt="Certificate Template Background"
-                                class="absolute inset-0 h-full w-full">
-                            @else
-                            <div class="absolute inset-[2.8%] border-[10px] border-[#071738]"></div>
-                            <div class="absolute inset-[6%] border border-[#D4A017]/40"></div>
-
-                            <div class="pointer-events-none absolute left-[6.5%] top-[7%] h-[14%] w-[10%] border-l-4 border-t-4 border-[#D4A017] opacity-80"></div>
-                            <div class="pointer-events-none absolute right-[6.5%] top-[7%] h-[14%] w-[10%] border-r-4 border-t-4 border-[#D4A017] opacity-80"></div>
-                            <div class="pointer-events-none absolute bottom-[7%] left-[6.5%] h-[14%] w-[10%] border-b-4 border-l-4 border-[#D4A017] opacity-80"></div>
-                            <div class="pointer-events-none absolute bottom-[7%] right-[6.5%] h-[14%] w-[10%] border-b-4 border-r-4 border-[#D4A017] opacity-80"></div>
-
-                            <div class="pointer-events-none absolute -left-[12%] top-[20%] h-[42%] w-[30%] rounded-full border-[36px] border-[#D4A017]/10"></div>
-                            <div class="pointer-events-none absolute -bottom-[10%] -right-[10%] h-[48%] w-[34%] rounded-full border-[42px] border-[#071738]/10"></div>
-                            @endif
+                                class="absolute inset-0 h-full w-full object-fill">
 
                             @if ($certificate->status !== 'issued')
                             <div class="absolute inset-0 z-20 flex items-center justify-center bg-white/45">
@@ -178,135 +165,133 @@ $qrSvg = $verificationUrl
                             @endif
 
                             <div class="absolute inset-0 z-10">
-                                {{-- HEADER --}}
-                                <div class="absolute left-[11%] right-[11%] top-[7%] text-center">
-                                    <div class="mx-auto flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-sm md:h-12 md:w-12 lg:h-14 lg:w-14">
-                                        <img
-                                            src="{{ asset('images/logo-queens-english.png') }}"
-                                            alt="Queens English Prestige"
-                                            class="h-8 w-auto object-contain md:h-9 lg:h-11"
-                                            onerror="this.parentElement.innerHTML = '<span style=&quot;font-weight:900;color:#071738;font-size:15px;&quot;>QEP</span>';">
-                                    </div>
-
-                                    <p class="mt-2 text-[6px] font-black uppercase tracking-[0.34em] text-[#D4A017] md:text-[7px] lg:text-[8px]">
-                                        Queens English Prestige
-                                    </p>
-
-                                    <h2 class="mt-3 text-2xl font-black uppercase leading-none tracking-[0.18em] text-[#071738] md:text-3xl lg:text-4xl">
-                                        Certificate
+                                {{-- MAIN CONTENT AREA --}}
+                                <div class="absolute left-[18.5%] right-[8.5%] top-[20.5%] text-center">
+                                    <h2 class="text-xl font-bold uppercase leading-tight tracking-[0.08em] text-[#0c1e38] md:text-2xl lg:text-3xl">
+                                        Certificate Of Achievement
                                     </h2>
 
-                                    <p class="mt-2 text-[7px] font-black uppercase tracking-[0.32em] text-slate-500 md:text-[8px] lg:text-[9px]">
-                                        Of Completion
+                                    <p class="mt-1 text-[10px] font-bold text-[#0f172a] md:text-xs lg:text-sm">
+                                        No: {{ $certificate->certificate_number }}
                                     </p>
 
-                                    <div class="mx-auto mt-3 h-[2px] max-w-[230px] bg-[#D4A017] md:max-w-[270px] lg:max-w-[310px]"></div>
-                                </div>
-
-                                {{-- RECIPIENT --}}
-                                <div class="absolute left-[13%] right-[13%] top-[38%] text-center">
-                                    <p class="text-[8px] font-medium text-slate-600 md:text-[9px] lg:text-[11px]">
+                                    <p class="mt-2 text-[9px] font-medium uppercase tracking-[0.18em] text-[#1e293b] md:text-[10px] lg:text-xs">
                                         This certificate is proudly presented to
                                     </p>
 
-                                    <h3 class="mt-2 break-words text-xl font-black leading-tight text-slate-950 md:text-2xl lg:text-3xl">
-                                        {{ $student?->name ?? 'Student Name' }}
+                                    @php
+                                    $studentName = $student?->name ?? 'Student Name';
+                                    $studentNameLength = mb_strlen($studentName);
+
+                                    $studentProfile = $student?->studentProfile;
+                                    $birthPlace = trim($studentProfile?->birth_place ?? '');
+                                    $birthDateRaw = $studentProfile?->birth_date;
+                                    $birthDateFormatted = $birthDateRaw ? $birthDateRaw->format('F jS, Y') : null;
+                                    $hasBirthInfo = !empty($birthPlace) && !empty($birthDateFormatted);
+
+                                    $courseName = $courseLevel?->name ?? 'English Language Program';
+                                    $issuedDateRaw = $certificate->issued_at ?? $certificate->created_at;
+                                    $completionDateFormatted = $issuedDateRaw ? $issuedDateRaw->format('l, F jS, Y') : date('l, F jS, Y');
+                                    $signingDateFormatted = $issuedDateRaw ? $issuedDateRaw->format('F jS, Y') : date('F jS, Y');
+
+                                    $hasSectionScores = is_array($certificate->section_scores) && !empty($certificate->section_scores);
+                                    $sectionScores = $hasSectionScores ? $certificate->section_scores : [];
+                                    $finalScoreFormatted = $certificate->final_score !== null ? number_format((float) $certificate->final_score, 2, '.', '') : null;
+                                    $sectionCount = count($sectionScores);
+                                    @endphp
+
+                                    {{-- Dynamic Student Name with Length Scaling --}}
+                                    @if ($studentNameLength <= 25)
+                                    <h3 class="mt-1.5 break-words text-lg font-bold leading-tight text-[#c68b29] md:text-xl lg:text-3xl">
+                                        {{ $studentName }}
                                     </h3>
+                                    @elseif ($studentNameLength <= 40)
+                                    <h3 class="mt-1.5 break-words text-base font-bold leading-tight text-[#c68b29] md:text-lg lg:text-2xl">
+                                        {{ $studentName }}
+                                    </h3>
+                                    @else
+                                    <h3 class="mt-1.5 break-words text-sm font-bold leading-tight text-[#c68b29] md:text-base lg:text-xl">
+                                        {{ $studentName }}
+                                    </h3>
+                                    @endif
 
-                                    <div class="mx-auto mt-3 h-px max-w-[420px] bg-slate-300"></div>
-
-                                    <p class="mt-4 text-[8px] font-medium text-slate-600 md:text-[9px] lg:text-[11px]">
-                                        for successfully completing the course
+                                    {{-- Description --}}
+                                    <p class="mt-2 text-[8px] font-normal leading-relaxed text-[#1e293b] md:text-[9px] lg:text-[11px]">
+                                        @if ($hasBirthInfo)
+                                        born in {{ $birthPlace }}, on {{ $birthDateFormatted }} for the completion of
+                                        @else
+                                        for the completion of
+                                        @endif
+                                        <br>
+                                        <strong class="font-bold text-[#0f172a]">{{ $courseName }}</strong> on {{ $completionDateFormatted }}.
                                     </p>
 
-                                    <h4 class="mt-2 break-words text-lg font-black leading-tight text-[#071738] md:text-xl lg:text-2xl">
-                                        {{ $courseLevel?->name ?? 'Course Name' }}
-                                    </h4>
-
-                                    <p class="mt-2 text-[6px] font-black uppercase tracking-[0.16em] text-[#D4A017] md:text-[7px] lg:text-[8px]">
-                                        {{ $courseProgram?->name ?? 'Queens English Prestige Program' }}
-                                    </p>
+                                    {{-- Score Table on Page 1 if 1 to 5 sections --}}
+                                    @if ($hasSectionScores && $sectionCount <= 5)
+                                    <div class="mt-1.5 text-center">
+                                        <p class="mb-0.5 text-[8px] font-bold text-[#0f172a] md:text-[9px]">
+                                            TOEFL Prediction Score:
+                                        </p>
+                                        <table class="mx-auto w-[54%] border-collapse border border-black bg-white text-[7px] md:text-[8px]">
+                                            <tbody>
+                                                @foreach ($sectionScores as $idx => $sec)
+                                                <tr>
+                                                    <td class="w-[72%] border border-black px-1.5 py-0.5 text-left">{{ $sec['title'] ?? 'Section ' . ($idx + 1) }}</td>
+                                                    <td class="w-[28%] border border-black px-1.5 py-0.5 text-center font-bold">{{ isset($sec['score']) ? number_format((float)$sec['score'], 0) : '-' }}</td>
+                                                </tr>
+                                                @endforeach
+                                                @if ($finalScoreFormatted !== null)
+                                                <tr class="font-bold">
+                                                    <td class="border border-black px-1.5 py-0.5 text-left">Total Score:</td>
+                                                    <td class="border border-black px-1.5 py-0.5 text-center">{{ $finalScoreFormatted }}</td>
+                                                </tr>
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                        <p class="mt-0.5 text-[6.5px] italic text-black md:text-[7.5px]">
+                                            This prediction score is valid for 6 months from the date of issuance
+                                        </p>
+                                    </div>
+                                    @endif
                                 </div>
 
-                                {{-- METADATA --}}
-                                <div class="absolute left-[25%] right-[25%] top-[68%] grid grid-cols-2 gap-3 text-left">
-                                    <div class="border border-slate-200 bg-white/90 px-2.5 py-2 shadow-sm lg:px-3 lg:py-2.5">
-                                        <p class="text-[5px] font-black uppercase tracking-[0.18em] text-slate-400 md:text-[6px] lg:text-[7px]">
-                                            Certificate No.
-                                        </p>
-
-                                        <p class="mt-1 break-all text-[7px] font-black text-slate-900 md:text-[8px] lg:text-[9px]">
-                                            {{ $certificate->certificate_number }}
-                                        </p>
-                                    </div>
-
-                                    <div class="border border-slate-200 bg-white/90 px-2.5 py-2 shadow-sm lg:px-3 lg:py-2.5">
-                                        <p class="text-[5px] font-black uppercase tracking-[0.18em] text-slate-400 md:text-[6px] lg:text-[7px]">
-                                            Issued Date
-                                        </p>
-
-                                        <p class="mt-1 text-[7px] font-black text-slate-900 md:text-[8px] lg:text-[9px]">
-                                            {{ $certificate->issued_at?->format('d F Y') ?? '-' }}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {{-- SIGNATURE + VERIFY --}}
-                                <div class="absolute left-[18%] right-[18%] top-[78.5%] grid grid-cols-2 items-center gap-8">
-                                    <div class="text-center">
-                                        @if ($signatureImageUrl)
-                                        <img
-                                            src="{{ $signatureImageUrl }}"
-                                            alt="{{ $signerName }}"
-                                            class="mx-auto h-8 w-full object-contain md:h-9 lg:h-11">
-                                        @else
-                                        <div class="mx-auto h-8 w-full md:h-9 lg:h-11"></div>
-                                        @endif
-
-                                        <div class="mx-auto mt-1 h-[2px] max-w-[200px] bg-slate-500"></div>
-
-                                        <p class="mt-2 text-[8px] font-black text-slate-900 md:text-[9px] lg:text-[10px]">
-                                            {{ $signerName }}
-                                        </p>
-
-                                        <p class="mt-1 text-[5px] font-bold uppercase tracking-[0.2em] text-slate-400 md:text-[6px] lg:text-[7px]">
-                                            {{ $signerTitle }}
-                                        </p>
-                                    </div>
-
-                                    <div class="text-center">
-                                        @if ($verificationUrl && $qrSvg)
-                                        <div class="inline-flex flex-col items-center justify-center border border-slate-200 bg-white/95 p-1.5 shadow-sm lg:p-2">
-                                            <div class="[&_svg]:h-11 [&_svg]:w-11 md:[&_svg]:h-12 md:[&_svg]:w-12 lg:[&_svg]:h-14 lg:[&_svg]:w-14">
-                                                {!! $qrSvg !!}
-                                            </div>
-
-                                            <p class="mt-1 text-[5px] font-black uppercase tracking-[0.18em] text-slate-400 md:text-[6px] lg:text-[7px]">
-                                                Scan to Verify
-                                            </p>
-
-                                            <p class="mt-0.5 text-[6px] font-bold text-slate-500 md:text-[7px] lg:text-[8px]">
-                                                Verify Certificate
-                                            </p>
+                                {{-- BOTTOM-LEFT DYNAMIC VERIFICATION QR CODE (To the right of left ribbon) --}}
+                                @if ($verificationUrl && $qrSvg)
+                                <div class="absolute bottom-[5.5%] left-[23%] w-[16%] text-center">
+                                    <a href="{{ $verificationUrl }}" target="_blank" class="inline-block text-center transition hover:opacity-90">
+                                        <div class="[&_svg]:mx-auto [&_svg]:h-8 [&_svg]:w-8 md:[&_svg]:h-10 md:[&_svg]:w-10 lg:[&_svg]:h-14 lg:[&_svg]:w-14">
+                                            {!! $qrSvg !!}
                                         </div>
-                                        @else
-                                        <div class="inline-flex border border-dashed border-slate-300 bg-white/80 px-4 py-3">
-                                            <p class="text-[9px] font-bold text-slate-400">
-                                                Verification unavailable
-                                            </p>
-                                        </div>
-                                        @endif
-                                    </div>
+                                        <p class="mt-0.5 text-[5px] font-bold uppercase tracking-wider text-[#0f172a] md:text-[6px] lg:text-[7px]">
+                                            SCAN TO VERIFY
+                                        </p>
+                                        <p class="text-[4.5px] font-medium text-slate-500 md:text-[5.5px] lg:text-[6.5px]">
+                                            Verify Certificate
+                                        </p>
+                                    </a>
                                 </div>
-
-                                @if ($verificationUrl)
-                                <a
-                                    href="{{ $verificationUrl }}"
-                                    target="_blank"
-                                    aria-label="Verify Certificate"
-                                    class="absolute left-[58%] right-[18%] top-[78.5%] bottom-[7%] z-30">
-                                </a>
                                 @endif
+
+                                {{-- BOTTOM-RIGHT SIGNATURE BLOCK --}}
+                                <div class="absolute bottom-[5.5%] right-[9%] w-[26%] text-center">
+                                    <p class="text-[8px] font-bold text-black md:text-[9px] lg:text-[11px]">
+                                        Pekanbaru, {{ $signingDateFormatted }}
+                                    </p>
+
+                                    <div class="my-0.5 flex h-6 items-center justify-center md:h-8 lg:h-10">
+                                        @if ($signatureImageUrl)
+                                        <img src="{{ $signatureImageUrl }}" alt="{{ $signerName }}" class="max-h-full object-contain">
+                                        @endif
+                                    </div>
+
+                                    <p class="text-[8px] font-bold uppercase tracking-wide text-[#c68b29] underline md:text-[9px] lg:text-[11px]">
+                                        {{ $signerName }}
+                                    </p>
+
+                                    <p class="text-[7px] font-medium text-[#1e293b] md:text-[8px] lg:text-[9px]">
+                                        {{ $signerTitle }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
