@@ -35,7 +35,12 @@ class FinalExamController extends Controller
     {
         $courseLevel->load('courseProgram');
 
-        return view('pages.admin.course-management.final-exams.create', compact('courseLevel'));
+        $nextSortOrder = ((int) $courseLevel->finalExams()->max('sort_order')) + 1;
+
+        return view('pages.admin.course-management.final-exams.create', compact(
+            'courseLevel',
+            'nextSortOrder'
+        ));
     }
 
     public function store(Request $request, CourseLevel $courseLevel)
@@ -54,19 +59,19 @@ class FinalExamController extends Controller
         $requestedActive = $request->boolean('is_active');
 
         // Safe Section Creation Lifecycle:
-        // A newly created section has 0 active questions initially.
-        // If requested is_active = true, force is_active = false and set warning message.
-        if ($requestedActive) {
-            $validated['is_active'] = false;
-            FinalExam::create($validated);
-
-            return redirect()
-                ->route('admin.course-management.levels.final-exam.index', $courseLevel)
-                ->with('warning', 'Final Exam section created as inactive. Add at least one active question before activating it.');
-        }
-
+        // A newly created section has 0 questions initially.
+        // It remains is_active = false until the first active question is added.
         $validated['is_active'] = false;
-        FinalExam::create($validated);
+        $finalExam = FinalExam::create($validated);
+
+        if ($requestedActive) {
+            return redirect()
+                ->route('admin.course-management.final-exams.questions.create', [
+                    'finalExam' => $finalExam,
+                    'activate_when_ready' => 1,
+                ])
+                ->with('info', 'Final Exam section created. Add the first active question to activate it automatically.');
+        }
 
         return redirect()
             ->route('admin.course-management.levels.final-exam.index', $courseLevel)

@@ -1,6 +1,7 @@
 @props([
 'courseLevel' => null,
 'finalExam' => null,
+'nextSortOrder' => null,
 'action',
 'method' => 'POST',
 'submitLabel' => 'Save Final Exam',
@@ -55,7 +56,7 @@ $backCourseLevel = $courseLevel ?? $finalExam->courseLevel;
                 id="sort_order"
                 type="number"
                 min="1"
-                :value="old('sort_order', $finalExam?->sort_order ?? 1)"
+                :value="old('sort_order', $finalExam?->sort_order ?? $nextSortOrder ?? 1)"
                 placeholder="Example: 1"
                 :required="true" />
 

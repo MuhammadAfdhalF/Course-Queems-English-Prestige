@@ -18,6 +18,7 @@
     'method' => 'POST',
     'submitLabel' => 'Save Question',
     'nextSortOrder' => $nextSortOrder,
+    'activateWhenReady' => $activateWhenReady ?? false,
     ])
 </section>
 @endsection

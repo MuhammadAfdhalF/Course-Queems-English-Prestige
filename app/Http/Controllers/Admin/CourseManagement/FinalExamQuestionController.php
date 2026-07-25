@@ -25,15 +25,17 @@ class FinalExamQuestionController extends Controller
         ));
     }
 
-    public function create(FinalExam $finalExam)
+    public function create(Request $request, FinalExam $finalExam)
     {
         $finalExam->load('courseLevel.courseProgram');
 
         $nextSortOrder = ((int) $finalExam->questions()->max('sort_order')) + 1;
+        $activateWhenReady = $request->boolean('activate_when_ready');
 
         return view('pages.admin.course-management.final-exam-questions.create', compact(
             'finalExam',
-            'nextSortOrder'
+            'nextSortOrder',
+            'activateWhenReady'
         ));
     }
 
@@ -41,22 +43,44 @@ class FinalExamQuestionController extends Controller
     {
         $validated = $this->validateQuestion($request);
 
+        $questionIsActive = $request->boolean('is_active');
+
         $question = $finalExam->questions()->create([
             'question_type' => $validated['question_type'],
             'question' => $validated['question'],
             'explanation' => $validated['explanation'] ?? null,
             'score' => $validated['score'] ?? 0,
             'sort_order' => $validated['sort_order'] ?? 0,
-            'is_active' => $request->boolean('is_active'),
+            'is_active' => $questionIsActive,
         ]);
 
         if ($validated['question_type'] === 'multiple_choice') {
             $this->saveOptions($question, $validated['options'], $validated['correct_option']);
         }
 
+        $activateWhenReady = $request->boolean('activate_when_ready');
+        $sectionActivated = false;
+
+        // Auto-activate Final Exam section only if ALL conditions are met:
+        // 1. request brings activate_when_ready=1
+        // 2. question being created has is_active = true
+        // 3. Final Exam section is currently is_active = false
+        // 4. this is the first active question for that section
+        if ($activateWhenReady && $questionIsActive && ! $finalExam->is_active) {
+            $activeQuestionsCount = $finalExam->questions()->where('is_active', true)->count();
+            if ($activeQuestionsCount === 1) {
+                $finalExam->update(['is_active' => true]);
+                $sectionActivated = true;
+            }
+        }
+
+        $message = $sectionActivated
+            ? 'Question created and Final Exam section activated successfully.'
+            : 'Final exam question has been created successfully.';
+
         return redirect()
             ->route('admin.course-management.final-exams.questions.index', $finalExam)
-            ->with('success', 'Final exam question has been created successfully.');
+            ->with('success', $message);
     }
 
     public function edit(FinalExamQuestion $finalExamQuestion)

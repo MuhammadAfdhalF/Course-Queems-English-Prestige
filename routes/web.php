@@ -567,6 +567,9 @@ Route::middleware(['auth', 'role:admin'])
                 Route::post('/news-gallery/{informationPost}/images', [InformationPostController::class, 'storeImage'])
                     ->name('news-gallery.images.store');
 
+                Route::post('/news-gallery/{informationPost}/images/reorder', [InformationPostController::class, 'reorderImages'])
+                    ->name('news-gallery.images.reorder');
+
                 Route::delete('/news-gallery/images/{informationPostImage}', [InformationPostController::class, 'destroyImage'])
                     ->name('news-gallery.images.destroy');
 

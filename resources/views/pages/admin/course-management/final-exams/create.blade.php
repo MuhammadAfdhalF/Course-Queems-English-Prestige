@@ -14,6 +14,7 @@
     @include('partials.admin.course-management.final-exams.form', [
     'courseLevel' => $courseLevel,
     'finalExam' => null,
+    'nextSortOrder' => $nextSortOrder ?? 1,
     'action' => route('admin.course-management.levels.final-exam.store', $courseLevel),
     'method' => 'POST',
     'submitLabel' => 'Save Section',

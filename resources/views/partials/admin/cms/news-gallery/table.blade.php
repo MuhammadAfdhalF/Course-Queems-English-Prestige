@@ -44,7 +44,8 @@
     'type' => $post->type,
     'next_sort_order' => ((int) $post->images->max('sort_order')) + 1,
     'image_store_url' => route('admin.cms.news-gallery.images.store', $post),
-    'images' => $post->images->map(fn ($image) => [
+    'image_reorder_url' => route('admin.cms.news-gallery.images.reorder', $post),
+    'images' => $post->images->sortBy('sort_order')->values()->map(fn ($image) => [
     'id' => $image->id,
     'image_url' => asset('storage/' . $image->image),
     'caption' => $image->caption,
