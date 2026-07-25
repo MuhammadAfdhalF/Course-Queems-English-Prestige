@@ -2,37 +2,166 @@
 
 namespace App\Services;
 
+use App\Exceptions\InconsistentEnrollmentStateException;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\CourseLevel;
 use App\Models\FinalExamAttempt;
 use App\Models\StudentCourseEnrollment;
 use App\Models\Testimonial;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CertificateService
 {
-    public function createLockedCertificateFromAttempt(FinalExamAttempt $attempt): ?Certificate
+    public function evaluateAndCreateForEnrollment(StudentCourseEnrollment $enrollment): ?Certificate
     {
-        $attempt->loadMissing([
-            'student',
-            'finalExam.courseLevel.courseProgram',
-        ]);
+        $maxAttempts = 3;
 
-        if ($attempt->status !== 'passed') {
-            return null;
+        for ($attemptIndex = 1; $attemptIndex <= $maxAttempts; $attemptIndex++) {
+            try {
+                return DB::transaction(function () use ($enrollment) {
+                    $lockedEnrollment = StudentCourseEnrollment::query()
+                        ->whereKey($enrollment->id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $lockedEnrollment) {
+                        return null;
+                    }
+
+                    $existingCertificate = Certificate::query()
+                        ->where('enrollment_id', $lockedEnrollment->id)
+                        ->first();
+
+                    if ($existingCertificate) {
+                        if ($lockedEnrollment->status !== 'completed') {
+                            Log::warning("Syncing completed status for active enrollment #{$lockedEnrollment->id} with existing certificate #{$existingCertificate->id}");
+                            $lockedEnrollment->update([
+                                'status' => 'completed',
+                                'progress_percentage' => 100,
+                                'completed_at' => $lockedEnrollment->completed_at ?? $existingCertificate->created_at ?? now(),
+                            ]);
+                        }
+
+                        return $existingCertificate;
+                    }
+
+                    if ($lockedEnrollment->status === 'completed') {
+                        Log::critical("Inconsistent completion state: Completed enrollment #{$lockedEnrollment->id} missing certificate");
+                        throw new InconsistentEnrollmentStateException();
+                    }
+
+                    $courseLevel = $lockedEnrollment->courseLevel;
+                    if (! $courseLevel) {
+                        return null;
+                    }
+
+                    $activeSections = $courseLevel->finalExams()
+                        ->where('is_active', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('id')
+                        ->get();
+
+                    if ($activeSections->isEmpty()) {
+                        return null;
+                    }
+
+                    $sectionSnapshots = [];
+                    $totalPercentageScores = 0;
+
+                    foreach ($activeSections as $section) {
+                        $activeQuestionsCount = $section->questions()
+                            ->where('is_active', true)
+                            ->count();
+
+                        if ($activeQuestionsCount === 0) {
+                            Log::warning("Active final exam section #{$section->id} has no active questions. Enrollment #{$lockedEnrollment->id} completion blocked.");
+                            return null;
+                        }
+
+                        $query = FinalExamAttempt::query()
+                            ->where('student_id', $lockedEnrollment->student_id)
+                            ->where('final_exam_id', $section->id)
+                            ->where('status', 'passed')
+                            ->whereNotNull('submitted_at');
+
+                        if (in_array($section->grading_method, ['manual', 'mixed'], true)) {
+                            $query->whereNotNull('graded_at');
+                        }
+
+                        $passedAttempt = $query
+                            ->orderByDesc('submitted_at')
+                            ->orderByDesc('id')
+                            ->first();
+
+                        if (! $passedAttempt) {
+                            return null;
+                        }
+
+                        $sectionSnapshots[] = [
+                            'final_exam_id' => $section->id,
+                            'title' => $section->title,
+                            'sort_order' => (int) ($section->sort_order ?? 1),
+                            'score' => round((float) $passedAttempt->total_score, 2),
+                            'passing_grade' => (int) $section->passing_grade,
+                            'attempt_id' => $passedAttempt->id,
+                            'graded_at' => $passedAttempt->graded_at?->toIso8601String(),
+                        ];
+
+                        $totalPercentageScores += (float) $passedAttempt->total_score;
+                    }
+
+                    $finalScore = round($totalPercentageScores / count($activeSections), 2);
+                    $lastAttemptId = end($sectionSnapshots)['attempt_id'];
+
+                    $certificate = Certificate::create([
+                        'student_id' => $lockedEnrollment->student_id,
+                        'course_level_id' => $lockedEnrollment->course_level_id,
+                        'enrollment_id' => $lockedEnrollment->id,
+                        'final_exam_attempt_id' => $lastAttemptId,
+                        'certificate_template_id' => $this->resolveTemplate($courseLevel)->id,
+                        'certificate_number' => $this->generateCertificateNumber(),
+                        'verification_token' => $this->generateVerificationToken(),
+                        'certificate_file' => null,
+                        'issued_at' => null,
+                        'status' => 'locked',
+                        'section_scores' => $sectionSnapshots,
+                        'final_score' => $finalScore,
+                    ]);
+
+                    $lockedEnrollment->update([
+                        'status' => 'completed',
+                        'progress_percentage' => 100,
+                        'completed_at' => $lockedEnrollment->completed_at ?? now(),
+                    ]);
+
+                    return $certificate;
+                });
+            } catch (QueryException $e) {
+                if (! $this->isRetryableCertificateCollision($e) || $attemptIndex === $maxAttempts) {
+                    throw $e;
+                }
+            }
         }
 
-        $finalExam = $attempt->finalExam;
-        $courseLevel = $finalExam?->courseLevel;
+        return null;
+    }
 
-        if (! $finalExam || ! $courseLevel) {
+    public function createLockedCertificateFromAttempt(FinalExamAttempt $attempt): ?Certificate
+    {
+        $attempt->loadMissing('finalExam');
+        $courseLevelId = $attempt->finalExam?->course_level_id;
+
+        if (! $courseLevelId) {
             return null;
         }
 
         $enrollment = StudentCourseEnrollment::query()
             ->where('student_id', $attempt->student_id)
-            ->where('course_level_id', $courseLevel->id)
+            ->where('course_level_id', $courseLevelId)
             ->whereIn('status', ['active', 'completed'])
             ->latest('enrolled_at')
             ->latest()
@@ -42,33 +171,7 @@ class CertificateService
             return null;
         }
 
-        $enrollment->update([
-            'status' => 'completed',
-            'progress_percentage' => 100,
-            'completed_at' => $enrollment->completed_at ?? now(),
-        ]);
-
-        $existingCertificate = Certificate::query()
-            ->where('enrollment_id', $enrollment->id)
-            ->whereIn('status', ['locked', 'issued'])
-            ->first();
-
-        if ($existingCertificate) {
-            return $existingCertificate;
-        }
-
-        return Certificate::create([
-            'student_id' => $attempt->student_id,
-            'course_level_id' => $courseLevel->id,
-            'enrollment_id' => $enrollment->id,
-            'final_exam_attempt_id' => $attempt->id,
-            'certificate_template_id' => $this->resolveTemplate($courseLevel)->id,
-            'certificate_number' => $this->generateCertificateNumber(),
-            'verification_token' => $this->generateVerificationToken(),
-            'certificate_file' => null,
-            'issued_at' => null,
-            'status' => 'locked',
-        ]);
+        return $this->evaluateAndCreateForEnrollment($enrollment);
     }
 
     public function unlockCertificateFromTestimonial(Testimonial $testimonial): ?Certificate
@@ -94,6 +197,16 @@ class CertificateService
         ]);
 
         return $certificate;
+    }
+
+    private function isRetryableCertificateCollision(QueryException $exception): bool
+    {
+        $message = $exception->getMessage();
+
+        return str_contains($message, 'certificates_certificate_number_unique')
+            || str_contains($message, 'certificates_verification_token_unique')
+            || str_contains($message, 'certificates_enrollment_id_unique')
+            || str_contains($message, '1062');
     }
 
     private function resolveTemplate(CourseLevel $courseLevel): CertificateTemplate
@@ -159,6 +272,7 @@ class CertificateService
 
         return $number;
     }
+
     private function generateVerificationToken(): string
     {
         do {

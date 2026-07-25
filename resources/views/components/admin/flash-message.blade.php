@@ -2,7 +2,7 @@
     'duration' => 3500,
 ])
 
-@if (session('success') || session('error') || $errors->any())
+@if (session('success') || session('error') || session('warning') || session('info') || $errors->any())
     <div
         x-data="{ show: true }"
         x-init="setTimeout(() => show = false, {{ $duration }})"
@@ -47,6 +47,48 @@
                     type="button"
                     @click="show = false"
                     class="rounded-lg p-1 text-rose-600 transition hover:bg-rose-100">
+                    <x-admin.icon name="x" class="h-4 w-4" />
+                </button>
+            </div>
+        @endif
+
+        @if (session('warning'))
+            <div class="flex items-start justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm font-semibold text-amber-700">
+                <div class="flex items-start gap-3">
+                    <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                        !
+                    </span>
+
+                    <p>
+                        {{ session('warning') }}
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    @click="show = false"
+                    class="rounded-lg p-1 text-amber-600 transition hover:bg-amber-100">
+                    <x-admin.icon name="x" class="h-4 w-4" />
+                </button>
+            </div>
+        @endif
+
+        @if (session('info'))
+            <div class="flex items-start justify-between gap-4 rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm font-semibold text-sky-700">
+                <div class="flex items-start gap-3">
+                    <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+                        i
+                    </span>
+
+                    <p>
+                        {{ session('info') }}
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    @click="show = false"
+                    class="rounded-lg p-1 text-sky-600 transition hover:bg-sky-100">
                     <x-admin.icon name="x" class="h-4 w-4" />
                 </button>
             </div>

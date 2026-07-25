@@ -15,12 +15,14 @@ class FinalExam extends Model
         'passing_grade',
         'grading_method',
         'max_attempts',
+        'sort_order',
         'is_active',
     ];
 
     protected $casts = [
         'passing_grade' => 'integer',
         'max_attempts' => 'integer',
+        'sort_order' => 'integer',
         'is_active' => 'boolean',
     ];
 

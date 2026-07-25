@@ -125,7 +125,20 @@ class FinalExamReviewController extends Controller
         ]);
 
         if ($status === 'passed') {
-            $certificateService->createLockedCertificateFromAttempt($finalExamAttempt->fresh());
+            $courseLevelId = $finalExamAttempt->finalExam?->course_level_id;
+            if ($courseLevelId) {
+                $enrollment = StudentCourseEnrollment::query()
+                    ->where('student_id', $finalExamAttempt->student_id)
+                    ->where('course_level_id', $courseLevelId)
+                    ->whereIn('status', ['active', 'completed'])
+                    ->latest('enrolled_at')
+                    ->latest()
+                    ->first();
+
+                if ($enrollment) {
+                    $certificateService->evaluateAndCreateForEnrollment($enrollment);
+                }
+            }
         }
 
         if ($wasWaitingReview) {

@@ -6,36 +6,81 @@
     <title>{{ $certificate->certificate_number }}</title>
 
     @php
+    // Background Image Resolution
     $templateBackground = $certificate->certificateTemplate?->background_image;
-    $templateBackgroundPath = $templateBackground
-    ? public_path('storage/' . $templateBackground)
-    : null;
+    $templateBackgroundPath = ($templateBackground && \Illuminate\Support\Facades\Storage::disk('public')->exists($templateBackground))
+        ? public_path('storage/' . $templateBackground)
+        : null;
 
-    $hasTemplateBackground = $templateBackgroundPath && file_exists($templateBackgroundPath);
+    $defaultBackgroundPath = public_path('images/certificates/certificate-default-background.jpg');
 
-    $logoPath = public_path('images/logo-queens-english.png');
-    $hasLogo = file_exists($logoPath);
+    $bgPathToUse = null;
+    if (extension_loaded('gd') && $templateBackgroundPath && file_exists($templateBackgroundPath)) {
+        $bgPathToUse = $templateBackgroundPath;
+    } elseif (extension_loaded('gd') && file_exists($defaultBackgroundPath)) {
+        $bgPathToUse = $defaultBackgroundPath;
+    }
 
+    $hasBackground = !empty($bgPathToUse);
+
+    // Signature Settings
     $signaturePath = $certificateSetting?->signature_image
-    ? public_path('storage/' . $certificateSetting->signature_image)
-    : null;
-
-    $hasSignature = $signaturePath && file_exists($signaturePath);
+        ? public_path('storage/' . $certificateSetting->signature_image)
+        : null;
+    $hasSignature = extension_loaded('gd') && $signaturePath && file_exists($signaturePath);
 
     $signerName = $certificateSetting?->signerName() ?? 'Queens English Prestige';
     $signerTitle = $certificateSetting?->signerTitle() ?? 'Authorized Signature';
 
+    // Verification QR Code
     $verificationUrl = $certificate->verification_token
-    ? route('certificates.verify', $certificate->verification_token)
-    : null;
+        ? route('certificates.verify', $certificate->verification_token)
+        : null;
 
-    $qrSvg = $verificationUrl
-    ? \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(130)->margin(1)->generate($verificationUrl)
-    : null;
+    $qrDataUri = null;
+    if ($verificationUrl) {
+        try {
+            $qrSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(100)->margin(0)->generate($verificationUrl);
+            if ($qrSvg) {
+                $qrDataUri = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
+            }
+        } catch (\Throwable $e) {
+            $qrDataUri = null;
+        }
+    }
 
-    $qrDataUri = $qrSvg
-    ? 'data:image/svg+xml;base64,' . base64_encode($qrSvg)
-    : null;
+    // Student & Birth Info
+    $studentName = $student?->name ?? 'Student Name';
+    $studentNameLength = mb_strlen($studentName);
+
+    $studentProfile = $student?->studentProfile;
+    $birthPlace = trim($studentProfile?->birth_place ?? '');
+    $birthDateRaw = $studentProfile?->birth_date;
+
+    $birthDateMonthDay = $birthDateRaw ? $birthDateRaw->format('F j') : '';
+    $birthDateSuffix = $birthDateRaw ? $birthDateRaw->format('S') : '';
+    $birthDateYear = $birthDateRaw ? $birthDateRaw->format('Y') : '';
+
+    $hasBirthInfo = !empty($birthPlace) && !empty($birthDateRaw);
+
+    // Course & Date Info
+    $courseName = $courseLevel?->name ?? 'English Language Program';
+    $issuedDateRaw = $certificate->issued_at ?? $certificate->created_at;
+
+    $completionDateDayOfWeekMonthDay = $issuedDateRaw ? $issuedDateRaw->format('l, F j') : date('l, F j');
+    $completionDateSuffix = $issuedDateRaw ? $issuedDateRaw->format('S') : date('S');
+    $completionDateYear = $issuedDateRaw ? $issuedDateRaw->format('Y') : date('Y');
+
+    $signingDateMonthDay = $issuedDateRaw ? $issuedDateRaw->format('F j') : date('F j');
+    $signingDateSuffix = $issuedDateRaw ? $issuedDateRaw->format('S') : date('S');
+    $signingDateYear = $issuedDateRaw ? $issuedDateRaw->format('Y') : date('Y');
+
+    // Section Scores & Multi-page
+    $hasSectionScores = is_array($certificate->section_scores) && !empty($certificate->section_scores);
+    $sectionScores = $hasSectionScores ? $certificate->section_scores : [];
+    $finalScoreFormatted = $certificate->final_score !== null ? number_format((float) $certificate->final_score, 2, '.', '') : null;
+    $sectionCount = count($sectionScores);
+    $isMultiPage = $sectionCount > 5;
     @endphp
 
     <style>
@@ -54,7 +99,6 @@
             padding: 0;
             width: 297mm;
             height: 210mm;
-            overflow: hidden;
             background: #ffffff;
             color: #0f172a;
             font-family: DejaVu Sans, sans-serif;
@@ -65,7 +109,7 @@
             width: 297mm;
             height: 210mm;
             overflow: hidden;
-            background: #fffdf6;
+            background: #ffffff;
             text-align: center;
         }
 
@@ -78,6 +122,7 @@
             z-index: 0;
         }
 
+        /* Fallback styling if background image is not present */
         .default-border {
             position: absolute;
             top: 6mm;
@@ -98,63 +143,6 @@
             z-index: 2;
         }
 
-        .corner {
-            position: absolute;
-            width: 24mm;
-            height: 24mm;
-            z-index: 3;
-        }
-
-        .corner-top-left {
-            top: 15mm;
-            left: 15mm;
-            border-left: 0.9mm solid #d4a017;
-            border-top: 0.9mm solid #d4a017;
-        }
-
-        .corner-top-right {
-            top: 15mm;
-            right: 15mm;
-            border-right: 0.9mm solid #d4a017;
-            border-top: 0.9mm solid #d4a017;
-        }
-
-        .corner-bottom-left {
-            bottom: 15mm;
-            left: 15mm;
-            border-left: 0.9mm solid #d4a017;
-            border-bottom: 0.9mm solid #d4a017;
-        }
-
-        .corner-bottom-right {
-            bottom: 15mm;
-            right: 15mm;
-            border-right: 0.9mm solid #d4a017;
-            border-bottom: 0.9mm solid #d4a017;
-        }
-
-        .watermark-left {
-            position: absolute;
-            left: -35mm;
-            top: 42mm;
-            width: 90mm;
-            height: 90mm;
-            border: 8mm solid rgba(212, 160, 23, 0.08);
-            border-radius: 50%;
-            z-index: 1;
-        }
-
-        .watermark-right {
-            position: absolute;
-            right: -40mm;
-            bottom: 25mm;
-            width: 105mm;
-            height: 105mm;
-            border: 9mm solid rgba(7, 23, 56, 0.06);
-            border-radius: 50%;
-            z-index: 1;
-        }
-
         .content-layer {
             position: relative;
             z-index: 5;
@@ -162,353 +150,408 @@
             height: 210mm;
         }
 
-        .header {
+        /* Title Area (Main content preserved from Revision 2 at 50mm) */
+        .title-area {
             position: absolute;
-            top: 17mm;
-            left: 30mm;
-            right: 30mm;
+            top: 50mm;
+            left: 55mm;
+            right: 25mm;
             text-align: center;
         }
 
-        .brand-mark {
-            width: 16mm;
-            height: 16mm;
-            margin: 0 auto;
-            border-radius: 50%;
-            border: 0.3mm solid #dbe3ef;
-            background: #ffffff;
-            color: #071738;
-            font-size: 8.5pt;
-            font-weight: 900;
-            line-height: 16mm;
-            text-align: center;
-            overflow: hidden;
-        }
-
-        .brand-logo {
-            width: 13mm;
-            height: 13mm;
-            margin-top: 1.4mm;
-        }
-
-        .brand {
-            margin-top: 3mm;
-            color: #d4a017;
-            font-size: 5.5pt;
-            font-weight: 900;
+        .cert-title {
+            color: #0c1e38;
+            font-size: 19.5pt;
+            font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 3.2px;
-        }
-
-        .title {
-            margin: 5mm 0 0;
-            color: #071738;
-            font-size: 36pt;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 8px;
-            line-height: 1;
-        }
-
-        .subtitle {
-            margin-top: 3mm;
-            color: #64748b;
-            font-size: 7.4pt;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-        }
-
-        .gold-line {
-            width: 92mm;
-            height: 0.55mm;
-            margin: 5mm auto 0;
-            background: #d4a017;
-        }
-
-        .recipient {
-            position: absolute;
-            top: 80mm;
-            left: 35mm;
-            right: 35mm;
-            text-align: center;
-        }
-
-        .presented {
-            color: #475569;
-            font-size: 8.5pt;
-        }
-
-        .student-name {
-            margin-top: 3mm;
-            color: #020617;
-            font-size: 24pt;
-            font-weight: 900;
-            line-height: 1.08;
-        }
-
-        .thin-line {
-            width: 130mm;
-            height: 0.28mm;
-            margin: 4mm auto 0;
-            background: #cbd5e1;
-        }
-
-        .completion-text {
-            margin-top: 5mm;
-            color: #475569;
-            font-size: 8.5pt;
-        }
-
-        .course-name {
-            margin-top: 2mm;
-            color: #071738;
-            font-size: 17pt;
-            font-weight: 900;
+            letter-spacing: 2px;
+            margin: 0;
             line-height: 1.1;
         }
 
-        .program-name {
-            margin-top: 2mm;
-            color: #d4a017;
-            font-size: 6.4pt;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1.7px;
-        }
-
-        .meta-table {
-            position: absolute;
-            left: 72mm;
-            top: 135mm;
-            width: 153mm;
-            border-collapse: separate;
-            border-spacing: 3mm 0;
-        }
-
-        .meta-box {
-            width: 50%;
-            padding: 3.2mm 3.8mm;
-            border: 0.3mm solid #dbe3ef;
-            background: rgba(255, 255, 255, 0.90);
-            text-align: left;
-        }
-
-        .meta-label {
-            color: #94a3b8;
-            font-size: 5.2pt;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1.1px;
-        }
-
-        .meta-value {
-            margin-top: 1.4mm;
+        .cert-number {
             color: #0f172a;
-            font-size: 7pt;
-            font-weight: 900;
+            font-size: 10.5pt;
+            font-weight: bold;
+            margin-top: 1.5mm;
         }
 
-        .bottom-table {
-            position: absolute;
-            left: 50mm;
-            top: 160mm;
-            width: 197mm;
-            border-collapse: collapse;
+        .recipient-intro {
+            color: #1e293b;
+            font-size: 10.5pt;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 3.5mm;
         }
 
-        .bottom-cell {
-            width: 50%;
-            vertical-align: middle;
-            text-align: center;
+        /* Dynamic Student Name Styling */
+        .student-name {
+            color: #c68b29;
+            font-weight: bold;
+            margin-top: 2mm;
+            line-height: 1.1;
+            padding: 0 5mm;
+        }
+
+        .student-name-large {
+            font-size: 25pt;
+        }
+
+        .student-name-medium {
+            font-size: 19pt;
+        }
+
+        .student-name-small {
+            font-size: 15pt;
+        }
+
+        /* Student Description */
+        .description-text {
+            color: #1e293b;
+            font-size: 9.2pt;
+            line-height: 1.45;
+            margin-top: 3mm;
             padding: 0 10mm;
         }
 
-        .signature-image {
-            width: 54mm;
-            height: 14mm;
-            object-fit: contain;
-            margin: 0 auto 1.5mm;
-            display: block;
-        }
-
-        .signature-placeholder {
-            height: 14mm;
-            margin-bottom: 1.5mm;
-        }
-
-        .signature-line {
-            width: 68mm;
-            height: 0.3mm;
-            background: #334155;
-            margin: 0 auto 3mm;
-        }
-
-        .signature-name {
+        .description-text strong {
             color: #0f172a;
-            font-size: 7.4pt;
-            font-weight: 900;
+            font-weight: bold;
         }
 
-        .signature-title {
-            margin-top: 1mm;
-            color: #94a3b8;
-            font-size: 5.2pt;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
+        /* Ordinal Suffix Superscript */
+        .date-ordinal sup, sup {
+            font-size: 58%;
+            vertical-align: super;
+            line-height: 0;
         }
 
-        .qr-box {
-            display: inline-block;
-            width: 31mm;
-            padding: 1.8mm;
-            border: 0.3mm solid #dbe3ef;
-            background: rgba(255, 255, 255, 0.96);
+        /* Score Table Container */
+        .score-container-page1 {
+            margin-top: 2.5mm;
             text-align: center;
         }
 
-        .qr-box img {
+        .score-header-label {
+            font-size: 9pt;
+            font-weight: bold;
+            color: #0f172a;
+            margin-bottom: 1.5mm;
+        }
+
+        .score-table {
+            width: 54%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            border: 1.5px solid #000000;
+            background: #ffffff;
+        }
+
+        .score-table td {
+            border: 1.5px solid #000000;
+            padding: 2.2px 8px;
+            font-size: 8.5pt;
+            color: #000000;
+        }
+
+        .score-title-td {
+            text-align: left;
+            width: 72%;
+        }
+
+        .score-val-td {
+            text-align: center;
+            font-weight: bold;
+            width: 28%;
+        }
+
+        .score-total-tr td {
+            font-weight: bold;
+            font-size: 9pt;
+            background: #ffffff;
+        }
+
+        .validity-note {
+            font-size: 7.5pt;
+            font-style: italic;
+            color: #000000;
+            margin-top: 1.5mm;
+        }
+
+        /* Bottom-Left Dynamic Verification QR Code Block (Revision 3: Bottom-Left corner at 18mm left, 25mm bottom) */
+        .qr-verification-block {
+            position: absolute;
+            bottom: 25mm;
+            left: 18mm;
+            width: 38mm;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .qr-verification-block img {
             width: 21mm;
             height: 21mm;
             display: block;
             margin: 0 auto;
         }
 
-        .qr-title {
-            margin-top: 1mm;
+        .qr-label {
+            font-size: 6.8pt;
+            font-weight: bold;
+            letter-spacing: 0.8px;
             color: #0f172a;
-            font-size: 5.5pt;
-            font-weight: 900;
+            text-transform: uppercase;
+            margin-top: 1mm;
         }
 
-        .qr-subtitle {
+        .qr-certificate-number {
+            font-size: 6.2pt;
+            color: #475569;
             margin-top: 0.5mm;
-            color: #94a3b8;
-            font-size: 4.2pt;
-            font-weight: 900;
+            word-break: break-all;
+        }
+
+        /* Bottom Signature Block (Revision 3 Tweak: Centered relative to content area at 55% left, 25mm bottom) */
+        .signature-area {
+            position: absolute;
+            bottom: 25mm;
+            left: 55%;
+            width: 76mm;
+            margin-left: -38mm;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .signing-date {
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 1mm;
+        }
+
+        .signature-img-container {
+            height: 15mm;
+            margin: 0.5mm auto;
+        }
+
+        .signature-img {
+            max-height: 15mm;
+            max-width: 58mm;
+            object-fit: contain;
+        }
+
+        .signer-name {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #c68b29;
+            text-decoration: underline;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-top: 1mm;
+        }
+
+        .signer-title {
+            font-size: 9.5pt;
+            color: #1e293b;
+            margin-top: 0.5mm;
+        }
+
+        /* Page 2 for > 5 sections */
+        .page-break {
+            page-break-before: always;
+        }
+
+        .page2-container {
+            padding: 18mm 22mm;
+            background: #ffffff;
+            min-height: 210mm;
+        }
+
+        .page2-header {
+            border-bottom: 0.5mm solid #071738;
+            padding-bottom: 4mm;
+            margin-bottom: 6mm;
+            text-align: left;
+        }
+
+        .page2-title {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #071738;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .page2-meta {
+            margin-top: 2mm;
+            font-size: 8pt;
+            color: #475569;
+        }
+
+        .page2-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4mm;
+            table-layout: fixed;
+        }
+
+        .page2-table th {
+            background: #071738;
+            color: #ffffff;
+            font-size: 7.5pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 2.5mm 4mm;
+            border: 0.3mm solid #071738;
+            letter-spacing: 1px;
+        }
+
+        .page2-table td {
+            font-size: 8pt;
+            color: #0f172a;
+            padding: 2.5mm 4mm;
+            border: 0.3mm solid #cbd5e1;
+            word-wrap: break-word;
+        }
+
+        .page2-table tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        .page2-final-tr td {
+            background: #f1f5f9 !important;
+            font-weight: bold;
+            font-size: 9pt;
+            border-top: 0.6mm solid #071738;
         }
     </style>
 </head>
 
 <body>
+    {{-- PAGE 1 --}}
     <div class="certificate">
-        @if ($hasTemplateBackground)
-        <img
-            src="{{ $templateBackgroundPath }}"
-            alt="Certificate Template Background"
-            class="template-background">
+        @if ($hasBackground)
+        <img src="{{ $bgPathToUse }}" alt="Certificate Background" class="template-background">
         @else
         <div class="default-border"></div>
         <div class="inner-border"></div>
-
-        <div class="corner corner-top-left"></div>
-        <div class="corner corner-top-right"></div>
-        <div class="corner corner-bottom-left"></div>
-        <div class="corner corner-bottom-right"></div>
-
-        <div class="watermark-left"></div>
-        <div class="watermark-right"></div>
         @endif
 
         <div class="content-layer">
-            <div class="header">
-                <div class="brand-mark">
-                    @if ($hasLogo)
-                    <img
-                        src="{{ $logoPath }}"
-                        alt="Queens English Prestige"
-                        class="brand-logo">
+            <div class="title-area">
+                <div class="cert-title">CERTIFICATE OF ACHIEVEMENT</div>
+                <div class="cert-number">No: {{ $certificate->certificate_number }}</div>
+                <div class="recipient-intro">THIS CERTIFICATE IS GRANTED TO :</div>
+
+                {{-- Dynamic Student Name with Length Scaling --}}
+                @if ($studentNameLength <= 25)
+                <div class="student-name student-name-large">{{ $studentName }}</div>
+                @elseif ($studentNameLength <= 40)
+                <div class="student-name student-name-medium">{{ $studentName }}</div>
+                @else
+                <div class="student-name student-name-small">{{ $studentName }}</div>
+                @endif
+
+                {{-- Student & Course Description with Ordinal Superscript --}}
+                <div class="description-text">
+                    @if ($hasBirthInfo)
+                    born in {{ $birthPlace }}, on <span class="date-ordinal">{{ $birthDateMonthDay }}<sup>{{ $birthDateSuffix }}</sup>, {{ $birthDateYear }}</span> for the completion of
                     @else
-                    QEP
+                    for the completion of
+                    @endif
+                    <br>
+                    <strong>{{ $courseName }}</strong> on <span class="date-ordinal">{{ $completionDateDayOfWeekMonthDay }}<sup>{{ $completionDateSuffix }}</sup>, {{ $completionDateYear }}</span>.
+                </div>
+
+                {{-- Compact Score Table on Page 1 if 1 to 5 sections --}}
+                @if ($hasSectionScores && $sectionCount <= 5)
+                <div class="score-container-page1">
+                    <div class="score-header-label">TOEFL Prediction Score:</div>
+                    <table class="score-table">
+                        <tbody>
+                            @foreach ($sectionScores as $idx => $sec)
+                            <tr>
+                                <td class="score-title-td">{{ $sec['title'] ?? 'Section ' . ($idx + 1) }}</td>
+                                <td class="score-val-td">{{ isset($sec['score']) ? number_format((float)$sec['score'], 0) : '-' }}</td>
+                            </tr>
+                            @endforeach
+                            @if ($finalScoreFormatted !== null)
+                            <tr class="score-total-tr">
+                                <td class="score-title-td">Total Score:</td>
+                                <td class="score-val-td">{{ $finalScoreFormatted }}</td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                    <div class="validity-note">This prediction score is valid for 6 months from the date of issuance</div>
+                </div>
+                @endif
+            </div>
+
+            {{-- Bottom-Left Dynamic Verification QR Code Block (Revision 3: left: 18mm, bottom: 25mm) --}}
+            @if ($qrDataUri)
+            <div class="qr-verification-block">
+                <img src="{{ $qrDataUri }}" alt="Verification QR Code">
+                <div class="qr-label">SCAN TO VERIFY</div>
+                <div class="qr-certificate-number">{{ $certificate->certificate_number }}</div>
+            </div>
+            @endif
+
+            {{-- Bottom Signature Block (Revision 3 Tweak: left: 55%, bottom: 25mm) --}}
+            <div class="signature-area">
+                <div class="signing-date">Pekanbaru, <span class="date-ordinal">{{ $signingDateMonthDay }}<sup>{{ $signingDateSuffix }}</sup>, {{ $signingDateYear }}</span></div>
+
+                <div class="signature-img-container">
+                    @if ($hasSignature)
+                    <img src="{{ $signaturePath }}" alt="{{ $signerName }}" class="signature-img">
                     @endif
                 </div>
 
-                <div class="brand">
-                    Queens English Prestige
-                </div>
-
-                <div class="title">
-                    Certificate
-                </div>
-
-                <div class="subtitle">
-                    Of Completion
-                </div>
-
-                <div class="gold-line"></div>
+                <div class="signer-name">{{ $signerName }}</div>
+                <div class="signer-title">{{ $signerTitle }}</div>
             </div>
-
-            <div class="recipient">
-                <div class="presented">
-                    This certificate is proudly presented to
-                </div>
-
-                <div class="student-name">
-                    {{ $student?->name ?? 'Student Name' }}
-                </div>
-
-                <div class="thin-line"></div>
-
-                <div class="completion-text">
-                    for successfully completing the course
-                </div>
-
-                <div class="course-name">
-                    {{ $courseLevel?->name ?? 'Course Name' }}
-                </div>
-
-                <div class="program-name">
-                    {{ $courseProgram?->name ?? 'Queens English Prestige Program' }}
-                </div>
-            </div>
-
-            <table class="meta-table">
-                <tr>
-                    <td class="meta-box">
-                        <div class="meta-label">Certificate No.</div>
-                        <div class="meta-value">{{ $certificate->certificate_number }}</div>
-                    </td>
-
-                    <td class="meta-box">
-                        <div class="meta-label">Issued Date</div>
-                        <div class="meta-value">{{ $certificate->issued_at?->format('d F Y') ?? '-' }}</div>
-                    </td>
-                </tr>
-            </table>
-
-            <table class="bottom-table">
-                <tr>
-                    <td class="bottom-cell">
-                        @if ($hasSignature)
-                        <img
-                            src="{{ $signaturePath }}"
-                            alt="{{ $signerName }}"
-                            class="signature-image">
-                        @else
-                        <div class="signature-placeholder"></div>
-                        @endif
-
-                        <div class="signature-line"></div>
-                        <div class="signature-name">{{ $signerName }}</div>
-                        <div class="signature-title">{{ $signerTitle }}</div>
-                    </td>
-
-                    <td class="bottom-cell">
-                        @if ($qrDataUri)
-                        <div class="qr-box">
-                            <img src="{{ $qrDataUri }}" alt="Certificate Verification QR">
-                            <div class="qr-title">Verify Certificate</div>
-                            <div class="qr-subtitle">Scan to Verify</div>
-                        </div>
-                        @endif
-                    </td>
-                </tr>
-            </table>
         </div>
     </div>
+
+    {{-- PAGE 2 for > 5 sections --}}
+    @if ($hasSectionScores && $isMultiPage)
+    <div class="page-break"></div>
+    <div class="page2-container">
+        <div class="page2-header">
+            <div class="page2-title">Final Exam Score Breakdown</div>
+            <div class="page2-meta">
+                <strong>Student:</strong> {{ $studentName }} &nbsp;|&nbsp;
+                <strong>Course:</strong> {{ $courseName }} &nbsp;|&nbsp;
+                <strong>Certificate No:</strong> {{ $certificate->certificate_number }}
+            </div>
+        </div>
+
+        <table class="page2-table">
+            <thead>
+                <tr>
+                    <th style="width: 12mm; text-align: center;">No.</th>
+                    <th style="text-align: left;">Section Name</th>
+                    <th style="width: 35mm; text-align: right;">Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($sectionScores as $idx => $sec)
+                <tr>
+                    <td style="text-align: center;">{{ $idx + 1 }}</td>
+                    <td style="text-align: left;">{{ $sec['title'] ?? 'Section ' . ($idx + 1) }}</td>
+                    <td style="text-align: right; font-weight: bold;">{{ isset($sec['score']) ? number_format((float)$sec['score'], 2, '.', '') : '-' }}</td>
+                </tr>
+                @endforeach
+                @if ($finalScoreFormatted !== null)
+                <tr class="page2-final-tr">
+                    <td colspan="2" style="text-align: right; text-transform: uppercase; letter-spacing: 1px; color: #071738;">FINAL SCORE</td>
+                    <td style="text-align: right; color: #071738;">{{ $finalScoreFormatted }}</td>
+                </tr>
+                @endif
+            </tbody>
+        </table>
+    </div>
+    @endif
 </body>
 
 </html>

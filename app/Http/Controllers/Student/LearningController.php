@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use App\Models\ModulePracticeAttempt;
 use App\Models\FinalExamAttempt;
+use App\Models\FinalExam;
 
 class LearningController extends Controller
 {
@@ -41,6 +42,7 @@ class LearningController extends Controller
                 $query->where('is_active', true);
             },
             'moduleProgress',
+            'certificate',
         ]);
 
         $courseLevel = $enrollment->courseLevel;
@@ -48,31 +50,104 @@ class LearningController extends Controller
         abort_unless($courseLevel, 404);
 
         $modulesCollection = $courseLevel->modules ?? collect();
-        $finalExam = $courseLevel->finalExams?->first();
-
-        $latestFinalExamAttempt = null;
-        $finalExamAttemptCount = 0;
-        $canRetakeFinalExam = false;
         $isFinalExamUnlocked = (float) $enrollment->progress_percentage >= 100;
+        $isEnrollmentCompleted = $enrollment->status === 'completed' && $enrollment->certificate !== null;
 
-        if ($finalExam) {
-            $latestFinalExamAttempt = FinalExamAttempt::query()
-                ->where('student_id', auth()->id())
-                ->where('final_exam_id', $finalExam->id)
-                ->whereIn('status', ['passed', 'failed', 'waiting_review'])
-                ->latest('submitted_at')
-                ->latest()
-                ->first();
+        $activeFinalExams = $courseLevel->finalExams()
+            ->where('is_active', true)
+            ->withCount(['questions as active_questions_count' => function ($query) {
+                $query->where('is_active', true);
+            }])
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
 
-            $finalExamAttemptCount = FinalExamAttempt::query()
-                ->where('student_id', auth()->id())
-                ->where('final_exam_id', $finalExam->id)
-                ->whereIn('status', ['passed', 'failed', 'waiting_review'])
-                ->count();
+        $studentAttemptsGrouped = FinalExamAttempt::query()
+            ->where('student_id', auth()->id())
+            ->whereIn('final_exam_id', $activeFinalExams->pluck('id'))
+            ->whereIn('status', ['passed', 'failed', 'waiting_review', 'in_progress'])
+            ->orderByDesc('submitted_at')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('final_exam_id');
 
-            $canRetakeFinalExam = ! $finalExam->max_attempts
-                || $finalExamAttemptCount < (int) $finalExam->max_attempts;
-        }
+        $finalExamSections = $activeFinalExams->map(function (FinalExam $exam) use (
+            $studentAttemptsGrouped,
+            $enrollment,
+            $isFinalExamUnlocked,
+            $isEnrollmentCompleted
+        ) {
+            $attempts = $studentAttemptsGrouped->get($exam->id, collect());
+
+            $submittedAttempts = $attempts->filter(fn ($a) => in_array($a->status, ['passed', 'failed', 'waiting_review'], true));
+            $attemptsUsed = $submittedAttempts->count();
+
+            $passedAttempt = $submittedAttempts->firstWhere('status', 'passed');
+            $waitingReviewAttempt = $attempts->firstWhere('status', 'waiting_review');
+            $inProgressAttempt = $attempts->firstWhere('status', 'in_progress');
+            $latestSubmittedAttempt = $submittedAttempts->first();
+
+            $status = match (true) {
+                $passedAttempt !== null => 'passed',
+                $waitingReviewAttempt !== null => 'waiting_review',
+                $inProgressAttempt !== null => 'in_progress',
+                $latestSubmittedAttempt?->status === 'failed' => 'failed',
+                default => 'not_started',
+            };
+
+            $score = match ($status) {
+                'passed' => (float) $passedAttempt->total_score,
+                'failed' => (float) $latestSubmittedAttempt->total_score,
+                default => null,
+            };
+
+            $hasActiveQuestions = $exam->active_questions_count > 0;
+            $maxAttempts = $exam->max_attempts ? (int) $exam->max_attempts : null;
+            $attemptsRemaining = $maxAttempts !== null ? max(0, $maxAttempts - $attemptsUsed) : null;
+            $isAttemptLimitReached = $maxAttempts !== null && $attemptsUsed >= $maxAttempts;
+
+            $isExemptNewSection = $isEnrollmentCompleted && $status === 'not_started';
+
+            $canStart = $isFinalExamUnlocked && $hasActiveQuestions && ! $isExemptNewSection && ! $passedAttempt && ! $waitingReviewAttempt && ! $inProgressAttempt && ! $isAttemptLimitReached;
+            $canContinue = $isFinalExamUnlocked && ! $isExemptNewSection && $inProgressAttempt !== null;
+            $canRetake = $isFinalExamUnlocked && $hasActiveQuestions && ! $isExemptNewSection && ! $passedAttempt && ! $waitingReviewAttempt && ! $inProgressAttempt && $latestSubmittedAttempt?->status === 'failed' && ! $isAttemptLimitReached;
+
+            $latestAttempt = $passedAttempt ?? $waitingReviewAttempt ?? $inProgressAttempt ?? $latestSubmittedAttempt;
+
+            return [
+                'exam' => $exam,
+                'id' => $exam->id,
+                'title' => $exam->title,
+                'description' => $exam->description,
+                'passing_grade' => $exam->passing_grade,
+                'grading_method' => $exam->grading_method,
+                'max_attempts' => $maxAttempts,
+                'sort_order' => $exam->sort_order,
+                'active_questions_count' => $exam->active_questions_count,
+                'has_active_questions' => $hasActiveQuestions,
+                'status' => $status,
+                'score' => $score,
+                'attempts_used' => $attemptsUsed,
+                'attempts_remaining' => $attemptsRemaining,
+                'is_attempt_limit_reached' => $isAttemptLimitReached,
+                'is_exempt_new_section' => $isExemptNewSection,
+                'can_start' => $canStart,
+                'can_continue' => $canContinue,
+                'can_retake' => $canRetake,
+                'latest_attempt' => $latestAttempt,
+                'passed_attempt' => $passedAttempt,
+                'in_progress_attempt' => $inProgressAttempt,
+                'waiting_review_attempt' => $waitingReviewAttempt,
+                'start_href' => route('student.final-exam', ['enrollment' => $enrollment, 'finalExam' => $exam]),
+                'result_href' => $latestAttempt ? route('student.final-exam-result', ['enrollment' => $enrollment, 'attempt' => $latestAttempt]) : null,
+            ];
+        });
+
+        $finalExam = $activeFinalExams->first();
+        $firstSection = $finalExamSections->first();
+        $latestFinalExamAttempt = $firstSection['latest_attempt'] ?? null;
+        $finalExamAttemptCount = $firstSection['attempts_used'] ?? 0;
+        $canRetakeFinalExam = $firstSection['can_retake'] ?? false;
 
         $completedModuleIds = $enrollment->moduleProgress
             ->where('status', 'completed')
@@ -128,6 +203,7 @@ class LearningController extends Controller
             'courseLevel' => $courseLevel,
             'modules' => $modules,
             'modulesCount' => count($modules),
+            'finalExamSections' => $finalExamSections,
             'finalExam' => $finalExam,
             'latestFinalExamAttempt' => $latestFinalExamAttempt,
             'finalExamAttemptCount' => $finalExamAttemptCount,

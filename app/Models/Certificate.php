@@ -18,10 +18,14 @@ class Certificate extends Model
         'certificate_file',
         'issued_at',
         'status',
+        'section_scores',
+        'final_score',
     ];
 
     protected $casts = [
         'issued_at' => 'datetime',
+        'section_scores' => 'array',
+        'final_score' => 'decimal:2',
     ];
 
     public function student(): BelongsTo
