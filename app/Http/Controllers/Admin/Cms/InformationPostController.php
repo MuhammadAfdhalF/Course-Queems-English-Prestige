@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Cms;
 use App\Http\Controllers\Controller;
 use App\Models\InformationPost;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\InformationPostImage;
@@ -15,7 +16,7 @@ class InformationPostController extends Controller
     {
         $posts = InformationPost::query()
             ->with(['images' => function ($query) {
-                $query->orderBy('sort_order')->latest();
+                $query->orderBy('sort_order')->orderBy('id');
             }])
             ->latest('published_at')
             ->latest()
@@ -163,22 +164,55 @@ class InformationPostController extends Controller
 
     public function storeImage(Request $request, InformationPost $informationPost)
     {
-        $validated = $request->validate([
-            'image' => ['required', 'image', 'max:2048'],
+        $request->validate([
+            'images' => ['required', 'array', 'min:1', 'max:10'],
+            'images.*' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'caption' => ['nullable', 'string', 'max:255'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ], [
+            'images.required' => 'Please select at least one image to upload.',
+            'images.max' => 'Maximum 10 images can be uploaded per batch.',
+            'images.*.image' => 'All uploaded files must be valid images.',
+            'images.*.mimes' => 'Images must be in jpeg, jpg, png, or webp format.',
+            'images.*.max' => 'Each image must not exceed 2 MB.',
         ]);
 
-        $validated['image'] = $request->file('image')->store('information-posts/images', 'public');
+        $files = $request->file('images');
+        $caption = $request->input('caption');
+        $storedPaths = [];
 
-        $validated['sort_order'] = $validated['sort_order']
-            ?? ((int) $informationPost->images()->max('sort_order') + 1);
+        try {
+            DB::transaction(function () use ($informationPost, $files, $caption, &$storedPaths) {
+                $currentMaxOrder = (int) $informationPost->images()->max('sort_order');
 
-        $informationPost->images()->create($validated);
+                foreach ($files as $index => $file) {
+                    $path = $file->store('information-posts/images', 'public');
+                    $storedPaths[] = $path;
+
+                    $informationPost->images()->create([
+                        'image' => $path,
+                        'caption' => $caption,
+                        'sort_order' => $currentMaxOrder + $index + 1,
+                    ]);
+                }
+            });
+        } catch (\Throwable $e) {
+            foreach ($storedPaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            return back()
+                ->withErrors(['images' => 'Failed to upload images: ' . $e->getMessage()])
+                ->withInput();
+        }
+
+        $count = count($files);
+        $message = $count === 1
+            ? '1 image has been uploaded successfully.'
+            : "{$count} images have been uploaded successfully.";
 
         return redirect()
             ->route('admin.cms.news-gallery.index')
-            ->with('success', 'Post image has been uploaded successfully.');
+            ->with('success', $message);
     }
     public function destroyImage(InformationPostImage $informationPostImage)
     {
@@ -191,5 +225,35 @@ class InformationPostController extends Controller
         return redirect()
             ->route('admin.cms.news-gallery.index')
             ->with('success', 'Post image has been deleted successfully.');
+    }
+
+    public function reorderImages(Request $request, InformationPost $informationPost)
+    {
+        $validated = $request->validate([
+            'order' => ['required', 'array'],
+            'order.*' => ['required', 'integer'],
+        ]);
+
+        $postImageIds = $informationPost->images()->pluck('id')->toArray();
+
+        foreach ($validated['order'] as $imageId) {
+            if (!in_array($imageId, $postImageIds)) {
+                return back()
+                    ->withErrors(['images' => 'Invalid image ID for this post.'])
+                    ->withInput();
+            }
+        }
+
+        DB::transaction(function () use ($informationPost, $validated) {
+            foreach ($validated['order'] as $index => $imageId) {
+                $informationPost->images()
+                    ->where('id', $imageId)
+                    ->update(['sort_order' => $index + 1]);
+            }
+        });
+
+        return redirect()
+            ->route('admin.cms.news-gallery.index')
+            ->with('success', 'Image order has been saved successfully.');
     }
 }

@@ -7,7 +7,7 @@
                 class="{{ blank($selectedType ?? null)
                         ? 'inline-flex border-b-2 border-[#2457E6] pb-4 font-bold text-[#2457E6] transition-colors duration-200'
                         : 'inline-flex pb-4 text-slate-500 transition-colors duration-200 hover:text-[var(--color-brand-blue)]' }}">
-                All News
+                All
             </a>
 
             @foreach (($types ?? collect()) as $typeValue => $typeLabel)
