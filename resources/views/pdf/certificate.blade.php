@@ -56,15 +56,24 @@
     $studentProfile = $student?->studentProfile;
     $birthPlace = trim($studentProfile?->birth_place ?? '');
     $birthDateRaw = $studentProfile?->birth_date;
-    $birthDateFormatted = $birthDateRaw ? $birthDateRaw->format('F jS, Y') : null;
 
-    $hasBirthInfo = !empty($birthPlace) && !empty($birthDateFormatted);
+    $birthDateMonthDay = $birthDateRaw ? $birthDateRaw->format('F j') : '';
+    $birthDateSuffix = $birthDateRaw ? $birthDateRaw->format('S') : '';
+    $birthDateYear = $birthDateRaw ? $birthDateRaw->format('Y') : '';
+
+    $hasBirthInfo = !empty($birthPlace) && !empty($birthDateRaw);
 
     // Course & Date Info
     $courseName = $courseLevel?->name ?? 'English Language Program';
     $issuedDateRaw = $certificate->issued_at ?? $certificate->created_at;
-    $completionDateFormatted = $issuedDateRaw ? $issuedDateRaw->format('l, F jS, Y') : date('l, F jS, Y');
-    $signingDateFormatted = $issuedDateRaw ? $issuedDateRaw->format('F jS, Y') : date('F jS, Y');
+
+    $completionDateDayOfWeekMonthDay = $issuedDateRaw ? $issuedDateRaw->format('l, F j') : date('l, F j');
+    $completionDateSuffix = $issuedDateRaw ? $issuedDateRaw->format('S') : date('S');
+    $completionDateYear = $issuedDateRaw ? $issuedDateRaw->format('Y') : date('Y');
+
+    $signingDateMonthDay = $issuedDateRaw ? $issuedDateRaw->format('F j') : date('F j');
+    $signingDateSuffix = $issuedDateRaw ? $issuedDateRaw->format('S') : date('S');
+    $signingDateYear = $issuedDateRaw ? $issuedDateRaw->format('Y') : date('Y');
 
     // Section Scores & Multi-page
     $hasSectionScores = is_array($certificate->section_scores) && !empty($certificate->section_scores);
@@ -141,10 +150,10 @@
             height: 210mm;
         }
 
-        /* Title Area (Centered between left ribbon and right margin) */
+        /* Title Area (Main content preserved from Revision 2 at 50mm) */
         .title-area {
             position: absolute;
-            top: 43mm;
+            top: 50mm;
             left: 55mm;
             right: 25mm;
             text-align: center;
@@ -210,6 +219,13 @@
             font-weight: bold;
         }
 
+        /* Ordinal Suffix Superscript */
+        .date-ordinal sup, sup {
+            font-size: 58%;
+            vertical-align: super;
+            line-height: 0;
+        }
+
         /* Score Table Container */
         .score-container-page1 {
             margin-top: 2.5mm;
@@ -262,25 +278,25 @@
             margin-top: 1.5mm;
         }
 
-        /* Bottom-Left Dynamic Verification QR Code Block (To the right of the left ribbon) */
+        /* Bottom-Left Dynamic Verification QR Code Block (Revision 3: Bottom-Left corner at 18mm left, 25mm bottom) */
         .qr-verification-block {
             position: absolute;
-            bottom: 12mm;
-            left: 68mm;
-            width: 44mm;
+            bottom: 25mm;
+            left: 18mm;
+            width: 38mm;
             text-align: center;
             z-index: 10;
         }
 
         .qr-verification-block img {
-            width: 19mm;
-            height: 19mm;
+            width: 21mm;
+            height: 21mm;
             display: block;
             margin: 0 auto;
         }
 
         .qr-label {
-            font-size: 7pt;
+            font-size: 6.8pt;
             font-weight: bold;
             letter-spacing: 0.8px;
             color: #0f172a;
@@ -288,18 +304,20 @@
             margin-top: 1mm;
         }
 
-        .qr-sublabel {
-            font-size: 6.5pt;
+        .qr-certificate-number {
+            font-size: 6.2pt;
             color: #475569;
             margin-top: 0.5mm;
+            word-break: break-all;
         }
 
-        /* Bottom-Right Signature Block */
+        /* Bottom Signature Block (Revision 3 Tweak: Centered relative to content area at 55% left, 25mm bottom) */
         .signature-area {
             position: absolute;
-            bottom: 12mm;
-            right: 28mm;
-            width: 78mm;
+            bottom: 25mm;
+            left: 55%;
+            width: 76mm;
+            margin-left: -38mm;
             text-align: center;
             z-index: 10;
         }
@@ -434,15 +452,15 @@
                 <div class="student-name student-name-small">{{ $studentName }}</div>
                 @endif
 
-                {{-- Student & Course Description --}}
+                {{-- Student & Course Description with Ordinal Superscript --}}
                 <div class="description-text">
                     @if ($hasBirthInfo)
-                    born in {{ $birthPlace }}, on {{ $birthDateFormatted }} for the completion of
+                    born in {{ $birthPlace }}, on <span class="date-ordinal">{{ $birthDateMonthDay }}<sup>{{ $birthDateSuffix }}</sup>, {{ $birthDateYear }}</span> for the completion of
                     @else
                     for the completion of
                     @endif
                     <br>
-                    <strong>{{ $courseName }}</strong> on {{ $completionDateFormatted }}.
+                    <strong>{{ $courseName }}</strong> on <span class="date-ordinal">{{ $completionDateDayOfWeekMonthDay }}<sup>{{ $completionDateSuffix }}</sup>, {{ $completionDateYear }}</span>.
                 </div>
 
                 {{-- Compact Score Table on Page 1 if 1 to 5 sections --}}
@@ -470,18 +488,18 @@
                 @endif
             </div>
 
-            {{-- Bottom-Left Dynamic Verification QR Code Block --}}
+            {{-- Bottom-Left Dynamic Verification QR Code Block (Revision 3: left: 18mm, bottom: 25mm) --}}
             @if ($qrDataUri)
             <div class="qr-verification-block">
                 <img src="{{ $qrDataUri }}" alt="Verification QR Code">
                 <div class="qr-label">SCAN TO VERIFY</div>
-                <div class="qr-sublabel">Verify Certificate</div>
+                <div class="qr-certificate-number">{{ $certificate->certificate_number }}</div>
             </div>
             @endif
 
-            {{-- Bottom-Right Signature Block --}}
+            {{-- Bottom Signature Block (Revision 3 Tweak: left: 55%, bottom: 25mm) --}}
             <div class="signature-area">
-                <div class="signing-date">Pekanbaru, {{ $signingDateFormatted }}</div>
+                <div class="signing-date">Pekanbaru, <span class="date-ordinal">{{ $signingDateMonthDay }}<sup>{{ $signingDateSuffix }}</sup>, {{ $signingDateYear }}</span></div>
 
                 <div class="signature-img-container">
                     @if ($hasSignature)

@@ -29,13 +29,22 @@ $studentNameLength = mb_strlen($studentName);
 $studentProfile = $student?->studentProfile;
 $birthPlace = trim($studentProfile?->birth_place ?? '');
 $birthDateRaw = $studentProfile?->birth_date;
-$birthDateFormatted = $birthDateRaw ? $birthDateRaw->format('F jS, Y') : null;
-$hasBirthInfo = !empty($birthPlace) && !empty($birthDateFormatted);
+
+$birthDateMonthDay = $birthDateRaw ? $birthDateRaw->format('F j') : '';
+$birthDateSuffix = $birthDateRaw ? $birthDateRaw->format('S') : '';
+$birthDateYear = $birthDateRaw ? $birthDateRaw->format('Y') : '';
+$hasBirthInfo = !empty($birthPlace) && !empty($birthDateRaw);
 
 $courseName = $courseLevel?->name ?? 'English Language Program';
 $issuedDateRaw = $certificate->issued_at ?? $certificate->created_at;
-$completionDateFormatted = $issuedDateRaw ? $issuedDateRaw->format('l, F jS, Y') : date('l, F jS, Y');
-$signingDateFormatted = $issuedDateRaw ? $issuedDateRaw->format('F jS, Y') : date('F jS, Y');
+
+$completionDateDayOfWeekMonthDay = $issuedDateRaw ? $issuedDateRaw->format('l, F j') : date('l, F j');
+$completionDateSuffix = $issuedDateRaw ? $issuedDateRaw->format('S') : date('S');
+$completionDateYear = $issuedDateRaw ? $issuedDateRaw->format('Y') : date('Y');
+
+$signingDateMonthDay = $issuedDateRaw ? $issuedDateRaw->format('F j') : date('F j');
+$signingDateSuffix = $issuedDateRaw ? $issuedDateRaw->format('S') : date('S');
+$signingDateYear = $issuedDateRaw ? $issuedDateRaw->format('Y') : date('Y');
 
 $hasSectionScores = is_array($certificate->section_scores) && !empty($certificate->section_scores);
 $sectionScores = $hasSectionScores ? $certificate->section_scores : [];
@@ -46,6 +55,12 @@ $sectionCount = count($sectionScores);
 <style>
     .certificate-preview-frame {
         aspect-ratio: 297 / 210;
+    }
+
+    .date-ordinal sup, sup {
+        font-size: 60%;
+        vertical-align: super;
+        line-height: 0;
     }
 
     @media print {
@@ -133,8 +148,8 @@ $sectionCount = count($sectionScores);
                     class="absolute inset-0 h-full w-full object-fill">
 
                 <div class="absolute inset-0 z-10">
-                    {{-- MAIN CONTENT AREA --}}
-                    <div class="absolute left-[18.5%] right-[8.5%] top-[20.5%] text-center">
+                    {{-- MAIN CONTENT AREA (Preserved at top-[24%]) --}}
+                    <div class="absolute left-[18.5%] right-[8.5%] top-[24%] text-center">
                         <h1 class="text-[1.7rem] font-bold uppercase leading-tight tracking-[0.08em] text-[#0c1e38] sm:text-[2.2rem] lg:text-[2.6rem]">
                             Certificate Of Achievement
                         </h1>
@@ -165,12 +180,12 @@ $sectionCount = count($sectionScores);
                         {{-- Description --}}
                         <p class="mt-2.5 text-[0.65rem] font-normal leading-relaxed text-[#1e293b] sm:text-xs lg:text-sm">
                             @if ($hasBirthInfo)
-                            born in {{ $birthPlace }}, on {{ $birthDateFormatted }} for the completion of
+                            born in {{ $birthPlace }}, on <span class="date-ordinal">{{ $birthDateMonthDay }}<sup>{{ $birthDateSuffix }}</sup>, {{ $birthDateYear }}</span> for the completion of
                             @else
                             for the completion of
                             @endif
                             <br>
-                            <strong class="font-bold text-[#0f172a]">{{ $courseName }}</strong> on {{ $completionDateFormatted }}.
+                            <strong class="font-bold text-[#0f172a]">{{ $courseName }}</strong> on <span class="date-ordinal">{{ $completionDateDayOfWeekMonthDay }}<sup>{{ $completionDateSuffix }}</sup>, {{ $completionDateYear }}</span>.
                         </p>
 
                         {{-- Score Table on Page 1 if 1 to 5 sections --}}
@@ -202,9 +217,9 @@ $sectionCount = count($sectionScores);
                         @endif
                     </div>
 
-                    {{-- BOTTOM-LEFT DYNAMIC VERIFICATION QR CODE (To the right of left ribbon) --}}
+                    {{-- BOTTOM-LEFT DYNAMIC VERIFICATION QR CODE (Revision 3: left-[6%], bottom-[12%]) --}}
                     @if ($verificationUrl && $qrSvg)
-                    <div class="absolute bottom-[5.5%] left-[23%] w-[16%] text-center">
+                    <div class="absolute bottom-[12%] left-[6%] w-[13%] text-center">
                         <a href="{{ $verificationUrl }}" target="_blank" class="inline-block text-center transition hover:opacity-90">
                             <div class="[&_svg]:mx-auto [&_svg]:h-10 [&_svg]:w-10 sm:[&_svg]:h-14 sm:[&_svg]:w-14 lg:[&_svg]:h-18 lg:[&_svg]:w-18">
                                 {!! $qrSvg !!}
@@ -212,17 +227,17 @@ $sectionCount = count($sectionScores);
                             <p class="mt-1 text-[0.55rem] font-bold uppercase tracking-wider text-[#0f172a] sm:text-[0.65rem]">
                                 SCAN TO VERIFY
                             </p>
-                            <p class="text-[0.5rem] font-medium text-slate-500 sm:text-[0.6rem]">
-                                Verify Certificate
+                            <p class="text-[0.5rem] font-medium text-slate-500 sm:text-[0.6rem] break-all">
+                                {{ $certificate->certificate_number }}
                             </p>
                         </a>
                     </div>
                     @endif
 
-                    {{-- BOTTOM-RIGHT SIGNATURE BLOCK --}}
-                    <div class="absolute bottom-[5.5%] right-[9%] w-[26%] text-center">
+                    {{-- BOTTOM SIGNATURE BLOCK (Revision 3 Tweak: bottom-[12%], centered relative to content area at left-[55%]) --}}
+                    <div class="absolute bottom-[12%] left-[55%] w-[26%] -translate-x-1/2 text-center">
                         <p class="text-[0.65rem] font-bold text-black sm:text-xs">
-                            Pekanbaru, {{ $signingDateFormatted }}
+                            Pekanbaru, <span class="date-ordinal">{{ $signingDateMonthDay }}<sup>{{ $signingDateSuffix }}</sup>, {{ $signingDateYear }}</span>
                         </p>
 
                         <div class="my-0.5 flex h-7 items-center justify-center sm:h-10 lg:h-12">
