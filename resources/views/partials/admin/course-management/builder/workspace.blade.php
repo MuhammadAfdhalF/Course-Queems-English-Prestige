@@ -2,6 +2,7 @@
     {{-- Loading Overlay --}}
     <div
         x-show="loading"
+        x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
@@ -36,9 +37,10 @@
         </button>
     </div>
 
-    {{-- Rendered HTML Workspace Partial --}}
+    {{-- Rendered HTML Workspace Partial (Initial Server Fallback + Dynamic Alpine x-html) --}}
     <div
         x-show="!error"
         x-html="workspaceHtml">
+        {!! $initialWorkspaceHtml !!}
     </div>
 </div>

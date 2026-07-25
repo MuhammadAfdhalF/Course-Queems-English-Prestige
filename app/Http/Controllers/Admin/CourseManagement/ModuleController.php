@@ -42,15 +42,53 @@ class ModuleController extends Controller
 
         $validated['course_level_id'] = $courseLevel->id;
         $validated['slug'] = $this->generateUniqueSlug($validated['slug'] ?? $validated['title']);
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['sort_order'] = $validated['sort_order'] ?? (((int) $courseLevel->modules()->max('sort_order')) + 1);
         $validated['is_preview'] = $request->boolean('is_preview');
         $validated['is_active'] = $request->boolean('is_active');
 
-        Module::create($validated);
+        $module = Module::create($validated);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Module has been created successfully.',
+                'module_id' => $module->id,
+                'redirect_node' => [
+                    'level' => $courseLevel->id,
+                    'module' => $module->id,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
 
         return redirect()
             ->route('admin.course-management.levels.modules.index', $courseLevel)
             ->with('success', 'Module has been created successfully.');
+    }
+
+    public function edit(Request $request, Module $module)
+    {
+        $module->load('courseLevel.courseProgram');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'id' => $module->id,
+                    'course_level_id' => $module->course_level_id,
+                    'title' => $module->title,
+                    'slug' => $module->slug,
+                    'short_description' => $module->short_description,
+                    'sort_order' => $module->sort_order,
+                    'is_preview' => (bool) $module->is_preview,
+                    'is_active' => (bool) $module->is_active,
+                    'update_url' => route('admin.course-management.modules.update', $module->id),
+                ]
+            ]);
+        }
+
+        return view('pages.admin.course-management.modules.edit', compact('module'));
     }
 
     public function update(Request $request, Module $module)
@@ -75,16 +113,43 @@ class ModuleController extends Controller
 
         $module->update($validated);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Module has been updated successfully.',
+                'module_id' => $module->id,
+                'redirect_node' => [
+                    'level' => $module->course_level_id,
+                    'module' => $module->id,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
+
         return redirect()
             ->route('admin.course-management.levels.modules.index', $module->courseLevel)
             ->with('success', 'Module has been updated successfully.');
     }
 
-    public function destroy(Module $module)
+    public function destroy(Request $request, Module $module)
     {
         $courseLevel = $module->courseLevel;
 
         $module->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Module has been deleted successfully.',
+                'redirect_node' => [
+                    'level' => $courseLevel->id,
+                    'module' => null,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
 
         return redirect()
             ->route('admin.course-management.levels.modules.index', $courseLevel)

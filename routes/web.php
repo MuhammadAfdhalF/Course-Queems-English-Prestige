@@ -249,12 +249,15 @@ Route::middleware(['auth', 'role:admin'])
             ->name('course-management.')
             ->group(function () {
 
-                // Course Builder Shell (Phase A)
+                // Course Builder Shell (Phase A & B)
                 Route::get('/programs/{courseProgram}/builder', [CourseBuilderController::class, 'builder'])
                     ->name('programs.builder');
 
                 Route::get('/programs/{courseProgram}/builder/workspace', [CourseBuilderController::class, 'workspace'])
                     ->name('programs.builder.workspace');
+
+                Route::get('/programs/{courseProgram}/builder/tree', [CourseBuilderController::class, 'tree'])
+                    ->name('programs.builder.tree');
 
                 // Course Programs Reorder
                 Route::post('/programs/reorder', [CourseProgramController::class, 'reorder'])
@@ -292,6 +295,9 @@ Route::middleware(['auth', 'role:admin'])
 
                 Route::post('/levels/{courseLevel}/modules', [ModuleController::class, 'store'])
                     ->name('levels.modules.store');
+
+                Route::get('/modules/{module}/edit', [ModuleController::class, 'edit'])
+                    ->name('modules.edit');
 
                 Route::put('/modules/{module}', [ModuleController::class, 'update'])
                     ->name('modules.update');

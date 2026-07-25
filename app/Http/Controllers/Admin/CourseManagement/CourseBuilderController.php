@@ -19,6 +19,7 @@ class CourseBuilderController extends Controller
         $courseProgram->load([
             'courseLevels' => function ($q) {
                 $q->orderBy('sort_order')->orderBy('id')
+                  ->withCount(['modules', 'finalExams'])
                   ->with([
                       'modules' => function ($mq) {
                           $mq->orderBy('sort_order')->orderBy('id')
@@ -39,7 +40,61 @@ class CourseBuilderController extends Controller
 
         $firstLevelId = $courseProgram->courseLevels->first()?->id;
 
-        return view('pages.admin.course-management.builder.index', compact('courseProgram', 'firstLevelId'));
+        $totalLevels = $courseProgram->courseLevels->count();
+        $totalModules = $courseProgram->courseLevels->sum(fn($l) => $l->modules->count());
+        $totalMaterials = $courseProgram->courseLevels->sum(fn($l) => $l->modules->sum('materials_count'));
+        $totalPractices = $courseProgram->courseLevels->sum(fn($l) => $l->modules->sum(fn($m) => $m->practices->count()));
+        $totalFinalExams = $courseProgram->courseLevels->sum(fn($l) => $l->finalExams->count());
+
+        $initialWorkspaceHtml = view('partials.admin.course-management.builder.workspace.program', [
+            'courseProgram' => $courseProgram,
+            'totalLevels' => $totalLevels,
+            'totalModules' => $totalModules,
+            'totalMaterials' => $totalMaterials,
+            'totalPractices' => $totalPractices,
+            'totalFinalExams' => $totalFinalExams,
+        ])->render();
+
+        return view('pages.admin.course-management.builder.index', compact(
+            'courseProgram',
+            'firstLevelId',
+            'initialWorkspaceHtml'
+        ));
+    }
+
+    /**
+     * Render the Tree HTML Partial for AJAX refresh.
+     */
+    public function tree(CourseProgram $courseProgram)
+    {
+        $courseProgram->load([
+            'courseLevels' => function ($q) {
+                $q->orderBy('sort_order')->orderBy('id')
+                  ->with([
+                      'modules' => function ($mq) {
+                          $mq->orderBy('sort_order')->orderBy('id')
+                             ->withCount('materials')
+                             ->with([
+                                 'practices' => function ($pq) {
+                                     $pq->withCount('questions');
+                                 }
+                             ]);
+                      },
+                      'finalExams' => function ($fq) {
+                          $fq->orderBy('sort_order')->orderBy('id')
+                             ->withCount('questions');
+                      }
+                  ]);
+            }
+        ]);
+
+        $html = view('partials.admin.course-management.builder.tree', compact('courseProgram'))->render();
+
+        return response()->json([
+            'status' => 'success',
+            'html' => $html,
+            'first_level_id' => $courseProgram->courseLevels->first()?->id,
+        ]);
     }
 
     /**

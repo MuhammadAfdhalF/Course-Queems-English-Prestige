@@ -71,6 +71,12 @@ class CourseLevelController extends Controller
         }
 
         if ($validated['access_type'] === 'limited' && empty($validated['access_duration_days'])) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => ['access_duration_days' => ['Access duration is required when access type is limited.']]
+                ], 422);
+            }
             return back()
                 ->withErrors(['access_duration_days' => 'Access duration is required when access type is limited.'])
                 ->withInput();
@@ -78,7 +84,7 @@ class CourseLevelController extends Controller
 
         $validated['course_program_id'] = $courseProgram->id;
         $validated['slug'] = $this->generateUniqueSlug($validated['slug'] ?? $validated['name']);
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['sort_order'] = $validated['sort_order'] ?? (((int) $courseProgram->courseLevels()->max('sort_order')) + 1);
         $validated['is_active'] = $request->boolean('is_active');
 
         if ($validated['access_type'] === 'lifetime') {
@@ -95,16 +101,54 @@ class CourseLevelController extends Controller
                 ->store('course-levels/video-posters', 'public');
         }
 
-        CourseLevel::create($validated);
+        $level = CourseLevel::create($validated);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Course level has been created successfully.',
+                'level_id' => $level->id,
+                'redirect_node' => [
+                    'level' => $level->id,
+                    'module' => null,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
 
         return redirect()
             ->route('admin.course-management.programs.levels.index', $courseProgram)
             ->with('success', 'Course level has been created successfully.');
     }
 
-    public function edit(CourseLevel $courseLevel)
+    public function edit(Request $request, CourseLevel $courseLevel)
     {
         $courseLevel->load('courseProgram');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'id' => $courseLevel->id,
+                    'course_program_id' => $courseLevel->course_program_id,
+                    'name' => $courseLevel->name,
+                    'slug' => $courseLevel->slug,
+                    'thumbnail_type' => $courseLevel->thumbnail_type ?? 'image',
+                    'short_description' => $courseLevel->short_description,
+                    'description' => $courseLevel->description,
+                    'price' => (float) $courseLevel->price,
+                    'learning_mode' => $courseLevel->learning_mode ?? 'online',
+                    'access_type' => $courseLevel->access_type ?? 'lifetime',
+                    'access_duration_days' => $courseLevel->access_duration_days,
+                    'sort_order' => $courseLevel->sort_order,
+                    'is_active' => (bool) $courseLevel->is_active,
+                    'thumbnail_url' => $courseLevel->thumbnail_file ? Storage::url($courseLevel->thumbnail_file) : null,
+                    'video_poster_url' => $courseLevel->video_poster_file ? Storage::url($courseLevel->video_poster_file) : null,
+                    'update_url' => route('admin.course-management.levels.update', $courseLevel->id),
+                ]
+            ]);
+        }
 
         return view('pages.admin.course-management.levels.edit', compact('courseLevel'));
     }
@@ -132,6 +176,12 @@ class CourseLevelController extends Controller
 
         if ($validated['thumbnail_type'] === 'image') {
             if ($changingToImage && ! $request->hasFile('thumbnail_file')) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'The given data was invalid.',
+                        'errors' => ['thumbnail_file' => ['A course image is required when switching thumbnail type to image.']]
+                    ], 422);
+                }
                 return back()
                     ->withErrors(['thumbnail_file' => 'A course image is required when switching thumbnail type to image.'])
                     ->withInput();
@@ -146,12 +196,24 @@ class CourseLevelController extends Controller
 
         if ($validated['thumbnail_type'] === 'video') {
             if ($changingToVideo && ! $request->hasFile('thumbnail_file')) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'The given data was invalid.',
+                        'errors' => ['thumbnail_file' => ['A course intro video file is required when switching thumbnail type to video.']]
+                    ], 422);
+                }
                 return back()
                     ->withErrors(['thumbnail_file' => 'A course intro video file is required when switching thumbnail type to video.'])
                     ->withInput();
             }
 
             if ($changingToVideo && ! $request->hasFile('video_poster_file')) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'The given data was invalid.',
+                        'errors' => ['video_poster_file' => ['A video poster image is required when switching thumbnail type to video.']]
+                    ], 422);
+                }
                 return back()
                     ->withErrors(['video_poster_file' => 'A video poster image is required when switching thumbnail type to video.'])
                     ->withInput();
@@ -171,6 +233,12 @@ class CourseLevelController extends Controller
         }
 
         if ($validated['access_type'] === 'limited' && empty($validated['access_duration_days'])) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => ['access_duration_days' => ['Access duration is required when access type is limited.']]
+                ], 422);
+            }
             return back()
                 ->withErrors(['access_duration_days' => 'Access duration is required when access type is limited.'])
                 ->withInput();
@@ -216,12 +284,26 @@ class CourseLevelController extends Controller
             Storage::disk('public')->delete($oldVideoPosterFile);
         }
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Course level has been updated successfully.',
+                'level_id' => $courseLevel->id,
+                'redirect_node' => [
+                    'level' => $courseLevel->id,
+                    'module' => null,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
+
         return redirect()
             ->route('admin.course-management.programs.levels.index', $courseLevel->courseProgram)
             ->with('success', 'Course level has been updated successfully.');
     }
 
-    public function destroy(CourseLevel $courseLevel)
+    public function destroy(Request $request, CourseLevel $courseLevel)
     {
         $courseProgram = $courseLevel->courseProgram;
 
@@ -234,6 +316,19 @@ class CourseLevelController extends Controller
         }
 
         $courseLevel->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Course level has been deleted successfully.',
+                'redirect_node' => [
+                    'level' => null,
+                    'module' => null,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
 
         return redirect()
             ->route('admin.course-management.programs.levels.index', $courseProgram)

@@ -18,20 +18,15 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            <a
-                href="{{ route('admin.course-management.programs.levels.create', $courseProgram->id) }}"
-                class="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-brand-blue)] px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-90">
+            <button
+                type="button"
+                @click="openCreateLevelDrawer('{{ route('admin.course-management.programs.levels.store', $courseProgram->id) }}')"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-brand-blue)] px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
                 <span>Add Level</span>
-            </a>
-
-            <a
-                href="{{ route('admin.course-management.programs.levels.index', $courseProgram->id) }}"
-                class="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline px-2">
-                Legacy Levels Page &rarr;
-            </a>
+            </button>
         </div>
     </div>
 
@@ -67,7 +62,12 @@
     <div class="space-y-3">
         <div class="flex items-center justify-between">
             <h3 class="text-sm font-bold text-slate-800">Course Levels in {{ $courseProgram->name }}</h3>
-            <span class="text-xs font-semibold text-slate-400">Click Open Level or select from Tree to inspect</span>
+            <button
+                type="button"
+                @click="openCreateLevelDrawer('{{ route('admin.course-management.programs.levels.store', $courseProgram->id) }}')"
+                class="text-xs font-bold text-[var(--color-brand-blue)] hover:underline">
+                + Add Level
+            </button>
         </div>
 
         @if ($courseProgram->courseLevels->isEmpty())
@@ -78,16 +78,17 @@
                     </svg>
                 </div>
                 <h4 class="mt-3 text-sm font-bold text-slate-800">No Course Levels yet</h4>
-                <p class="mt-1 text-xs text-slate-500 max-w-sm mx-auto">Get started by creating the first level (e.g. Elementary, Intermediate, Advanced) for this course program.</p>
+                <p class="mt-1 text-xs text-slate-500 max-w-sm mx-auto">Get started by creating the first level for this course program.</p>
                 <div class="mt-4">
-                    <a
-                        href="{{ route('admin.course-management.programs.levels.create', $courseProgram->id) }}"
+                    <button
+                        type="button"
+                        @click="openCreateLevelDrawer('{{ route('admin.course-management.programs.levels.store', $courseProgram->id) }}')"
                         class="inline-flex items-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:opacity-90">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         <span>Add First Level</span>
-                    </a>
+                    </button>
                 </div>
             </div>
         @else
@@ -96,9 +97,20 @@
                 <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-300">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-extrabold text-slate-400">Sort: #{{ $lvl->sort_order }}</span>
-                        <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase {{ $lvl->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">
-                            {{ $lvl->is_active ? 'Active' : 'Inactive' }}
-                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase {{ $lvl->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">
+                                {{ $lvl->is_active ? 'Active' : 'Inactive' }}
+                            </span>
+                            <button
+                                type="button"
+                                @click="openEditLevelDrawer('{{ route('admin.course-management.levels.edit', $lvl->id) }}')"
+                                class="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                                title="Edit Level">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <h4 class="mt-2 text-base font-bold text-slate-900 group-hover:text-[var(--color-brand-blue)]">
