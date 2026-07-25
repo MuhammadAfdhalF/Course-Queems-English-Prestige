@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\Cms\FreeTestController;
 use App\Http\Controllers\Admin\Cms\FreeTestCategoryController;
 use App\Http\Controllers\Admin\Cms\FreeTestQuestionController;
 use App\Http\Controllers\Admin\CourseManagement\CourseProgramController;
+use App\Http\Controllers\Admin\CourseManagement\CourseBuilderController;
 use App\Http\Controllers\Admin\RichTextUploadController;
 use App\Http\Controllers\Admin\CourseManagement\CourseLevelController;
 use App\Http\Controllers\Admin\CourseManagement\ModuleController;
@@ -247,6 +248,17 @@ Route::middleware(['auth', 'role:admin'])
         Route::prefix('course-management')
             ->name('course-management.')
             ->group(function () {
+
+                // Course Builder Shell (Phase A)
+                Route::get('/programs/{courseProgram}/builder', [CourseBuilderController::class, 'builder'])
+                    ->name('programs.builder');
+
+                Route::get('/programs/{courseProgram}/builder/workspace', [CourseBuilderController::class, 'workspace'])
+                    ->name('programs.builder.workspace');
+
+                // Course Programs Reorder
+                Route::post('/programs/reorder', [CourseProgramController::class, 'reorder'])
+                    ->name('programs.reorder');
 
                 // Course Programs
                 Route::resource('programs', CourseProgramController::class)

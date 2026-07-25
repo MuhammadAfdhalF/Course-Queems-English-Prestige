@@ -63,6 +63,16 @@
         <td class="px-6 py-5 align-middle">
             <div class="mx-auto grid w-full max-w-[170px] gap-2">
                 <a
+                    href="{{ route('admin.course-management.programs.builder', $program) }}"
+                    title="Open Course Builder"
+                    class="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-brand-blue)] px-3 text-xs font-bold text-white shadow-sm transition hover:opacity-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span>Open Builder</span>
+                </a>
+
+                <a
                     href="{{ route('admin.course-management.programs.levels.index', $program) }}"
                     title="Manage Levels"
                     class="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-blue-50 px-3 text-xs font-semibold text-blue-700 transition hover:bg-blue-100">
