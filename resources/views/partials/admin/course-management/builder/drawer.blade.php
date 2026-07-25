@@ -137,7 +137,6 @@
                                             </select>
                                         </div>
 
-                                        {{-- Image Thumbnail --}}
                                         <div x-show="drawerData.thumbnail_type === 'image'" class="space-y-2">
                                             <template x-if="drawerData.thumbnail_url">
                                                 <div class="mb-2">
@@ -155,7 +154,6 @@
                                             <p class="text-[10px] text-slate-400">JPG, PNG, WEBP max 4MB.</p>
                                         </div>
 
-                                        {{-- Video Thumbnail & Poster --}}
                                         <div x-show="drawerData.thumbnail_type === 'video'" class="space-y-3">
                                             <div>
                                                 <label class="block text-xs font-bold text-slate-700 mb-1">Upload Course Video File</label>
@@ -232,7 +230,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- Status Checkbox --}}
                                     <div class="border-t border-slate-200 pt-4">
                                         <label class="inline-flex items-center gap-2 cursor-pointer">
                                             <input
@@ -346,7 +343,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- Text Material Content --}}
                                     <div x-show="drawerData.material_type === 'text'">
                                         <label class="block text-xs font-bold text-slate-700 mb-1">Learning Content <span class="text-rose-500">*</span></label>
                                         <textarea
@@ -361,7 +357,6 @@
                                         </template>
                                     </div>
 
-                                    {{-- File Upload Material Content --}}
                                     <div x-show="drawerData.material_type !== 'text'" class="space-y-4">
                                         <template x-if="drawerData.file_url">
                                             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -401,7 +396,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- Status Checkbox --}}
                                     <div class="border-t border-slate-200 pt-4">
                                         <label class="inline-flex items-center gap-2 cursor-pointer">
                                             <input
@@ -409,6 +403,188 @@
                                                 x-model="drawerData.is_active"
                                                 class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                                             <span class="text-xs font-bold text-slate-700">Active Material</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- PRACTICE CONFIG FORM FIELDS (PHASE D) --}}
+                            <template x-if="drawerType === 'create_practice' || drawerType === 'edit_practice'">
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Practice Title <span class="text-rose-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            x-model="drawerData.title"
+                                            placeholder="e.g. Module 01 Practice Quiz"
+                                            required
+                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
+                                        <template x-if="drawerErrors.title">
+                                            <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.title[0]"></p>
+                                        </template>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Instructions / Description</label>
+                                        <textarea
+                                            x-model="drawerData.description"
+                                            rows="3"
+                                            placeholder="Instructions for students taking this practice..."
+                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                    </div>
+
+                                    <div class="grid gap-4 sm:grid-cols-3">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Passing Grade (%) <span class="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                x-model="drawerData.passing_grade"
+                                                min="0"
+                                                max="100"
+                                                required
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
+                                            <template x-if="drawerErrors.passing_grade">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.passing_grade[0]"></p>
+                                            </template>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Grading Method <span class="text-rose-500">*</span></label>
+                                            <select
+                                                x-model="drawerData.grading_method"
+                                                required
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+                                                <option value="auto">Automatic</option>
+                                                <option value="manual">Manual Review</option>
+                                                <option value="mixed">Mixed (Auto & Manual)</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Max Attempts</label>
+                                            <input
+                                                type="number"
+                                                x-model="drawerData.max_attempts"
+                                                min="1"
+                                                placeholder="Unlimited if empty"
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
+                                        </div>
+                                    </div>
+
+                                    <div class="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-200">
+                                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                x-model="drawerData.is_required"
+                                                class="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500" />
+                                            <span class="text-xs font-bold text-slate-700">Mandatory / Required</span>
+                                        </label>
+
+                                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                x-model="drawerData.is_active"
+                                                class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                                            <span class="text-xs font-bold text-slate-700">Active Practice</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- PRACTICE QUESTION FORM FIELDS (PHASE D) --}}
+                            <template x-if="drawerType === 'create_question' || drawerType === 'edit_question'">
+                                <div class="space-y-6">
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Question Type <span class="text-rose-500">*</span></label>
+                                            <select
+                                                x-model="drawerData.question_type"
+                                                required
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+                                                <option value="multiple_choice">Multiple Choice (Pilihan Ganda)</option>
+                                                <option value="short_answer">Short Answer (Jawaban Singkat)</option>
+                                                <option value="essay">Essay / Long Answer</option>
+                                                <option value="upload">File Upload Answer</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Score / Points <span class="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                x-model="drawerData.score"
+                                                min="0"
+                                                step="1"
+                                                required
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
+                                            <template x-if="drawerErrors.score">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.score[0]"></p>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Question Prompt <span class="text-rose-500">*</span></label>
+                                        <textarea
+                                            id="drawer_question_text"
+                                            x-model="drawerData.question"
+                                            rows="4"
+                                            placeholder="Write the question text or prompt..."
+                                            required
+                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                        <template x-if="drawerErrors.question">
+                                            <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.question[0]"></p>
+                                        </template>
+                                    </div>
+
+                                    {{-- Dynamic Options for Multiple Choice --}}
+                                    <div x-show="drawerData.question_type === 'multiple_choice'" class="border-t border-slate-200 pt-4 space-y-4">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Multiple Choice Options</h4>
+                                            <span class="text-[11px] font-semibold text-emerald-700">Select radio button for Correct Answer</span>
+                                        </div>
+
+                                        <template x-for="label in ['A', 'B', 'C', 'D']" :key="label">
+                                            <div class="flex items-center gap-3">
+                                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600 shrink-0" x-text="label"></span>
+                                                <input
+                                                    type="text"
+                                                    :name="'options[' + label + ']'"
+                                                    x-model="drawerData.options[label]"
+                                                    :placeholder="'Option ' + label + ' text...'"
+                                                    class="flex-1 rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
+                                                <label class="inline-flex items-center gap-1 cursor-pointer shrink-0">
+                                                    <input
+                                                        type="radio"
+                                                        name="correct_option"
+                                                        :value="label"
+                                                        x-model="drawerData.correct_option"
+                                                        class="h-4 w-4 text-emerald-600 focus:ring-emerald-500" />
+                                                    <span class="text-xs font-bold text-slate-600">Correct</span>
+                                                </label>
+                                            </div>
+                                        </template>
+                                        <template x-if="drawerErrors.correct_option">
+                                            <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.correct_option[0]"></p>
+                                        </template>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Explanation / Solution Notes</label>
+                                        <textarea
+                                            x-model="drawerData.explanation"
+                                            rows="2"
+                                            placeholder="Optional explanation shown to students after grading..."
+                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                    </div>
+
+                                    <div class="border-t border-slate-200 pt-4">
+                                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                x-model="drawerData.is_active"
+                                                class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                            <span class="text-xs font-bold text-slate-700">Active Question</span>
                                         </label>
                                     </div>
                                 </div>

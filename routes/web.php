@@ -272,6 +272,31 @@ Route::middleware(['auth', 'role:admin'])
                 Route::delete('/programs/{courseProgram}/builder/materials/{moduleMaterial}', [ModuleMaterialController::class, 'builderDestroy'])
                     ->name('programs.builder.materials.destroy');
 
+                // Scoped Builder Practice & Question Routes (Phase D)
+                Route::post('/programs/{courseProgram}/builder/modules/{module}/practices', [ModulePracticeController::class, 'builderStore'])
+                    ->name('programs.builder.practices.store');
+
+                Route::get('/programs/{courseProgram}/builder/practices/{modulePractice}/edit', [ModulePracticeController::class, 'builderEdit'])
+                    ->name('programs.builder.practices.edit');
+
+                Route::put('/programs/{courseProgram}/builder/practices/{modulePractice}', [ModulePracticeController::class, 'builderUpdate'])
+                    ->name('programs.builder.practices.update');
+
+                Route::delete('/programs/{courseProgram}/builder/practices/{modulePractice}', [ModulePracticeController::class, 'builderDestroy'])
+                    ->name('programs.builder.practices.destroy');
+
+                Route::post('/programs/{courseProgram}/builder/practices/{modulePractice}/questions', [ModulePracticeQuestionController::class, 'builderStore'])
+                    ->name('programs.builder.questions.store');
+
+                Route::get('/programs/{courseProgram}/builder/practice-questions/{modulePracticeQuestion}/edit', [ModulePracticeQuestionController::class, 'builderEdit'])
+                    ->name('programs.builder.questions.edit');
+
+                Route::put('/programs/{courseProgram}/builder/practice-questions/{modulePracticeQuestion}', [ModulePracticeQuestionController::class, 'builderUpdate'])
+                    ->name('programs.builder.questions.update');
+
+                Route::delete('/programs/{courseProgram}/builder/practice-questions/{modulePracticeQuestion}', [ModulePracticeQuestionController::class, 'builderDestroy'])
+                    ->name('programs.builder.questions.destroy');
+
                 // Course Programs Reorder
                 Route::post('/programs/reorder', [CourseProgramController::class, 'reorder'])
                     ->name('programs.reorder');

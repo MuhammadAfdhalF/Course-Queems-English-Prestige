@@ -444,11 +444,152 @@
                 });
             },
 
+            openCreatePracticeDrawer(storeUrl) {
+                this.drawerType = 'create_practice';
+                this.drawerTitle = 'Configure Module Practice';
+                this.drawerParentContext = 'Module Practice Quiz';
+                this.drawerActionUrl = storeUrl;
+                this.drawerMethod = 'POST';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = false;
+                this.drawerSaving = false;
+
+                this.drawerData = {
+                    title: '',
+                    description: '',
+                    passing_grade: 70,
+                    grading_method: 'auto',
+                    max_attempts: '',
+                    is_required: true,
+                    is_active: true
+                };
+
+                this.drawerOpen = true;
+            },
+
+            openEditPracticeDrawer(editUrl) {
+                this.drawerType = 'edit_practice';
+                this.drawerTitle = 'Edit Module Practice';
+                this.drawerParentContext = 'Module Practice Quiz';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = true;
+                this.drawerSaving = false;
+                this.drawerOpen = true;
+
+                fetch(editUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        const d = res.data;
+                        this.drawerActionUrl = d.update_url;
+                        this.drawerMethod = 'PUT';
+                        this.drawerData = {
+                            id: d.id,
+                            module_id: d.module_id,
+                            title: d.title || '',
+                            description: d.description || '',
+                            passing_grade: d.passing_grade || 70,
+                            grading_method: d.grading_method || 'auto',
+                            max_attempts: d.max_attempts || '',
+                            is_required: !!d.is_required,
+                            is_active: !!d.is_active
+                        };
+                    } else {
+                        this.drawerGeneralError = res.message || 'Failed to fetch practice details.';
+                    }
+                })
+                .catch(err => {
+                    this.drawerGeneralError = err.message || 'Server error loading practice.';
+                })
+                .finally(() => {
+                    this.drawerLoading = false;
+                });
+            },
+
+            openCreateQuestionDrawer(storeUrl) {
+                this.drawerType = 'create_question';
+                this.drawerTitle = 'Add Practice Question';
+                this.drawerParentContext = 'Practice Quiz Question';
+                this.drawerActionUrl = storeUrl;
+                this.drawerMethod = 'POST';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = false;
+                this.drawerSaving = false;
+
+                this.drawerData = {
+                    question_type: 'multiple_choice',
+                    question: '',
+                    explanation: '',
+                    score: 10,
+                    options: { A: '', B: '', C: '', D: '' },
+                    correct_option: 'A',
+                    is_active: true
+                };
+
+                this.drawerOpen = true;
+            },
+
+            openEditQuestionDrawer(editUrl) {
+                this.drawerType = 'edit_question';
+                this.drawerTitle = 'Edit Practice Question';
+                this.drawerParentContext = 'Practice Quiz Question';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = true;
+                this.drawerSaving = false;
+                this.drawerOpen = true;
+
+                fetch(editUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        const d = res.data;
+                        this.drawerActionUrl = d.update_url;
+                        this.drawerMethod = 'PUT';
+                        this.drawerData = {
+                            id: d.id,
+                            module_practice_id: d.module_practice_id,
+                            question_type: d.question_type || 'multiple_choice',
+                            question: d.question || '',
+                            explanation: d.explanation || '',
+                            score: d.score || 10,
+                            sort_order: d.sort_order,
+                            options: d.options || { A: '', B: '', C: '', D: '' },
+                            correct_option: d.correct_option || 'A',
+                            is_active: !!d.is_active
+                        };
+                    } else {
+                        this.drawerGeneralError = res.message || 'Failed to fetch question details.';
+                    }
+                })
+                .catch(err => {
+                    this.drawerGeneralError = err.message || 'Server error loading question.';
+                })
+                .finally(() => {
+                    this.drawerLoading = false;
+                });
+            },
+
             isDrawerDirty() {
                 if (!this.drawerOpen || this.drawerSaving || this.drawerLoading) return false;
                 if (this.drawerType === 'create_level' && (this.drawerData.name || this.drawerData.short_description)) return true;
                 if (this.drawerType === 'create_module' && (this.drawerData.title || this.drawerData.short_description)) return true;
                 if (this.drawerType === 'create_material' && (this.drawerData.title || this.drawerData.content)) return true;
+                if (this.drawerType === 'create_practice' && (this.drawerData.title || this.drawerData.description)) return true;
+                if (this.drawerType === 'create_question' && (this.drawerData.question)) return true;
                 return false;
             },
 
@@ -477,8 +618,6 @@
                     formData.append('_method', 'PUT');
                 }
 
-                formData.append('expected_program_id', this.programId);
-
                 if (this.drawerType.includes('level')) {
                     formData.set('name', this.drawerData.name || '');
                     formData.set('slug', this.drawerData.slug || '');
@@ -491,63 +630,58 @@
                     if (this.drawerData.access_type === 'limited' && this.drawerData.access_duration_days) {
                         formData.set('access_duration_days', this.drawerData.access_duration_days);
                     }
-                    if (this.drawerData.sort_order !== undefined) {
-                        formData.set('sort_order', this.drawerData.sort_order);
-                    }
-                    if (this.drawerData.is_active) {
-                        formData.set('is_active', '1');
-                    } else {
-                        formData.delete('is_active');
-                    }
+                    if (this.drawerData.sort_order !== undefined) formData.set('sort_order', this.drawerData.sort_order);
+                    if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
 
                     const imgInput = document.getElementById('drawer_thumbnail_file_image');
-                    if (imgInput && imgInput.files.length > 0) {
-                        formData.set('thumbnail_file', imgInput.files[0]);
-                    }
+                    if (imgInput && imgInput.files.length > 0) formData.set('thumbnail_file', imgInput.files[0]);
                     const vidInput = document.getElementById('drawer_thumbnail_file_video');
-                    if (vidInput && vidInput.files.length > 0) {
-                        formData.set('thumbnail_file', vidInput.files[0]);
-                    }
+                    if (vidInput && vidInput.files.length > 0) formData.set('thumbnail_file', vidInput.files[0]);
                     const posterInput = document.getElementById('drawer_video_poster_file');
-                    if (posterInput && posterInput.files.length > 0) {
-                        formData.set('video_poster_file', posterInput.files[0]);
-                    }
+                    if (posterInput && posterInput.files.length > 0) formData.set('video_poster_file', posterInput.files[0]);
                 } else if (this.drawerType.includes('module')) {
                     formData.set('title', this.drawerData.title || '');
                     formData.set('slug', this.drawerData.slug || '');
                     formData.set('short_description', this.drawerData.short_description || '');
-                    if (this.drawerData.sort_order !== undefined) {
-                        formData.set('sort_order', this.drawerData.sort_order);
-                    }
-                    if (this.drawerData.is_preview) {
-                        formData.set('is_preview', '1');
-                    } else {
-                        formData.delete('is_preview');
-                    }
-                    if (this.drawerData.is_active) {
-                        formData.set('is_active', '1');
-                    } else {
-                        formData.delete('is_active');
-                    }
+                    if (this.drawerData.sort_order !== undefined) formData.set('sort_order', this.drawerData.sort_order);
+                    if (this.drawerData.is_preview) formData.set('is_preview', '1'); else formData.delete('is_preview');
+                    if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
                 } else if (this.drawerType.includes('material')) {
                     formData.set('title', this.drawerData.title || '');
                     formData.set('material_type', this.drawerData.material_type || 'text');
-                    if (this.drawerData.sort_order !== undefined) {
-                        formData.set('sort_order', this.drawerData.sort_order);
-                    }
+                    if (this.drawerData.sort_order !== undefined) formData.set('sort_order', this.drawerData.sort_order);
                     if (this.drawerData.material_type === 'text') {
                         formData.set('content', this.drawerData.content || (document.getElementById('drawer_material_content')?.value || ''));
                     } else {
                         const matFileInput = document.getElementById('drawer_material_file_path');
-                        if (matFileInput && matFileInput.files.length > 0) {
-                            formData.set('file_path', matFileInput.files[0]);
+                        if (matFileInput && matFileInput.files.length > 0) formData.set('file_path', matFileInput.files[0]);
+                    }
+                    if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
+                } else if (this.drawerType.includes('practice') && !this.drawerType.includes('question')) {
+                    formData.set('title', this.drawerData.title || '');
+                    formData.set('description', this.drawerData.description || '');
+                    formData.set('passing_grade', this.drawerData.passing_grade || 70);
+                    formData.set('grading_method', this.drawerData.grading_method || 'auto');
+                    if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
+                    if (this.drawerData.is_required) formData.set('is_required', '1'); else formData.delete('is_required');
+                    if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
+                } else if (this.drawerType.includes('question')) {
+                    formData.set('question_type', this.drawerData.question_type || 'multiple_choice');
+                    formData.set('question', this.drawerData.question || (document.getElementById('drawer_question_text')?.value || ''));
+                    formData.set('explanation', this.drawerData.explanation || '');
+                    formData.set('score', this.drawerData.score || 10);
+                    if (this.drawerData.question_type === 'multiple_choice') {
+                        if (this.drawerData.options) {
+                            formData.set('options[A]', this.drawerData.options.A || '');
+                            formData.set('options[B]', this.drawerData.options.B || '');
+                            formData.set('options[C]', this.drawerData.options.C || '');
+                            formData.set('options[D]', this.drawerData.options.D || '');
+                        }
+                        if (this.drawerData.correct_option) {
+                            formData.set('correct_option', this.drawerData.correct_option);
                         }
                     }
-                    if (this.drawerData.is_active) {
-                        formData.set('is_active', '1');
-                    } else {
-                        formData.delete('is_active');
-                    }
+                    if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
                 }
 
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -597,7 +731,7 @@
 
             // DELETE MODAL ACTIONS
             confirmDelete(type, id, title, deleteUrl, redirectNode = null) {
-                this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : (type === 'module' ? 'Delete Module' : 'Delete Material');
+                this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : (type === 'module' ? 'Delete Module' : (type === 'material' ? 'Delete Material' : (type === 'practice' ? 'Delete Practice' : 'Delete Question')));
                 this.deleteModalItemTitle = title;
                 this.deleteModalUrl = deleteUrl;
                 this.deleteRedirectNode = redirectNode || { level: null, module: null, exam: null, tab: 'overview' };
@@ -714,7 +848,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                <span>+ Add Level</span>
+                <span>Add Level</span>
             </button>
         </div>
     </div>

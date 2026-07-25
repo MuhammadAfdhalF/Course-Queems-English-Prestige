@@ -168,11 +168,22 @@ class CourseBuilderController extends Controller
         // Context determination & HTML rendering
         if ($selectedModule && $tab === 'practice') {
             $practice = $selectedModule->practices->first();
+            $questionsPaginator = null;
+            if ($practice) {
+                $page = max(1, (int)$request->query('page', 1));
+                $questionsPaginator = $practice->questions()
+                    ->with('options')
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->paginate(15, ['*'], 'page', $page);
+            }
+
             $html = view('partials.admin.course-management.builder.workspace.practice', [
                 'courseProgram' => $courseProgram,
                 'level' => $selectedLevel,
                 'module' => $selectedModule,
                 'practice' => $practice,
+                'questionsPaginator' => $questionsPaginator,
             ])->render();
         } elseif ($selectedModule) {
             $materialsPaginator = null;
