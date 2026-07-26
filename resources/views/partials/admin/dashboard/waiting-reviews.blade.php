@@ -1,77 +1,65 @@
-<x-admin.table-card class="overflow-hidden">
-    <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50/70 px-6 py-5">
+<div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs">
+    <div class="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4 sm:px-6">
         <div>
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-                Review Inbox
-            </p>
-
-            <h3 class="mt-1 text-2xl font-black text-slate-900">
+            <h3 class="text-base font-bold text-slate-900">
                 Waiting Reviews
             </h3>
-
-            <p class="mt-1 text-sm font-semibold text-slate-500">
-                Practice and final exam attempts waiting for review.
+            <p class="text-xs font-medium text-slate-500">
+                Attempts waiting for grading.
             </p>
         </div>
 
-        <a href="{{ route('admin.course-management.programs.index') }}" class="text-sm font-black text-[var(--color-brand-blue)] hover:underline">
+        <a href="{{ route('admin.course-management.programs.index') }}" class="text-xs font-bold text-[#080D4D] hover:underline">
             Open courses
         </a>
     </div>
 
     <div class="divide-y divide-slate-100">
         @forelse ($waitingReviewItems as $item)
-        <div class="p-5 transition hover:bg-slate-50">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="p-3.5 sm:p-4 transition hover:bg-slate-50/80">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="inline-flex rounded-full {{ $item['type'] === 'Final Exam' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700' }} px-3 py-1 text-xs font-black">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex rounded-md {{ $item['type'] === 'Final Exam' ? 'bg-[#080D4D]/10 text-[#080D4D]' : 'bg-[#AD6B10]/10 text-[#AD6B10]' }} px-2 py-0.5 text-[10px] font-extrabold">
                             {{ $item['type'] }}
                         </span>
-
-                        <span class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+                        <span class="text-[11px] font-medium text-slate-400">
                             {{ $item['submittedAt'] }}
                         </span>
                     </div>
 
-                    <h4 class="mt-3 text-base font-black text-slate-900">
+                    <h4 class="mt-1 text-xs font-bold text-slate-900 truncate">
                         {{ $item['assessment'] }}
                     </h4>
 
-                    <p class="mt-1 text-sm font-bold text-slate-600">
-                        {{ $item['student'] }}
+                    <p class="text-[11px] font-semibold text-slate-600 truncate">
+                        {{ $item['student'] }} @if ($item['course']) <span class="font-normal text-slate-400">• {{ $item['course'] }}</span> @endif
                     </p>
-
-                    @if ($item['course'])
-                    <p class="mt-1 text-sm font-semibold text-slate-400">
-                        {{ $item['course'] }}
-                    </p>
-                    @endif
                 </div>
 
                 <a
                     href="{{ $item['href'] }}"
-                    class="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-4 text-xs font-black text-white transition hover:opacity-90">
+                    class="inline-flex h-8 shrink-0 items-center justify-center rounded-lg bg-[#080D4D] px-3 text-xs font-bold text-white shadow-2xs transition hover:bg-[#060A3B]">
                     Review
                 </a>
             </div>
         </div>
         @empty
-        <div class="px-6 py-12 text-center">
-            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4M12 22a10 10 0 110-20 10 10 0 010 20z" />
+        <div class="px-5 py-7 text-center">
+            <div class="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M12 22a10 10 0 110-20 10 10 0 010 20z" />
                 </svg>
             </div>
 
-            <h4 class="mt-4 text-base font-black text-slate-900">
+            <h4 class="mt-2 text-xs font-bold text-slate-900">
                 No waiting reviews
             </h4>
 
-            <p class="mx-auto mt-2 max-w-sm text-sm font-semibold leading-6 text-slate-500">
+            <p class="mx-auto mt-0.5 max-w-xs text-[11px] font-medium text-slate-500">
                 Manual review attempts will appear here.
             </p>
         </div>
         @endforelse
     </div>
-</x-admin.table-card>
+</div>

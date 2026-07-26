@@ -57,8 +57,16 @@ Tampilan Admin Queens English Prestige saat ini secara fungsional lengkap, namun
 - Custom tooltip untuk collapsed mode sidebar & focus ring accessibility.
 - Integrasi aman dengan Course Builder drawers & Admin modals.
 
-### Phase C — Dashboard Polish (REMAINING)
-- Visual refinement pada Admin Dashboard metrics, charts, dan quick action cards.
+### Phase C — Dashboard Polish (IMPLEMENTED & TESTED 2026-07-26 — Round 2 Compact Revision)
+- Visual refinement & compact redesign:
+  - Intro Banner: White-first compact hero (`border-t-2 border-t-[#AD6B10] bg-white`), eliminasi duplikasi quick stats.
+  - Metric Cards: Kartu ringkas 130–150px dengan icon 36px & typographical focus pada nilai data.
+  - Revenue Analytics: Single panel compact (`h-[210px]` SVG chart), eliminasi 2 side summary card duplikat.
+  - Action Center: Berubah dari card besar bertumpuk menjadi compact list rows dengan divider halus.
+  - Waiting Reviews & Activity: Empty state ringkas (160–190px), activity feed tunggal dengan divider antar-row.
+  - Recent Transactions: Tabel padat data (`py-3.5`), tabular-nums price, dan compact detail buttons.
+- Penerapan tema visual white-first (`bg-white`), border neutral (`border-slate-200/90`), Deep Navy (`#080D4D`), dan Brand Gold (`#AD6B10`).
+- Nol perubahan pada Controller, Model, DB Schema, Query, atau Business Logic.
 
 ### Phase D — Shared Admin Components (REMAINING)
 - Standardization pada DataTables, Action Badges, Action Buttons, Filter Cards, dan Modal dialogs.
