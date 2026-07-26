@@ -4,10 +4,18 @@
 ])
 
 @section('content')
+@php
+    $builderUrl = route('admin.course-management.programs.builder', [
+        'courseProgram' => $finalExam->courseLevel->course_program_id,
+        'level' => $finalExam->course_level_id,
+        'exam' => $finalExam->id
+    ]);
+@endphp
+
 <section class="mx-auto max-w-5xl space-y-6">
     <x-admin.page-toolbar
-        :back-url="route('admin.course-management.final-exams.questions.index', $finalExam)"
-        back-label="Back to Questions">
+        :back-url="$builderUrl"
+        back-label="Back to Course Builder">
         <x-slot:actions>
             <a
                 href="{{ route('admin.course-management.final-exams.questions.create', $finalExam) }}"

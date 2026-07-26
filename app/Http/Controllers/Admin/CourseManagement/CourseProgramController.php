@@ -13,15 +13,26 @@ class CourseProgramController extends Controller
     {
         $coursePrograms = CourseProgram::query()
             ->withCount('courseLevels')
+            ->with([
+                'courseLevels' => function ($q) {
+                    $q->withCount(['modules', 'finalExams']);
+                }
+            ])
             ->orderBy('sort_order')
-            ->latest()
+            ->orderBy('id')
             ->get();
 
         $nextSortOrder = (CourseProgram::max('sort_order') ?? 0) + 1;
+        $totalPrograms = $coursePrograms->count();
+        $activePrograms = $coursePrograms->where('is_active', true)->count();
+        $totalLevels = $coursePrograms->sum('course_levels_count');
 
         return view('pages.admin.course-management.programs.index', compact(
             'coursePrograms',
-            'nextSortOrder'
+            'nextSortOrder',
+            'totalPrograms',
+            'activePrograms',
+            'totalLevels'
         ));
     }
 
@@ -35,8 +46,12 @@ class CourseProgramController extends Controller
         ]);
 
         $validated['slug'] = $this->generateUniqueSlug($validated['slug'] ?? $validated['name']);
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
-        $validated['is_active'] = $request->boolean('is_active');
+
+        if (!isset($validated['sort_order']) || $validated['sort_order'] === '' || $validated['sort_order'] === null) {
+            $validated['sort_order'] = (CourseProgram::max('sort_order') ?? 0) + 1;
+        }
+
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
 
         CourseProgram::create($validated);
 
@@ -59,7 +74,10 @@ class CourseProgramController extends Controller
             $courseProgram->id
         );
 
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        if (!isset($validated['sort_order']) || $validated['sort_order'] === '' || $validated['sort_order'] === null) {
+            $validated['sort_order'] = $courseProgram->sort_order;
+        }
+
         $validated['is_active'] = $request->boolean('is_active');
 
         $courseProgram->update($validated);
@@ -69,8 +87,47 @@ class CourseProgramController extends Controller
             ->with('success', 'Course program has been updated successfully.');
     }
 
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'order' => ['required', 'array'],
+            'order.*' => ['required', 'integer', 'exists:course_programs,id'],
+        ]);
+
+        $orderIds = $validated['order'];
+
+        if (count($orderIds) !== count(array_unique($orderIds))) {
+            return redirect()
+                ->route('admin.course-management.programs.index')
+                ->with('error', 'Duplicate program IDs detected in reorder request.');
+        }
+
+        $totalProgramsCount = CourseProgram::count();
+        if (count($orderIds) !== $totalProgramsCount) {
+            return redirect()
+                ->route('admin.course-management.programs.index')
+                ->with('error', 'Invalid program order payload length.');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($orderIds) {
+            foreach ($orderIds as $index => $id) {
+                CourseProgram::where('id', $id)->update(['sort_order' => $index + 1]);
+            }
+        });
+
+        return redirect()
+            ->route('admin.course-management.programs.index')
+            ->with('success', 'Course program order updated successfully.');
+    }
+
     public function destroy(CourseProgram $courseProgram)
     {
+        if ($courseProgram->courseLevels()->exists()) {
+            return redirect()
+                ->route('admin.course-management.programs.index')
+                ->with('error', 'Cannot delete program because it contains active course levels.');
+        }
+
         $courseProgram->delete();
 
         return redirect()

@@ -71,6 +71,12 @@ class CourseLevelController extends Controller
         }
 
         if ($validated['access_type'] === 'limited' && empty($validated['access_duration_days'])) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => ['access_duration_days' => ['Access duration is required when access type is limited.']]
+                ], 422);
+            }
             return back()
                 ->withErrors(['access_duration_days' => 'Access duration is required when access type is limited.'])
                 ->withInput();
@@ -78,7 +84,6 @@ class CourseLevelController extends Controller
 
         $validated['course_program_id'] = $courseProgram->id;
         $validated['slug'] = $this->generateUniqueSlug($validated['slug'] ?? $validated['name']);
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_active'] = $request->boolean('is_active');
 
         if ($validated['access_type'] === 'lifetime') {
@@ -95,16 +100,59 @@ class CourseLevelController extends Controller
                 ->store('course-levels/video-posters', 'public');
         }
 
-        CourseLevel::create($validated);
+        $level = \Illuminate\Support\Facades\DB::transaction(function () use ($courseProgram, $validated) {
+            $lockedProgram = CourseProgram::whereKey($courseProgram->id)->lockForUpdate()->firstOrFail();
+            $validated['sort_order'] = $validated['sort_order'] ?? (((int) $lockedProgram->courseLevels()->max('sort_order')) + 1);
+
+            return CourseLevel::create($validated);
+        });
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Course level has been created successfully.',
+                'level_id' => $level->id,
+                'redirect_node' => [
+                    'level' => $level->id,
+                    'module' => null,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
 
         return redirect()
             ->route('admin.course-management.programs.levels.index', $courseProgram)
             ->with('success', 'Course level has been created successfully.');
     }
 
-    public function edit(CourseLevel $courseLevel)
+    public function edit(Request $request, CourseLevel $courseLevel)
     {
         $courseLevel->load('courseProgram');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'id' => $courseLevel->id,
+                    'course_program_id' => $courseLevel->course_program_id,
+                    'name' => $courseLevel->name,
+                    'slug' => $courseLevel->slug,
+                    'thumbnail_type' => $courseLevel->thumbnail_type ?? 'image',
+                    'short_description' => $courseLevel->short_description,
+                    'description' => $courseLevel->description,
+                    'price' => (float) $courseLevel->price,
+                    'learning_mode' => $courseLevel->learning_mode ?? 'online',
+                    'access_type' => $courseLevel->access_type ?? 'lifetime',
+                    'access_duration_days' => $courseLevel->access_duration_days,
+                    'sort_order' => $courseLevel->sort_order,
+                    'is_active' => (bool) $courseLevel->is_active,
+                    'thumbnail_url' => $courseLevel->thumbnail_file ? Storage::url($courseLevel->thumbnail_file) : null,
+                    'video_poster_url' => $courseLevel->video_poster_file ? Storage::url($courseLevel->video_poster_file) : null,
+                    'update_url' => route('admin.course-management.levels.update', $courseLevel->id),
+                ]
+            ]);
+        }
 
         return view('pages.admin.course-management.levels.edit', compact('courseLevel'));
     }
@@ -132,6 +180,12 @@ class CourseLevelController extends Controller
 
         if ($validated['thumbnail_type'] === 'image') {
             if ($changingToImage && ! $request->hasFile('thumbnail_file')) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'The given data was invalid.',
+                        'errors' => ['thumbnail_file' => ['A course image is required when switching thumbnail type to image.']]
+                    ], 422);
+                }
                 return back()
                     ->withErrors(['thumbnail_file' => 'A course image is required when switching thumbnail type to image.'])
                     ->withInput();
@@ -146,12 +200,24 @@ class CourseLevelController extends Controller
 
         if ($validated['thumbnail_type'] === 'video') {
             if ($changingToVideo && ! $request->hasFile('thumbnail_file')) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'The given data was invalid.',
+                        'errors' => ['thumbnail_file' => ['A course intro video file is required when switching thumbnail type to video.']]
+                    ], 422);
+                }
                 return back()
                     ->withErrors(['thumbnail_file' => 'A course intro video file is required when switching thumbnail type to video.'])
                     ->withInput();
             }
 
             if ($changingToVideo && ! $request->hasFile('video_poster_file')) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'The given data was invalid.',
+                        'errors' => ['video_poster_file' => ['A video poster image is required when switching thumbnail type to video.']]
+                    ], 422);
+                }
                 return back()
                     ->withErrors(['video_poster_file' => 'A video poster image is required when switching thumbnail type to video.'])
                     ->withInput();
@@ -171,6 +237,12 @@ class CourseLevelController extends Controller
         }
 
         if ($validated['access_type'] === 'limited' && empty($validated['access_duration_days'])) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => ['access_duration_days' => ['Access duration is required when access type is limited.']]
+                ], 422);
+            }
             return back()
                 ->withErrors(['access_duration_days' => 'Access duration is required when access type is limited.'])
                 ->withInput();
@@ -216,14 +288,40 @@ class CourseLevelController extends Controller
             Storage::disk('public')->delete($oldVideoPosterFile);
         }
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Course level has been updated successfully.',
+                'level_id' => $courseLevel->id,
+                'redirect_node' => [
+                    'level' => $courseLevel->id,
+                    'module' => null,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
+
         return redirect()
             ->route('admin.course-management.programs.levels.index', $courseLevel->courseProgram)
             ->with('success', 'Course level has been updated successfully.');
     }
 
-    public function destroy(CourseLevel $courseLevel)
+    public function destroy(Request $request, CourseLevel $courseLevel)
     {
         $courseProgram = $courseLevel->courseProgram;
+
+        // Delete Guard: Prevent forced cascade delete if level contains modules or final exams
+        if ($courseLevel->modules()->exists() || $courseLevel->finalExams()->exists()) {
+            $msg = 'Cannot delete level "' . $courseLevel->name . '" because it contains modules or exam sections. Please remove or reassign them first.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $msg
+                ], 422);
+            }
+            return back()->withErrors(['delete' => $msg]);
+        }
 
         if ($courseLevel->thumbnail_file && Storage::disk('public')->exists($courseLevel->thumbnail_file)) {
             Storage::disk('public')->delete($courseLevel->thumbnail_file);
@@ -234,6 +332,19 @@ class CourseLevelController extends Controller
         }
 
         $courseLevel->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Course level has been deleted successfully.',
+                'redirect_node' => [
+                    'level' => null,
+                    'module' => null,
+                    'exam' => null,
+                    'tab' => 'overview'
+                ]
+            ]);
+        }
 
         return redirect()
             ->route('admin.course-management.programs.levels.index', $courseProgram)
@@ -257,5 +368,81 @@ class CourseLevelController extends Controller
         }
 
         return $slug;
+    }
+
+    public function builderReorder(Request $request, CourseProgram $courseProgram)
+    {
+        $validated = $request->validate([
+            'ordered_ids' => ['required', 'array'],
+            'ordered_ids.*' => ['required', 'integer'],
+            'original_ordered_ids' => ['nullable', 'array'],
+            'original_ordered_ids.*' => ['integer'],
+        ]);
+
+        $orderedIds = array_map('intval', $validated['ordered_ids']);
+        $originalOrderedIds = isset($validated['original_ordered_ids']) ? array_map('intval', $validated['original_ordered_ids']) : null;
+
+        try {
+            return \Illuminate\Support\Facades\DB::transaction(function () use ($courseProgram, $orderedIds, $originalOrderedIds) {
+                // 1. Explicitly execute parent SQL query lock
+                $lockedProgram = CourseProgram::whereKey($courseProgram->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                // 2. Lock & read current server siblings
+                $siblings = $lockedProgram->courseLevels()
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get(['id', 'sort_order']);
+
+                $currentServerOrderedIds = $siblings->pluck('id')->values()->all();
+
+                $existingIdsCopy = $currentServerOrderedIds;
+                $orderedIdsCopy = $orderedIds;
+                sort($existingIdsCopy);
+                sort($orderedIdsCopy);
+
+                if (count($orderedIds) !== count($currentServerOrderedIds) || $existingIdsCopy !== $orderedIdsCopy || count(array_unique($orderedIds)) !== count($orderedIds)) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'The item list has changed. Reload the latest order and try again.'
+                    ], 422);
+                }
+
+                if ($originalOrderedIds !== null && $currentServerOrderedIds !== $originalOrderedIds) {
+                    return response()->json([
+                        'status' => 'conflict',
+                        'message' => 'The order has been changed by another administrator. Reload the latest order and try again.'
+                    ], 409);
+                }
+
+                foreach ($orderedIds as $index => $id) {
+                    CourseLevel::where('id', $id)->update(['sort_order' => $index + 1]);
+                }
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Course levels order updated successfully.'
+                ]);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($this->isConcurrencyException($e)) {
+                return response()->json([
+                    'status' => 'conflict',
+                    'message' => 'A database concurrency conflict occurred. Reload the latest order and try again.'
+                ], 409);
+            }
+            \Illuminate\Support\Facades\Log::error('CourseLevel reorder query error: ' . $e->getMessage(), ['exception' => $e]);
+            throw $e;
+        }
+    }
+
+    protected function isConcurrencyException(\Illuminate\Database\QueryException $e): bool
+    {
+        $sqlState = (string) $e->getCode();
+        $driverCode = $e->errorInfo[1] ?? null;
+
+        return $sqlState === '40001' || $driverCode === 1213 || $driverCode === 1205;
     }
 }

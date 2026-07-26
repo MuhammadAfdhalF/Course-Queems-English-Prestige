@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\Cms\FreeTestController;
 use App\Http\Controllers\Admin\Cms\FreeTestCategoryController;
 use App\Http\Controllers\Admin\Cms\FreeTestQuestionController;
 use App\Http\Controllers\Admin\CourseManagement\CourseProgramController;
+use App\Http\Controllers\Admin\CourseManagement\CourseBuilderController;
 use App\Http\Controllers\Admin\RichTextUploadController;
 use App\Http\Controllers\Admin\CourseManagement\CourseLevelController;
 use App\Http\Controllers\Admin\CourseManagement\ModuleController;
@@ -248,6 +249,105 @@ Route::middleware(['auth', 'role:admin'])
             ->name('course-management.')
             ->group(function () {
 
+                // Course Builder Shell (Phase A & B)
+                Route::get('/programs/{courseProgram}/builder', [CourseBuilderController::class, 'builder'])
+                    ->name('programs.builder');
+
+                Route::get('/programs/{courseProgram}/builder/workspace', [CourseBuilderController::class, 'workspace'])
+                    ->name('programs.builder.workspace');
+
+                Route::get('/programs/{courseProgram}/builder/tree', [CourseBuilderController::class, 'tree'])
+                    ->name('programs.builder.tree');
+
+                // Scoped Builder Material Routes (Ironclad Security)
+                Route::post('/programs/{courseProgram}/builder/modules/{module}/materials', [ModuleMaterialController::class, 'builderStore'])
+                    ->name('programs.builder.materials.store');
+
+                Route::get('/programs/{courseProgram}/builder/materials/{moduleMaterial}/edit', [ModuleMaterialController::class, 'builderEdit'])
+                    ->name('programs.builder.materials.edit');
+
+                Route::put('/programs/{courseProgram}/builder/materials/{moduleMaterial}', [ModuleMaterialController::class, 'builderUpdate'])
+                    ->name('programs.builder.materials.update');
+
+                Route::delete('/programs/{courseProgram}/builder/materials/{moduleMaterial}', [ModuleMaterialController::class, 'builderDestroy'])
+                    ->name('programs.builder.materials.destroy');
+
+                // Scoped Builder Practice & Question Routes (Phase D)
+                Route::post('/programs/{courseProgram}/builder/modules/{module}/practices', [ModulePracticeController::class, 'builderStore'])
+                    ->name('programs.builder.practices.store');
+
+                Route::get('/programs/{courseProgram}/builder/practices/{modulePractice}/edit', [ModulePracticeController::class, 'builderEdit'])
+                    ->name('programs.builder.practices.edit');
+
+                Route::put('/programs/{courseProgram}/builder/practices/{modulePractice}', [ModulePracticeController::class, 'builderUpdate'])
+                    ->name('programs.builder.practices.update');
+
+                Route::delete('/programs/{courseProgram}/builder/practices/{modulePractice}', [ModulePracticeController::class, 'builderDestroy'])
+                    ->name('programs.builder.practices.destroy');
+
+                Route::post('/programs/{courseProgram}/builder/practices/{modulePractice}/questions', [ModulePracticeQuestionController::class, 'builderStore'])
+                    ->name('programs.builder.questions.store');
+
+                Route::get('/programs/{courseProgram}/builder/practice-questions/{modulePracticeQuestion}/edit', [ModulePracticeQuestionController::class, 'builderEdit'])
+                    ->name('programs.builder.questions.edit');
+
+                Route::put('/programs/{courseProgram}/builder/practice-questions/{modulePracticeQuestion}', [ModulePracticeQuestionController::class, 'builderUpdate'])
+                    ->name('programs.builder.questions.update');
+
+                Route::delete('/programs/{courseProgram}/builder/practice-questions/{modulePracticeQuestion}', [ModulePracticeQuestionController::class, 'builderDestroy'])
+                    ->name('programs.builder.questions.destroy');
+
+                // Scoped Builder Final Exam Section & Question Routes (Phase E)
+                Route::post('/programs/{courseProgram}/builder/levels/{courseLevel}/final-exam-sections', [FinalExamController::class, 'builderStore'])
+                    ->name('programs.builder.final-exams.store');
+
+                Route::get('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}/edit', [FinalExamController::class, 'builderEdit'])
+                    ->name('programs.builder.final-exams.edit');
+
+                Route::put('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}', [FinalExamController::class, 'builderUpdate'])
+                    ->name('programs.builder.final-exams.update');
+
+                Route::delete('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}', [FinalExamController::class, 'builderDestroy'])
+                    ->name('programs.builder.final-exams.destroy');
+
+                Route::patch('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}/toggle-active', [FinalExamController::class, 'builderToggleActive'])
+                    ->name('programs.builder.final-exams.toggle-active');
+
+                Route::post('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}/questions', [FinalExamQuestionController::class, 'builderStore'])
+                    ->name('programs.builder.final-exam-questions.store');
+
+                Route::get('/programs/{courseProgram}/builder/final-exam-questions/{finalExamQuestion}/edit', [FinalExamQuestionController::class, 'builderEdit'])
+                    ->name('programs.builder.final-exam-questions.edit');
+
+                Route::put('/programs/{courseProgram}/builder/final-exam-questions/{finalExamQuestion}', [FinalExamQuestionController::class, 'builderUpdate'])
+                    ->name('programs.builder.final-exam-questions.update');
+
+                Route::delete('/programs/{courseProgram}/builder/final-exam-questions/{finalExamQuestion}', [FinalExamQuestionController::class, 'builderDestroy'])
+                    ->name('programs.builder.final-exam-questions.destroy');
+
+                // Scoped Builder Reorder Routes (Phase F)
+                Route::put('/programs/{courseProgram}/builder/levels/reorder', [CourseLevelController::class, 'builderReorder'])
+                    ->name('programs.builder.levels.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/levels/{courseLevel}/modules/reorder', [ModuleController::class, 'builderReorder'])
+                    ->name('programs.builder.modules.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/modules/{module}/materials/reorder', [ModuleMaterialController::class, 'builderReorder'])
+                    ->name('programs.builder.materials.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/practices/{modulePractice}/questions/reorder', [ModulePracticeQuestionController::class, 'builderReorder'])
+                    ->name('programs.builder.practice-questions.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/levels/{courseLevel}/final-exam-sections/reorder', [FinalExamController::class, 'builderReorder'])
+                    ->name('programs.builder.final-exam-sections.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}/questions/reorder', [FinalExamQuestionController::class, 'builderReorder'])
+                    ->name('programs.builder.final-exam-questions.reorder');
+
+                // Course Programs Reorder
+                Route::post('/programs/reorder', [CourseProgramController::class, 'reorder'])
+                    ->name('programs.reorder');
+
                 // Course Programs
                 Route::resource('programs', CourseProgramController::class)
                     ->parameters([
@@ -280,6 +380,9 @@ Route::middleware(['auth', 'role:admin'])
 
                 Route::post('/levels/{courseLevel}/modules', [ModuleController::class, 'store'])
                     ->name('levels.modules.store');
+
+                Route::get('/modules/{module}/edit', [ModuleController::class, 'edit'])
+                    ->name('modules.edit');
 
                 Route::put('/modules/{module}', [ModuleController::class, 'update'])
                     ->name('modules.update');

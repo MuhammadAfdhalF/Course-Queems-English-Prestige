@@ -1,5 +1,6 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+import { registerCourseBuilder } from './course-builder';
 
 window.slugify = function (value) {
     return String(value || '')
@@ -12,6 +13,7 @@ window.slugify = function (value) {
 };
 
 window.Alpine = Alpine;
+registerCourseBuilder(Alpine);
 
 document.addEventListener('DOMContentLoaded', () => {
     const revealElements = document.querySelectorAll('.reveal');

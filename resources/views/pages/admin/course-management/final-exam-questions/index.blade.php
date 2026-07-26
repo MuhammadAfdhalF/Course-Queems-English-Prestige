@@ -37,6 +37,16 @@
         </x-slot:actions>
     </x-admin.page-toolbar>
 
+    @php
+        $builderUrl = route('admin.course-management.programs.builder', [
+            'courseProgram' => $finalExam->courseLevel->course_program_id,
+            'level' => $finalExam->course_level_id,
+            'exam' => $finalExam->id
+        ]);
+    @endphp
+
+    @include('partials.admin.course-management.legacy-builder-banner', ['builderUrl' => $builderUrl])
+
     <x-admin.flash-message />
 
     <x-admin.table-card class="p-6">

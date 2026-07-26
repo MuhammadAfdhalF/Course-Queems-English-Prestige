@@ -4,10 +4,19 @@
 ])
 
 @section('content')
+@php
+    $builderUrl = route('admin.course-management.programs.builder', [
+        'courseProgram' => $module->courseLevel->course_program_id,
+        'level' => $module->course_level_id,
+        'module' => $module->id,
+        'tab' => 'materials'
+    ]);
+@endphp
+
 <section class="mx-auto max-w-6xl space-y-6">
     <x-admin.page-toolbar
-        :back-url="route('admin.course-management.modules.materials.index', $module)"
-        back-label="Back to Materials" />
+        :back-url="$builderUrl"
+        back-label="Back to Course Builder" />
 
     <x-admin.table-card class="p-6">
         <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">

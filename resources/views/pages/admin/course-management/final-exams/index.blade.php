@@ -9,6 +9,16 @@
         :back-url="route('admin.course-management.programs.levels.index', $courseLevel->courseProgram)"
         back-label="Back to Course Levels" />
 
+    @php
+        $builderUrl = route('admin.course-management.programs.builder', [
+            'courseProgram' => $courseLevel->course_program_id,
+            'level' => $courseLevel->id,
+            'tab' => 'final-exam'
+        ]);
+    @endphp
+
+    @include('partials.admin.course-management.legacy-builder-banner', ['builderUrl' => $builderUrl])
+
     <x-admin.flash-message />
 
     <x-admin.table-card class="p-6">
