@@ -13,8 +13,14 @@ use Illuminate\View\View;
 use App\Services\StudentProgressService;
 use App\Services\AdminNotificationService;
 
+use App\Services\AssessmentScoringService;
+
 class PracticeController extends Controller
 {
+    public function __construct(
+        protected AssessmentScoringService $scoringService
+    ) {}
+
     public function show(
         StudentCourseEnrollment $enrollment,
         Module $module,
@@ -123,98 +129,98 @@ class PracticeController extends Controller
                 ->withInput();
         }
 
-        $attemptNumber = ModulePracticeAttempt::query()
-            ->where('student_id', auth()->id())
-            ->where('module_practice_id', $practice->id)
-            ->count() + 1;
+        // Process attempt & scoring atomically
+        $resultData = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $practice, $answers) {
+            $lockedPractice = ModulePractice::whereKey($practice->id)->lockForUpdate()->firstOrFail();
 
-        $attempt = ModulePracticeAttempt::create([
-            'student_id' => auth()->id(),
-            'module_practice_id' => $practice->id,
-            'attempt_number' => $attemptNumber,
-            'total_score' => 0,
-            'status' => 'in_progress',
-            'started_at' => now(),
-        ]);
-
-        $earnedScore = 0;
-        $maxScore = 0;
-        $hasManualReview = false;
-
-        foreach ($practice->questions as $question) {
-            $questionScore = (float) $question->score;
-            $maxScore += $questionScore;
-
-            $answerPayload = [
-                'module_practice_attempt_id' => $attempt->id,
-                'module_practice_question_id' => $question->id,
-                'selected_option_id' => null,
-                'answer_text' => null,
-                'uploaded_file' => null,
-                'score' => 0,
-                'feedback' => null,
-                'is_correct' => null,
-            ];
-
-            if ($question->question_type === 'multiple_choice') {
-                $selectedOptionId = (int) ($answers[$question->id] ?? 0);
-
-                $selectedOption = $question->options
-                    ->firstWhere('id', $selectedOptionId);
-
-                if (! $selectedOption) {
-                    $attempt->delete();
-
-                    return back()
-                        ->withErrors([
-                            "answers.$question->id" => 'Selected option is invalid.',
-                        ])
-                        ->withInput();
-                }
-
-                $isCorrect = (bool) $selectedOption->is_correct;
-                $score = $isCorrect ? $questionScore : 0;
-
-                $earnedScore += $score;
-
-                $answerPayload['selected_option_id'] = $selectedOption->id;
-                $answerPayload['answer_text'] = $selectedOption->option_label;
-                $answerPayload['score'] = $score;
-                $answerPayload['is_correct'] = $isCorrect;
-            } elseif ($question->question_type === 'upload') {
-                $hasManualReview = true;
-
-                $file = $request->file("uploads.$question->id");
-
-                if ($file) {
-                    $answerPayload['uploaded_file'] = $file->store('practice-answers', 'public');
-                }
-            } else {
-                $hasManualReview = true;
-                $answerPayload['answer_text'] = trim((string) ($answers[$question->id] ?? ''));
+            if (! $lockedPractice->is_active) {
+                throw new \RuntimeException('This practice is not active.');
             }
 
-            $attempt->answers()->create($answerPayload);
-        }
+            if ($this->hasReachedMaxAttempts($lockedPractice)) {
+                throw new \RuntimeException('Maximum attempts reached.');
+            }
 
-        $percentageScore = $maxScore > 0
-            ? round(($earnedScore / $maxScore) * 100, 2)
-            : 0;
+            $snapshot = $this->scoringService->createSnapshotPayload($lockedPractice);
 
-        $status = 'waiting_review';
+            $attemptNumber = ModulePracticeAttempt::query()
+                ->where('student_id', auth()->id())
+                ->where('module_practice_id', $lockedPractice->id)
+                ->lockForUpdate()
+                ->count() + 1;
 
-        if (! $hasManualReview) {
-            $status = $percentageScore >= (float) $practice->passing_grade
-                ? 'passed'
-                : 'failed';
-        }
+            $attempt = ModulePracticeAttempt::create([
+                'student_id' => auth()->id(),
+                'module_practice_id' => $lockedPractice->id,
+                'attempt_number' => $attemptNumber,
+                'raw_score' => null,
+                'max_score' => $snapshot['max_score'],
+                'percentage_score' => null,
+                'result_mode' => $snapshot['result_mode'],
+                'passing_score' => $snapshot['passing_score'],
+                'is_passed' => null,
+                'status' => 'in_progress',
+                'started_at' => now(),
+            ]);
 
-        $attempt->update([
-            'total_score' => $percentageScore,
-            'status' => $status,
-            'submitted_at' => now(),
-            'graded_at' => $hasManualReview ? null : now(),
-        ]);
+            $earnedScore = 0;
+            $hasManualReview = false;
+
+            foreach ($lockedPractice->questions as $question) {
+                $questionScore = (float) $question->score;
+
+                $answerPayload = [
+                    'module_practice_attempt_id' => $attempt->id,
+                    'module_practice_question_id' => $question->id,
+                    'selected_option_id' => null,
+                    'answer_text' => null,
+                    'uploaded_file' => null,
+                    'score' => 0,
+                    'feedback' => null,
+                    'is_correct' => null,
+                ];
+
+                if ($question->question_type === 'multiple_choice') {
+                    $selectedOptionId = (int) ($answers[$question->id] ?? 0);
+                    $selectedOption = $question->options->firstWhere('id', $selectedOptionId);
+
+                    if (! $selectedOption) {
+                        throw new \InvalidArgumentException("Selected option is invalid for question #{$question->id}");
+                    }
+
+                    $isCorrect = (bool) $selectedOption->is_correct;
+                    $score = $isCorrect ? $questionScore : 0;
+                    $earnedScore += $score;
+
+                    $answerPayload['selected_option_id'] = $selectedOption->id;
+                    $answerPayload['answer_text'] = $selectedOption->option_label;
+                    $answerPayload['score'] = $score;
+                    $answerPayload['is_correct'] = $isCorrect;
+                } elseif ($question->question_type === 'upload') {
+                    $hasManualReview = true;
+                    $file = $request->file("uploads.$question->id");
+                    if ($file) {
+                        $answerPayload['uploaded_file'] = $file->store('practice-answers', 'public');
+                    }
+                } else {
+                    $hasManualReview = true;
+                    $answerPayload['answer_text'] = trim((string) ($answers[$question->id] ?? ''));
+                }
+
+                $attempt->answers()->create($answerPayload);
+            }
+
+            $submissionData = $this->scoringService->calculateSubmission($attempt, $earnedScore, $hasManualReview);
+            $attempt->update($submissionData);
+
+            return [
+                'attempt' => $attempt,
+                'status' => $submissionData['status'],
+            ];
+        });
+
+        $attempt = $resultData['attempt'];
+        $status = $resultData['status'];
 
         if ($status === 'waiting_review') {
             $adminNotificationService->practiceWaitingReview($attempt->fresh());

@@ -8,8 +8,14 @@ use App\Models\FreeTestCategory;
 use App\Models\FreeTestResult;
 use Illuminate\Http\Request;
 
+use App\Services\AssessmentScoringService;
+
 class FreeTestController extends Controller
 {
+    public function __construct(
+        protected AssessmentScoringService $scoringService
+    ) {}
+
     public function index(Request $request)
     {
         $selectedCategory = $request->query('category');
@@ -105,27 +111,24 @@ class FreeTestController extends Controller
             ]);
         }
 
-        $totalScore = 0;
+        $earnedScore = 0;
 
         foreach ($questions as $question) {
             $selectedAnswer = $validated['answers'][$question->id] ?? null;
 
             if ($selectedAnswer === $question->correct_answer) {
-                $totalScore += (int) $question->score;
+                $earnedScore += (float) $question->score;
             }
         }
 
-        $recommendation = $this->buildRecommendation($freeTest, $totalScore);
+        $resultPayload = $this->scoringService->calculateFreeTestSubmission($freeTest, $earnedScore);
 
-        $freeTestResult = FreeTestResult::create([
+        $freeTestResult = FreeTestResult::create(array_merge([
             'free_test_id' => $freeTest->id,
             'participant_name' => $validated['participant_name'],
             'participant_email' => $validated['participant_email'],
             'participant_whatsapp' => $validated['participant_whatsapp'],
-            'total_score' => $totalScore,
-            'recommendation' => $recommendation,
-            'submitted_at' => now(),
-        ]);
+        ], $resultPayload));
 
         return redirect()->route('free-test.result', $freeTestResult);
     }

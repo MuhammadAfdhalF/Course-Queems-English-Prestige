@@ -86,23 +86,27 @@
         </div>
     </div>
 
-    {{-- Readiness Warning Banner --}}
-    @if (!$exam->is_active && $activeQuestionsCount === 0)
-    <div class="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs font-semibold text-amber-800 flex items-center justify-between">
+    @php
+        $readiness = app(\App\Services\AssessmentConfigService::class)->getReadinessStatus($exam);
+    @endphp
+
+    {{-- Score Allocation & Readiness Banner --}}
+    @if ($readiness['status'] === 'invalid_over_allocated')
+    <div class="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 text-xs font-semibold text-rose-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span>Section is inactive. Add at least 1 active question to enable activation.</span>
+            <span>Over-Allocated Configuration! Allocated score ({{ $readiness['allocated_score'] }}) exceeds configured Total Score ({{ $readiness['total_score'] }}). Please adjust question scores.</span>
         </div>
     </div>
-    @elseif ($isReadyToActivate)
+    @elseif (!$exam->is_active && $readiness['status'] === 'ready')
     <div class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs font-semibold text-emerald-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Ready to activate! This section has {{ $activeQuestionsCount }} active question(s). Click Activate Section when ready.</span>
+            <span>Ready to activate! Total Score ({{ $readiness['total_score'] }}) matches Allocated Question Scores ({{ $readiness['allocated_score'] }}).</span>
         </div>
         <button
             type="button"
@@ -111,28 +115,45 @@
             Activate Now
         </button>
     </div>
+    @elseif (!$exam->is_active)
+    <div class="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs font-semibold text-amber-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Incomplete Score Allocation. Allocated: {{ $readiness['allocated_score'] }} / Total: {{ $readiness['total_score'] }} (Remaining: {{ $readiness['remaining_score'] }}). Section cannot be activated until allocated score equals total score.</span>
+        </div>
+    </div>
     @endif
 
-    {{-- Stat Cards --}}
+    {{-- Score Allocation Metric Cards --}}
     <div class="grid gap-4 sm:grid-cols-4">
         <div class="rounded-2xl border border-purple-100 bg-purple-50/50 p-4 shadow-sm">
-            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Total Questions</span>
-            <p class="mt-2 text-3xl font-black text-purple-900">{{ $questionsPaginator ? $questionsPaginator->total() : ($exam->questions_count ?? $exam->questions->count()) }} Q</p>
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Total Score</span>
+            <p class="mt-2 text-3xl font-black text-purple-900">{{ $readiness['total_score'] }}</p>
         </div>
 
         <div class="rounded-2xl border border-purple-100 bg-purple-50/50 p-4 shadow-sm">
-            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Passing Grade</span>
-            <p class="mt-2 text-3xl font-black text-purple-900">{{ $exam->passing_grade }}%</p>
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Allocated Score</span>
+            <p class="mt-2 text-3xl font-black text-purple-900">{{ $readiness['allocated_score'] }}</p>
         </div>
 
         <div class="rounded-2xl border border-purple-100 bg-purple-50/50 p-4 shadow-sm">
-            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Grading Method</span>
-            <p class="mt-2 text-xl font-bold uppercase text-purple-900 tracking-wider">{{ $exam->grading_method }}</p>
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Remaining Score</span>
+            <p class="mt-2 text-3xl font-black {{ $readiness['remaining_score'] < 0 ? 'text-rose-600' : 'text-purple-900' }}">{{ $readiness['remaining_score'] }}</p>
         </div>
 
         <div class="rounded-2xl border border-purple-100 bg-purple-50/50 p-4 shadow-sm">
-            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Max Attempts</span>
-            <p class="mt-2 text-2xl font-black text-purple-900">{{ $exam->max_attempts ? $exam->max_attempts . 'x' : 'Unlimited' }}</p>
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Readiness Status</span>
+            <p class="mt-2 text-sm font-black uppercase tracking-wider">
+                @if ($readiness['status'] === 'ready')
+                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">Ready to Activate</span>
+                @elseif ($readiness['status'] === 'invalid_over_allocated')
+                    <span class="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold text-rose-800">Over Allocated</span>
+                @else
+                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">Incomplete</span>
+                @endif
+            </p>
         </div>
     </div>
 

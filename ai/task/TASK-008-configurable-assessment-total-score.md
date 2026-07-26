@@ -321,10 +321,10 @@ Snapshot `section_scores` pada tabel `certificates` untuk sertifikat baru menyim
   Backup SQL dev (`queens_english_db_backup_2026_07_26_154452.sql`), catat record count, FK audit, reset 44 dummy transaction records, migrasi schema master (`total_score`, `result_mode`, `passing_score`) & attempt snapshot (`percentage_score`, `raw_score`, `max_score`, `result_mode`, `passing_score`, `is_passed`), backfill master data, set zero-question assessment `is_active = false`.
 - [x] **Phase B — Admin Assessment Configuration**: (IMPLEMENTED & TESTED 2026-07-26)
   Form Admin (Result Type, Total Score, Passing Score, Attempt Limit) & validasi server-side (`AssessmentConfigService`), normalisasi `passing_score = NULL` untuk mode `score_only`, config mutability guard jika attempts exist, max attempts guard, deactivation guard pada perubahan config scoring.
-- [ ] **Phase C — Course Builder Allocation & Locking Guards**:
-  Score allocation bar, over-allocation rejection (422), under-allocation auto-deactivation, manual activation guard, dan permanent config/question locking rule.
-- **Phase D — Student Attempt Snapshot & Submission Engine**:
-  Snapshot saat attempt start (`raw_score = NULL`), percentage calculation, pass/fail evaluation, dan score_only flow.
+- [x] **Phase C — Course Builder Allocation & Locking Guards**: (IMPLEMENTED & TESTED 2026-07-26)
+  Perhitungan terpusat `AssessmentConfigService` (`allocated_score`, `remaining_score`, readiness status), Over-allocation guard (422), Under-allocation auto-deactivation, Manual activation guard, Permanent question/config locking jika student history exist, tampilan indikator pada Workspace Builder & Free Test CMS, serta legacy parity.
+- [x] **Phase D — Student Attempt Snapshot & Submission Engine**: (IMPLEMENTED & TESTED 2026-07-26)
+  Centralized `AssessmentScoringService`, attempt creation snapshot (`max_score`, `result_mode`, `passing_score`), submit transaction & row locking (`lockForUpdate`), `raw_score`, `percentage_score`, `is_passed` calculation using raw attempt snapshot score, Score Only flow (`is_passed = NULL`, `status = submitted`), Manual/Mixed review flow (`status = waiting_review`, `is_passed = NULL`), Free Test result snapshot & public submission engine, result UI rendering (raw score / max score, percentage, conditional badge), transitional schema hardening (`2026_07_26_000002_harden_assessment_attempt_snapshots`), dan 7 feature tests passed (42 assertions).
 - **Phase E — Manual Grading Lifecycle**:
   Handling status `waiting_review`, recompute final raw/percentage score & `is_passed` saat `graded_at = now()`.
 - **Phase F — Certificate Eligibility, Progress & Free Test Parity**:

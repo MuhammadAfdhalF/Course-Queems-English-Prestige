@@ -2,25 +2,27 @@
 
 @section('content')
 @php
+$resultMode = $attempt->result_mode instanceof \App\Enums\AssessmentResultMode ? $attempt->result_mode->value : (string) ($attempt->result_mode ?? 'pass_fail');
+
 $statusLabel = match ($attempt->status) {
-'passed' => 'Passed',
-'failed' => 'Failed',
-'waiting_review' => 'Waiting for Review',
-default => 'Submitted',
+    'passed' => 'Passed',
+    'failed' => 'Failed',
+    'waiting_review' => 'Waiting for Review',
+    default => 'Submitted',
 };
 
 $statusClass = match ($attempt->status) {
-'passed' => 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
-'failed' => 'bg-rose-50 text-rose-700 ring-1 ring-rose-100',
-'waiting_review' => 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
-default => 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
+    'passed' => 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+    'failed' => 'bg-rose-50 text-rose-700 ring-1 ring-rose-100',
+    'waiting_review' => 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
+    default => 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
 };
 
 $statusDescription = match ($attempt->status) {
-'passed' => 'Congratulations! You passed the final exam. Your course completion record has been updated.',
-'failed' => 'You submitted the final exam, but your score has not reached the passing grade yet.',
-'waiting_review' => 'Some answers require manual review by admin before the final result is confirmed.',
-default => 'Your final exam attempt has been saved successfully.',
+    'passed' => 'Congratulations! You passed the final exam. Your course completion record has been updated.',
+    'failed' => 'You submitted the final exam, but your score did not reach the required passing score.',
+    'waiting_review' => 'Some answers require manual review by admin before the final result is confirmed.',
+    default => 'Your final exam submission has been recorded successfully.',
 };
 @endphp
 
@@ -51,19 +53,29 @@ default => 'Your final exam attempt has been saved successfully.',
             <div class="mt-8 grid gap-4 sm:grid-cols-3">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                     <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-                        Score
+                        Score Obtained
                     </p>
-                    <p class="mt-2 text-3xl font-extrabold text-[var(--color-brand-blue)]">
-                        {{ number_format((float) $attempt->total_score, 2) }}%
+                    <p class="mt-2 text-2xl font-extrabold text-[var(--color-brand-blue)]">
+                        {{ number_format((float) ($attempt->raw_score ?? 0), 2) }} / {{ number_format((float) ($attempt->max_score ?? 100), 2) }}
+                    </p>
+                    <p class="text-xs font-semibold text-slate-500 mt-1">
+                        ({{ number_format((float) ($attempt->percentage_score ?? 0), 2) }}%)
                     </p>
                 </div>
 
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                     <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-                        Passing Grade
+                        Passing Criteria
                     </p>
-                    <p class="mt-2 text-3xl font-extrabold text-slate-900">
-                        {{ $finalExam->passing_grade }}%
+                    <p class="mt-2 text-2xl font-extrabold text-slate-900">
+                        @if ($resultMode === 'pass_fail')
+                            {{ number_format((float) ($attempt->passing_score ?? 0), 2) }} pts
+                        @else
+                            Score Only
+                        @endif
+                    </p>
+                    <p class="text-xs font-semibold text-slate-500 mt-1">
+                        Mode: {{ strtoupper($resultMode) }}
                     </p>
                 </div>
 
@@ -71,7 +83,7 @@ default => 'Your final exam attempt has been saved successfully.',
                     <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
                         Attempt
                     </p>
-                    <p class="mt-2 text-3xl font-extrabold text-slate-900">
+                    <p class="mt-2 text-2xl font-extrabold text-slate-900">
                         #{{ $attempt->attempt_number }}
                     </p>
                 </div>

@@ -219,6 +219,8 @@ class AdminAssessmentConfigurationTest extends TestCase
             'student_id' => $student->id,
             'final_exam_id' => $exam->id,
             'attempt_number' => 1,
+            'max_score' => 100.00,
+            'result_mode' => 'pass_fail',
             'status' => 'submitted',
         ]);
 

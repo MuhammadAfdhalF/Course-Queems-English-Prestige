@@ -210,11 +210,14 @@ class FinalExamController extends Controller
         }
 
         if (! $finalExam->is_active) {
-            $activeQuestionsCount = $finalExam->questions()->where('is_active', true)->count();
-            if ($activeQuestionsCount === 0) {
+            try {
+                $this->configService->validateActivation($finalExam);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $firstMsg = collect($e->errors())->first()[0] ?? 'Assessment cannot be activated.';
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'This Final Exam section cannot be activated because it has no active questions. Add at least one active question first.'
+                    'message' => $firstMsg,
+                    'errors' => $e->errors()
                 ], 422);
             }
 
@@ -444,17 +447,20 @@ class FinalExamController extends Controller
     public function toggleActive(FinalExam $finalExam)
     {
         if (! $finalExam->is_active) {
-            $activeQuestionsCount = $finalExam->questions()->where('is_active', true)->count();
-            if ($activeQuestionsCount === 0) {
+            try {
+                $this->configService->validateActivation($finalExam);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $firstMsg = collect($e->errors())->first()[0] ?? 'Assessment cannot be activated.';
                 if (request()->wantsJson() || request()->ajax()) {
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'This Final Exam section cannot be activated because it has no active questions. Add at least one active question first.'
+                        'message' => $firstMsg,
+                        'errors' => $e->errors()
                     ], 422);
                 }
                 return redirect()
                     ->back()
-                    ->with('error', 'This Final Exam section cannot be activated because it has no active questions.');
+                    ->with('error', $firstMsg);
             }
 
             $finalExam->update(['is_active' => true]);

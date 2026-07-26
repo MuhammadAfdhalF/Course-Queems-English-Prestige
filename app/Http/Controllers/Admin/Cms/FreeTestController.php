@@ -47,7 +47,7 @@ class FreeTestController extends Controller
 
         $data = array_merge($validated, $config);
         $data['total_questions'] = 0;
-        $data['is_active'] = $request->boolean('is_active');
+        $data['is_active'] = $this->configService->resolveIsActiveStatus($request, null, $config);
         $data['category'] = $this->resolveCategoryName($data['free_test_category_id'] ?? null);
 
         FreeTest::create($data);
@@ -70,7 +70,7 @@ class FreeTestController extends Controller
         $config = $this->configService->validateAndNormalize($request, $freeTest, false);
 
         $data = array_merge($validated, $config);
-        $data['is_active'] = $request->boolean('is_active');
+        $data['is_active'] = $this->configService->resolveIsActiveStatus($request, $freeTest, $config);
         $data['category'] = $this->resolveCategoryName($data['free_test_category_id'] ?? null);
 
         $freeTest->update($data);
