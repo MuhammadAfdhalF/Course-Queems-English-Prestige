@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Services\AssessmentScoringService;
 use App\Services\StudentNotificationService;
+use App\Services\StudentProgressService;
 
 class ModulePracticeReviewController extends Controller
 {
@@ -54,7 +55,8 @@ class ModulePracticeReviewController extends Controller
     public function update(
         Request $request,
         ModulePracticeAttempt $modulePracticeAttempt,
-        StudentNotificationService $studentNotificationService
+        StudentNotificationService $studentNotificationService,
+        StudentProgressService $progressService
     ): RedirectResponse {
         if ($modulePracticeAttempt->status !== 'waiting_review' || $modulePracticeAttempt->graded_at !== null) {
             return redirect()
@@ -71,6 +73,22 @@ class ModulePracticeReviewController extends Controller
         $attempt = $modulePracticeAttempt->fresh();
 
         $studentNotificationService->practiceReviewed($attempt);
+
+        $modulePracticeAttempt->loadMissing('practice.module');
+        $module = $modulePracticeAttempt->practice?->module;
+        if ($module) {
+            $enrollment = \App\Models\StudentCourseEnrollment::query()
+                ->where('student_id', $attempt->student_id)
+                ->where('course_level_id', $module->course_level_id)
+                ->whereIn('status', ['active', 'completed'])
+                ->latest('enrolled_at')
+                ->latest()
+                ->first();
+
+            if ($enrollment) {
+                $progressService->evaluateAndSyncModuleCompletion($enrollment, $module);
+            }
+        }
 
         return redirect()
             ->route('admin.course-management.practice-reviews.show', $attempt)

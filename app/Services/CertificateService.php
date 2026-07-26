@@ -82,36 +82,55 @@ class CertificateService
                             return null;
                         }
 
-                        $query = FinalExamAttempt::query()
+                        $qualifyingAttempt = FinalExamAttempt::query()
                             ->where('student_id', $lockedEnrollment->student_id)
                             ->where('final_exam_id', $section->id)
-                            ->where('status', 'passed')
-                            ->whereNotNull('submitted_at');
-
-                        if (in_array($section->grading_method, ['manual', 'mixed'], true)) {
-                            $query->whereNotNull('graded_at');
-                        }
-
-                        $passedAttempt = $query
-                            ->orderByDesc('submitted_at')
+                            ->whereNotNull('submitted_at')
+                            ->whereNotNull('graded_at')
+                            ->where(function ($query) {
+                                $query->where(function ($sub) {
+                                    $sub->where('result_mode', 'pass_fail')
+                                        ->where(function ($passQ) {
+                                            $passQ->where('is_passed', true)
+                                                 ->orWhere('status', 'passed');
+                                        });
+                                })->orWhere('result_mode', 'score_only');
+                            })
+                            ->orderByDesc('percentage_score')
+                            ->orderByDesc('raw_score')
+                            ->orderByDesc('graded_at')
                             ->orderByDesc('id')
                             ->first();
 
-                        if (! $passedAttempt) {
+                        if (! $qualifyingAttempt) {
                             return null;
                         }
 
+                        $rawResultMode = $qualifyingAttempt->result_mode;
+                        $resultModeStr = $rawResultMode instanceof \App\Enums\AssessmentResultMode
+                            ? $rawResultMode->value
+                            : (string) $rawResultMode;
+
                         $sectionSnapshots[] = [
                             'final_exam_id' => $section->id,
+                            'section_id' => $section->id,
                             'title' => $section->title,
+                            'section_title' => $section->title,
                             'sort_order' => (int) ($section->sort_order ?? 1),
-                            'score' => round((float) $passedAttempt->total_score, 2),
-                            'passing_grade' => (int) $section->passing_grade,
-                            'attempt_id' => $passedAttempt->id,
-                            'graded_at' => $passedAttempt->graded_at?->toIso8601String(),
+                            'attempt_id' => $qualifyingAttempt->id,
+                            'raw_score' => round((float) $qualifyingAttempt->raw_score, 2),
+                            'max_score' => round((float) $qualifyingAttempt->max_score, 2),
+                            'percentage_score' => round((float) $qualifyingAttempt->percentage_score, 2),
+                            'score' => round((float) $qualifyingAttempt->percentage_score, 2),
+                            'result_mode' => $resultModeStr,
+                            'passing_score' => ($resultModeStr === 'pass_fail' && $qualifyingAttempt->passing_score !== null)
+                                ? round((float) $qualifyingAttempt->passing_score, 2)
+                                : null,
+                            'is_passed' => ($resultModeStr === 'pass_fail') ? (bool) $qualifyingAttempt->is_passed : null,
+                            'graded_at' => $qualifyingAttempt->graded_at?->toIso8601String(),
                         ];
 
-                        $totalPercentageScores += (float) $passedAttempt->total_score;
+                        $totalPercentageScores += (float) $qualifyingAttempt->percentage_score;
                     }
 
                     $finalScore = round($totalPercentageScores / count($activeSections), 2);

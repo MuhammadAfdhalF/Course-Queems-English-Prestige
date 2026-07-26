@@ -224,9 +224,9 @@ class PracticeController extends Controller
 
         if ($status === 'waiting_review') {
             $adminNotificationService->practiceWaitingReview($attempt->fresh());
+        } else {
+            $progressService->evaluateAndSyncModuleCompletion($enrollment, $module);
         }
-
-        $progressService->markModuleCompleted($enrollment, $module);
 
         return redirect()
             ->route('student.module-practice-result', [
