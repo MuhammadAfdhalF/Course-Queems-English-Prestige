@@ -37,6 +37,11 @@ class CourseLevelController extends Controller
 
     public function store(Request $request, CourseProgram $courseProgram)
     {
+        if ($request->has('price') && is_string($request->input('price'))) {
+            $cleanPrice = preg_replace('/[^\d]/', '', $request->input('price'));
+            $request->merge(['price' => $cleanPrice !== '' ? (int) $cleanPrice : 0]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:course_levels,slug'],
@@ -159,6 +164,11 @@ class CourseLevelController extends Controller
 
     public function update(Request $request, CourseLevel $courseLevel)
     {
+        if ($request->has('price') && is_string($request->input('price'))) {
+            $cleanPrice = preg_replace('/[^\d]/', '', $request->input('price'));
+            $request->merge(['price' => $cleanPrice !== '' ? (int) $cleanPrice : 0]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:course_levels,slug,' . $courseLevel->id],

@@ -378,15 +378,26 @@ class AssessmentConfigService
      */
     public function handlePostMutationDeactivation(mixed $assessment): bool
     {
-        if (!$assessment || !$assessment->exists || !$assessment->is_active) {
+        return $this->syncAssessmentReadinessState($assessment);
+    }
+
+    /**
+     * Synchronize assessment readiness state: automatically activate if exact allocation and valid,
+     * or deactivate if allocation is incomplete / mismatch.
+     *
+     * @return bool True if assessment activation status changed.
+     */
+    public function syncAssessmentReadinessState(mixed $assessment): bool
+    {
+        if (!$assessment || !$assessment->exists) {
             return false;
         }
 
-        $totalScore = round((float) $assessment->total_score, 2);
-        $allocatedScore = $this->calculateAllocatedScore($assessment);
+        $readiness = $this->getReadinessStatus($assessment);
+        $shouldBeActive = ($readiness['status'] === 'ready');
 
-        if ($allocatedScore !== $totalScore) {
-            $assessment->update(['is_active' => false]);
+        if ((bool) $assessment->is_active !== $shouldBeActive) {
+            $assessment->update(['is_active' => $shouldBeActive]);
             return true;
         }
 

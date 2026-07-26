@@ -5,6 +5,19 @@ export function registerCourseBuilder(Alpine) {
         return text ? text.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-') : '';
     };
 
+    window.formatRupiah = window.formatRupiah || function(value) {
+        if (value === null || value === undefined || value === '') return '';
+        const numberString = value.toString().replace(/[^0-9]/g, '');
+        if (!numberString) return '';
+        return new Intl.NumberFormat('id-ID').format(parseInt(numberString, 10));
+    };
+
+    window.parseRupiah = window.parseRupiah || function(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        const clean = value.toString().replace(/[^0-9]/g, '');
+        return clean ? parseInt(clean, 10) : 0;
+    };
+
     Alpine.data('courseBuilder', (config = {}) => ({
         programId: config.programId || null,
         workspaceUrl: config.workspaceUrl || '',
@@ -195,6 +208,7 @@ export function registerCourseBuilder(Alpine) {
             if (newParams.level && (newParams.module || newParams.exam || newParams.tab === 'final-exam')) {
                 if (newParams.module) {
                     this.expandedNodes[`level_${newParams.level}_modules`] = true;
+                    this.expandedNodes[`module_${newParams.module}`] = true;
                 }
                 if (newParams.exam || newParams.tab === 'final-exam') {
                     this.expandedNodes[`level_${newParams.level}_exam`] = true;
@@ -217,7 +231,19 @@ export function registerCourseBuilder(Alpine) {
                 window.history.pushState(null, '', newRelativePathQuery);
             }
 
+            this.scrollSelectedNodeIntoView();
             this.fetchWorkspace(force);
+        },
+
+        scrollSelectedNodeIntoView() {
+            setTimeout(() => {
+                const treeContainer = document.getElementById('builder-tree-container');
+                if (!treeContainer) return;
+                const activeNode = treeContainer.querySelector('.bg-amber-50, .bg-blue-50, .bg-emerald-50, .bg-purple-50, .bg-slate-900');
+                if (activeNode) {
+                    activeNode.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+            }, 150);
         },
 
         fetchWorkspace(force = false) {
@@ -502,6 +528,7 @@ export function registerCourseBuilder(Alpine) {
                 thumbnail_url: null,
                 video_poster_url: null,
                 price: 0,
+                price_display: '0',
                 learning_mode: 'online',
                 access_type: 'lifetime',
                 access_duration_days: '',
@@ -549,6 +576,7 @@ export function registerCourseBuilder(Alpine) {
                         thumbnail_url: d.thumbnail_url,
                         video_poster_url: d.video_poster_url,
                         price: d.price || 0,
+                        price_display: window.formatRupiah(d.price || 0),
                         learning_mode: d.learning_mode || 'online',
                         access_type: d.access_type || 'lifetime',
                         access_duration_days: d.access_duration_days || '',
@@ -1147,7 +1175,7 @@ export function registerCourseBuilder(Alpine) {
                 formData.set('short_description', this.drawerData.short_description || '');
                 formData.set('description', this.drawerData.description || (document.getElementById('drawer_description')?.value || ''));
                 formData.set('thumbnail_type', this.drawerData.thumbnail_type || 'image');
-                formData.set('price', this.drawerData.price || 0);
+                formData.set('price', window.parseRupiah(this.drawerData.price_display !== undefined ? this.drawerData.price_display : (this.drawerData.price || 0)));
                 formData.set('learning_mode', this.drawerData.learning_mode || 'online');
                 formData.set('access_type', this.drawerData.access_type || 'lifetime');
                 if (this.drawerData.access_type === 'limited' && this.drawerData.access_duration_days) {
@@ -1183,8 +1211,20 @@ export function registerCourseBuilder(Alpine) {
             } else if (this.drawerType.includes('practice') && !this.drawerType.includes('question')) {
                 formData.set('title', this.drawerData.title || '');
                 formData.set('description', this.drawerData.description || (document.getElementById('drawer_practice_description')?.value || ''));
+                formData.set('result_mode', this.drawerData.result_mode || 'pass_fail');
+                formData.set('total_score', this.drawerData.total_score !== undefined && this.drawerData.total_score !== null ? this.drawerData.total_score : '');
+                if (this.drawerData.result_mode === 'pass_fail') {
+                    formData.set('passing_score', this.drawerData.passing_score !== undefined && this.drawerData.passing_score !== null ? this.drawerData.passing_score : '');
+                } else {
+                    formData.delete('passing_score');
+                }
                 formData.set('grading_method', this.drawerData.grading_method || 'auto');
-                if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
+                formData.set('attempt_mode', this.drawerData.attempt_mode || 'unlimited');
+                if (this.drawerData.attempt_mode === 'multiple' && this.drawerData.max_attempts) {
+                    formData.set('max_attempts', this.drawerData.max_attempts);
+                } else {
+                    formData.delete('max_attempts');
+                }
                 if (this.drawerData.is_required) formData.set('is_required', '1'); else formData.delete('is_required');
                 if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
             } else if (this.drawerType.includes('question') && !this.drawerType.includes('final_exam')) {
@@ -1207,8 +1247,20 @@ export function registerCourseBuilder(Alpine) {
             } else if (this.drawerType.includes('final_exam_section')) {
                 formData.set('title', this.drawerData.title || '');
                 formData.set('description', this.drawerData.description || (document.getElementById('drawer_exam_section_description')?.value || ''));
+                formData.set('result_mode', this.drawerData.result_mode || 'pass_fail');
+                formData.set('total_score', this.drawerData.total_score !== undefined && this.drawerData.total_score !== null ? this.drawerData.total_score : '');
+                if (this.drawerData.result_mode === 'pass_fail') {
+                    formData.set('passing_score', this.drawerData.passing_score !== undefined && this.drawerData.passing_score !== null ? this.drawerData.passing_score : '');
+                } else {
+                    formData.delete('passing_score');
+                }
                 formData.set('grading_method', this.drawerData.grading_method || 'auto');
-                if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
+                formData.set('attempt_mode', this.drawerData.attempt_mode || 'unlimited');
+                if (this.drawerData.attempt_mode === 'multiple' && this.drawerData.max_attempts) {
+                    formData.set('max_attempts', this.drawerData.max_attempts);
+                } else {
+                    formData.delete('max_attempts');
+                }
                 if (this.drawerData.sort_order !== undefined) formData.set('sort_order', this.drawerData.sort_order);
                 if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
             } else if (this.drawerType.includes('final_exam_question')) {

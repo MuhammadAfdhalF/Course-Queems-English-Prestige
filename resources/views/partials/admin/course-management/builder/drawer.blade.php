@@ -192,10 +192,12 @@
                                             <div>
                                                 <label class="block text-xs font-bold text-slate-700 mb-1">Price (Rp) <span class="text-rose-500">*</span></label>
                                                 <input
-                                                    type="number"
-                                                    x-model="drawerData.price"
-                                                    min="0"
-                                                    step="1000"
+                                                    type="text"
+                                                    inputmode="numeric"
+                                                    name="price"
+                                                    x-model="drawerData.price_display"
+                                                    @input="drawerData.price_display = window.formatRupiah(drawerData.price_display)"
+                                                    placeholder="e.g. 100.000"
                                                     required
                                                     class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
                                             </div>
@@ -454,6 +456,7 @@
                                         <div>
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Result Type <span class="text-rose-500">*</span></label>
                                             <select
+                                                name="result_mode"
                                                 x-model="drawerData.result_mode"
                                                 :disabled="drawerData.is_locked"
                                                 required
@@ -469,6 +472,7 @@
                                         <div>
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Grading Method <span class="text-rose-500">*</span></label>
                                             <select
+                                                name="grading_method"
                                                 x-model="drawerData.grading_method"
                                                 :disabled="drawerData.is_locked"
                                                 required
@@ -485,6 +489,7 @@
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Total Score <span class="text-rose-500">*</span></label>
                                             <input
                                                 type="number"
+                                                name="total_score"
                                                 step="0.01"
                                                 min="0.01"
                                                 x-model="drawerData.total_score"
@@ -501,6 +506,7 @@
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Minimum Passing Score <span class="text-rose-500">*</span></label>
                                             <input
                                                 type="number"
+                                                name="passing_score"
                                                 step="0.01"
                                                 min="0.01"
                                                 :max="drawerData.total_score"
@@ -534,15 +540,15 @@
                                         <label class="block text-xs font-bold text-slate-700">Attempt Limit <span class="text-rose-500">*</span></label>
                                         <div class="grid gap-3 sm:grid-cols-3">
                                             <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
-                                                <input type="radio" value="unlimited" x-model="drawerData.attempt_mode" name="practice_attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+                                                <input type="radio" value="unlimited" x-model="drawerData.attempt_mode" name="attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
                                                 <span class="text-xs font-bold text-slate-700">Unlimited</span>
                                             </label>
                                             <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
-                                                <input type="radio" value="one" x-model="drawerData.attempt_mode" name="practice_attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+                                                <input type="radio" value="one" x-model="drawerData.attempt_mode" name="attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
                                                 <span class="text-xs font-bold text-slate-700">One Attempt</span>
                                             </label>
                                             <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
-                                                <input type="radio" value="multiple" x-model="drawerData.attempt_mode" name="practice_attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+                                                <input type="radio" value="multiple" x-model="drawerData.attempt_mode" name="attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
                                                 <span class="text-xs font-bold text-slate-700">Multiple</span>
                                             </label>
                                         </div>
@@ -551,6 +557,7 @@
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Maximum Attempts <span class="text-rose-500">*</span></label>
                                             <input
                                                 type="number"
+                                                name="max_attempts"
                                                 min="2"
                                                 x-model="drawerData.max_attempts"
                                                 :required="drawerData.attempt_mode === 'multiple'"

@@ -197,14 +197,14 @@ $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? '
 
         <div class="grid gap-6 md:grid-cols-2">
             <x-admin.form.input
-                label="Price"
+                label="Price (Rp)"
                 name="price"
                 id="price"
-                type="number"
-                min="0"
-                step="1000"
-                :value="old('price', $courseLevel?->price ?? 0)"
-                placeholder="Example: 500000"
+                type="text"
+                inputmode="numeric"
+                :value="old('price') ? old('price') : number_format((float) ($courseLevel?->price ?? 0), 0, ',', '.')"
+                placeholder="Example: 500.000"
+                @input="$el.value = window.formatRupiah($el.value)"
                 :required="true" />
 
             <x-admin.form.select
