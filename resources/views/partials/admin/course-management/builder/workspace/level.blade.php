@@ -156,7 +156,7 @@
                             <h4 class="mt-2 text-base font-bold text-slate-800 group-hover:text-[var(--color-brand-blue)]">
                                 {{ $mod->title }}
                             </h4>
-                            <p class="mt-1 line-clamp-2 text-xs text-slate-500">{{ $mod->short_description ?: 'No description' }}</p>
+                            <p class="mt-1 line-clamp-2 text-xs text-slate-500">{{ \App\Support\RichText::toPlainText($mod->short_description, 120) ?: 'No description' }}</p>
 
                             <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
                                 <div class="flex items-center gap-2 text-slate-600 font-semibold">
@@ -186,7 +186,7 @@
                 @if ($level->short_description)
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Level Short Description</h4>
-                    <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ $level->short_description }}</p>
+                    <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ \App\Support\RichText::toPlainText($level->short_description) }}</p>
                 </div>
                 @endif
 

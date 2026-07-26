@@ -295,7 +295,7 @@
                 @if ($module->short_description)
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Module Short Description</h4>
-                    <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ $module->short_description }}</p>
+                    <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ \App\Support\RichText::toPlainText($module->short_description) }}</p>
                 </div>
                 @endif
 

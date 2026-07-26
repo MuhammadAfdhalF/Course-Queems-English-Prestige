@@ -161,8 +161,10 @@
 
         @if ($practice->description)
         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Practice Instructions</h4>
-            <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ $practice->description }}</p>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Practice Instructions</h4>
+            <div class="rich-text-content text-xs sm:text-sm text-slate-700 leading-relaxed">
+                {!! $practice->description !!}
+            </div>
         </div>
         @endif
 
@@ -182,7 +184,7 @@
                         <button
                             type="button"
                             x-show="!reorderMode"
-                            @click="startReorder('practice_questions', 'Reorder Practice Questions', '{{ route('admin.course-management.programs.builder.practice-questions.reorder', ['courseProgram' => $courseProgram->id, 'modulePractice' => $practice->id]) }}', {{ json_encode($allQList->map(fn($q) => ['id' => $q->id, 'question' => Str::limit(strip_tags($q->question), 60), 'sort_order' => $q->sort_order])->values()) }})"
+                            @click="startReorder('practice_questions', 'Reorder Practice Questions', '{{ route('admin.course-management.programs.builder.practice-questions.reorder', ['courseProgram' => $courseProgram->id, 'modulePractice' => $practice->id]) }}', {{ json_encode($allQList->map(fn($q) => ['id' => $q->id, 'question' => \App\Support\RichText::toPlainText($q->question, 60), 'sort_order' => $q->sort_order])->values()) }})"
                             class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -225,16 +227,14 @@
             @else
                 <div class="grid gap-3">
                     @foreach ($questionsList as $q)
-                    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200">
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 transition flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                             <div class="flex items-start gap-3">
-                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-xs font-extrabold text-slate-600 shrink-0">
-                                    #{{ $q->sort_order }}
+                                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-xs font-black text-slate-600 shrink-0">
+                                    {{ $q->sort_order }}
                                 </span>
-
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-purple-700">
+                                        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">
                                             {{ str_replace('_', ' ', $q->question_type) }}
                                         </span>
                                         <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
@@ -246,7 +246,7 @@
                                     </div>
 
                                     <h4 class="mt-1 text-sm font-bold text-slate-900 line-clamp-2">
-                                        {{ strip_tags($q->question) }}
+                                        {{ \App\Support\RichText::toPlainText($q->question, 120) }}
                                     </h4>
 
                                     @if ($q->question_type === 'multiple_choice' && $q->options->isNotEmpty())

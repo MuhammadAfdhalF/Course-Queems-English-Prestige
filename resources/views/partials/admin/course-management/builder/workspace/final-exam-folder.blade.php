@@ -82,7 +82,7 @@
                 <h3 class="mt-2 text-base font-bold text-slate-800 group-hover:text-purple-700">
                     {{ $examSection->title }}
                 </h3>
-                <p class="mt-1 line-clamp-2 text-xs text-slate-500">{{ $examSection->description ?: 'No description provided' }}</p>
+                <p class="mt-1 line-clamp-2 text-xs text-slate-500">{{ \App\Support\RichText::toPlainText($examSection->description, 120) ?: 'No description provided' }}</p>
 
                 <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
                     <span class="font-semibold text-purple-800">{{ $examSection->questions_count }} Questions | Passing: {{ ($examSection->result_mode->value ?? $examSection->result_mode) === 'pass_fail' ? number_format((float) $examSection->passing_score, 2) . ' pts' : 'Score Only' }}</span>

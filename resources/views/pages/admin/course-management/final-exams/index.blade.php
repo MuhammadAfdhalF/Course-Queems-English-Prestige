@@ -38,7 +38,7 @@
 
                 @if ($courseLevel->short_description)
                 <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-                    {{ $courseLevel->short_description }}
+                    {{ \App\Support\RichText::toPlainText($courseLevel->short_description) }}
                 </p>
                 @endif
             </div>
