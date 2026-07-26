@@ -114,12 +114,18 @@ class LearningController extends Controller
 
             $latestAttempt = $passedAttempt ?? $waitingReviewAttempt ?? $inProgressAttempt ?? $latestSubmittedAttempt;
 
+            $rawResultMode = $exam->result_mode;
+            $resultModeStr = $rawResultMode instanceof \App\Enums\AssessmentResultMode ? $rawResultMode->value : (string) $rawResultMode;
+
             return [
                 'exam' => $exam,
                 'id' => $exam->id,
                 'title' => $exam->title,
                 'description' => $exam->description,
                 'passing_grade' => $exam->passing_grade,
+                'passing_score' => $exam->passing_score !== null ? round((float) $exam->passing_score, 2) : null,
+                'total_score' => round((float) $exam->total_score, 2),
+                'result_mode' => $resultModeStr,
                 'grading_method' => $exam->grading_method,
                 'max_attempts' => $maxAttempts,
                 'sort_order' => $exam->sort_order,

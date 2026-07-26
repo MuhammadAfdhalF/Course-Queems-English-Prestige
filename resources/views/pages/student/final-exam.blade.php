@@ -64,8 +64,14 @@
                     </div>
 
                     <div>
-                        <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Passing Grade</p>
-                        <p class="mt-1 text-3xl font-bold text-slate-900">{{ $finalExam->passing_grade }}%</p>
+                        <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Passing Criteria</p>
+                        <p class="mt-1 text-2xl font-bold text-slate-900">
+                            @if ($finalExam->result_mode === \App\Enums\AssessmentResultMode::PASS_FAIL || $finalExam->result_mode === 'pass_fail')
+                                {{ number_format((float) $finalExam->passing_score, 2) }} pts
+                            @else
+                                Score Only
+                            @endif
+                        </p>
                     </div>
                 </div>
             </div>

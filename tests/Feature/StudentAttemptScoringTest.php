@@ -426,4 +426,181 @@ class StudentAttemptScoringTest extends TestCase
         $response->assertSessionHas('error');
         $this->assertEquals(1, FinalExamAttempt::where('final_exam_id', $exam->id)->count());
     }
+
+    public function test_exact_passing_threshold_evaluated_as_passed()
+    {
+        $exam = FinalExam::create([
+            'course_level_id' => $this->level->id,
+            'title' => 'Threshold Exam',
+            'result_mode' => AssessmentResultMode::PASS_FAIL,
+            'total_score' => 100.00,
+            'passing_score' => 70.00,
+            'is_active' => true,
+        ]);
+
+        $q = FinalExamQuestion::create([
+            'final_exam_id' => $exam->id,
+            'question_type' => 'multiple_choice',
+            'question' => 'Q1',
+            'score' => 70.00,
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $q->options()->createMany([
+            ['option_label' => 'A', 'option_text' => 'Correct', 'is_correct' => true, 'sort_order' => 1],
+            ['option_label' => 'B', 'option_text' => 'Wrong', 'is_correct' => false, 'sort_order' => 2],
+        ]);
+
+        $optCorrect = $q->options->where('is_correct', true)->first();
+
+        $this->actingAs($this->student)
+            ->post(route('student.final-exam.submit', [
+                'enrollment' => $this->enrollment->id,
+                'finalExam' => $exam->id,
+            ]), [
+                'answers' => [
+                    $q->id => $optCorrect->id,
+                ],
+            ]);
+
+        $attempt = FinalExamAttempt::where('final_exam_id', $exam->id)->first();
+        $this->assertNotNull($attempt);
+        $this->assertEquals(70.00, (float) $attempt->raw_score);
+        $this->assertEquals(70.00, (float) $attempt->passing_score);
+        $this->assertTrue((bool) $attempt->is_passed);
+        $this->assertEquals('passed', $attempt->status);
+    }
+
+    public function test_score_only_zero_raw_score_is_valid()
+    {
+        $exam = FinalExam::create([
+            'course_level_id' => $this->level->id,
+            'title' => 'Zero Score Exam',
+            'result_mode' => AssessmentResultMode::SCORE_ONLY,
+            'total_score' => 100.00,
+            'passing_score' => null,
+            'is_active' => true,
+        ]);
+
+        $q = FinalExamQuestion::create([
+            'final_exam_id' => $exam->id,
+            'question_type' => 'multiple_choice',
+            'question' => 'Q1',
+            'score' => 100.00,
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $q->options()->createMany([
+            ['option_label' => 'A', 'option_text' => 'Correct', 'is_correct' => true, 'sort_order' => 1],
+            ['option_label' => 'B', 'option_text' => 'Wrong', 'is_correct' => false, 'sort_order' => 2],
+        ]);
+
+        $optWrong = $q->options->where('is_correct', false)->first();
+
+        $this->actingAs($this->student)
+            ->post(route('student.final-exam.submit', [
+                'enrollment' => $this->enrollment->id,
+                'finalExam' => $exam->id,
+            ]), [
+                'answers' => [
+                    $q->id => $optWrong->id,
+                ],
+            ]);
+
+        $attempt = FinalExamAttempt::where('final_exam_id', $exam->id)->first();
+        $this->assertNotNull($attempt);
+        $this->assertEquals(0.00, (float) $attempt->raw_score);
+        $this->assertNull($attempt->is_passed);
+        $this->assertEquals('submitted', $attempt->status);
+    }
+
+    public function test_unauthorized_student_cannot_submit_other_student_enrollment()
+    {
+        $otherStudent = User::factory()->create(['role' => 'student', 'is_active' => true]);
+
+        $exam = FinalExam::create([
+            'course_level_id' => $this->level->id,
+            'title' => 'Protected Exam',
+            'result_mode' => AssessmentResultMode::PASS_FAIL,
+            'total_score' => 100.00,
+            'passing_score' => 70.00,
+            'is_active' => true,
+        ]);
+
+        $q = FinalExamQuestion::create([
+            'final_exam_id' => $exam->id,
+            'question_type' => 'multiple_choice',
+            'question' => 'Q1',
+            'score' => 100.00,
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $q->options()->createMany([
+            ['option_label' => 'A', 'option_text' => 'Correct', 'is_correct' => true, 'sort_order' => 1],
+            ['option_label' => 'B', 'option_text' => 'Wrong', 'is_correct' => false, 'sort_order' => 2],
+        ]);
+
+        $optCorrect = $q->options->where('is_correct', true)->first();
+
+        $response = $this->actingAs($otherStudent)
+            ->post(route('student.final-exam.submit', [
+                'enrollment' => $this->enrollment->id,
+                'finalExam' => $exam->id,
+            ]), [
+                'answers' => [
+                    $q->id => $optCorrect->id,
+                ],
+            ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_free_test_score_only_submission()
+    {
+        $freeTest = FreeTest::create([
+            'title' => 'Public Free Test Score Only',
+            'result_mode' => AssessmentResultMode::SCORE_ONLY,
+            'total_score' => 50.00,
+            'passing_score' => null,
+            'is_active' => true,
+        ]);
+
+        FreeTestQuestion::create([
+            'free_test_id' => $freeTest->id,
+            'question_type' => 'multiple_choice',
+            'question' => 'Free Q1',
+            'option_a' => 'Option A',
+            'option_b' => 'Option B',
+            'option_c' => 'Option C',
+            'option_d' => 'Option D',
+            'correct_answer' => 'A',
+            'score' => 50.00,
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $q = $freeTest->questions->first();
+
+        $response = $this->post(route('free-test.submit', $freeTest->id), [
+            'participant_name' => 'Jane Doe',
+            'participant_email' => 'jane@example.com',
+            'participant_whatsapp' => '08123456789',
+            'answers' => [
+                $q->id => 'A',
+            ],
+        ]);
+
+        $response->assertRedirect();
+
+        $result = FreeTestResult::where('free_test_id', $freeTest->id)->first();
+        $this->assertNotNull($result);
+        $this->assertEquals(50.00, (float) $result->max_score);
+        $this->assertNull($result->passing_score);
+        $this->assertEquals('score_only', $result->result_mode->value);
+        $this->assertEquals(50.00, (float) $result->raw_score);
+        $this->assertNull($result->is_passed);
+    }
 }

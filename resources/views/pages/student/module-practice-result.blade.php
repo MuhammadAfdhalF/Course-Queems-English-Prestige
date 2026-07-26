@@ -53,13 +53,21 @@ $statusDescription = match ($attempt->status) {
             <div class="mt-8 grid gap-4 sm:grid-cols-3">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                     <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-                        Score Obtained
+                        @if ($attempt->status === 'waiting_review')
+                            Provisional Subtotal
+                        @else
+                            Score Obtained
+                        @endif
                     </p>
                     <p class="mt-2 text-2xl font-extrabold text-[var(--color-brand-blue)]">
                         {{ number_format((float) ($attempt->raw_score ?? 0), 2) }} / {{ number_format((float) ($attempt->max_score ?? 100), 2) }}
                     </p>
                     <p class="text-xs font-semibold text-slate-500 mt-1">
-                        ({{ number_format((float) ($attempt->percentage_score ?? 0), 2) }}%)
+                        @if ($attempt->status === 'waiting_review')
+                            (Pending Manual Review)
+                        @else
+                            ({{ number_format((float) ($attempt->percentage_score ?? 0), 2) }}%)
+                        @endif
                     </p>
                 </div>
 
