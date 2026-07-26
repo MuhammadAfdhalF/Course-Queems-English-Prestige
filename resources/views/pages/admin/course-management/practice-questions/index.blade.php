@@ -37,6 +37,17 @@
         </x-slot:actions>
     </x-admin.page-toolbar>
 
+    @php
+        $builderUrl = route('admin.course-management.programs.builder', [
+            'courseProgram' => $modulePractice->module->courseLevel->course_program_id,
+            'level' => $modulePractice->module->course_level_id,
+            'module' => $modulePractice->module->id,
+            'tab' => 'practice'
+        ]);
+    @endphp
+
+    @include('partials.admin.course-management.legacy-builder-banner', ['builderUrl' => $builderUrl])
+
     <x-admin.flash-message />
 
     <x-admin.table-card class="p-6">

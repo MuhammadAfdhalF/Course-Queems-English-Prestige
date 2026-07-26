@@ -29,8 +29,13 @@
             this.imagePreviewModalOpen = true;
         }
     }"
-    class="mx-auto max-w-7xl space-y-6">
     @include('partials.admin.course-management.levels.header')
+
+    @php
+        $builderUrl = route('admin.course-management.programs.builder', $courseProgram);
+    @endphp
+
+    @include('partials.admin.course-management.legacy-builder-banner', ['builderUrl' => $builderUrl])
 
     <x-admin.flash-message />
 

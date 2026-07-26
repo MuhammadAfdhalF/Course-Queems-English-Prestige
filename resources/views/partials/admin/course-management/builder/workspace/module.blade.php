@@ -121,12 +121,6 @@
                             </button>
                         @endif
 
-                        <a
-                            href="{{ route('admin.course-management.modules.materials.index', $module->id) }}"
-                            class="text-xs font-medium text-slate-400 hover:text-slate-600 hover:underline">
-                            Legacy Materials Page &rarr;
-                        </a>
-
                         <button
                             type="button"
                             x-show="!reorderMode"

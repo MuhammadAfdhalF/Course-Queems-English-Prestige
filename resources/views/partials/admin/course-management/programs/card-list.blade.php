@@ -135,13 +135,6 @@
                         <span>Open Builder</span>
                     </a>
 
-                    {{-- Secondary: Manage Levels --}}
-                    <a
-                        href="{{ route('admin.course-management.programs.levels.index', $program->id) }}"
-                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50">
-                        <span>Manage Levels</span>
-                    </a>
-
                     {{-- Edit --}}
                     <button
                         type="button"

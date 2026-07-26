@@ -168,12 +168,6 @@
                     </button>
                 @endif
 
-                <a
-                    href="{{ route('admin.course-management.final-exams.questions.index', $exam->id) }}"
-                    class="text-xs font-medium text-slate-400 hover:text-slate-600 hover:underline">
-                    Legacy Questions Page &rarr;
-                </a>
-
                 <button
                     type="button"
                     x-show="!reorderMode"
