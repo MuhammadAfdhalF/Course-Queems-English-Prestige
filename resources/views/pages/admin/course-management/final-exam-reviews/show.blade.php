@@ -57,22 +57,36 @@ default => ucfirst(str_replace('_', ' ', $attempt->status)),
                 </p>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+            <div class="grid gap-3 sm:grid-cols-3 lg:min-w-[460px]">
                 <div class="rounded-2xl bg-slate-50 p-4">
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
-                        Attempt
+                        @if ($attempt->status === 'waiting_review')
+                            Provisional Subtotal
+                        @else
+                            Raw Score
+                        @endif
                     </p>
-                    <p class="mt-2 text-xl font-bold text-slate-900">
-                        #{{ $attempt->attempt_number }}
+                    <p class="mt-2 text-lg font-bold text-[var(--color-brand-blue)]">
+                        {{ number_format((float) ($attempt->raw_score ?? 0), 2) }} / {{ number_format((float) ($attempt->max_score ?? 100), 2) }}
+                    </p>
+                    <p class="text-xs font-semibold text-slate-500 mt-1">
+                        ({{ number_format((float) ($attempt->percentage_score ?? 0), 2) }}%)
                     </p>
                 </div>
 
                 <div class="rounded-2xl bg-slate-50 p-4">
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
-                        Score
+                        Result Criteria
                     </p>
-                    <p class="mt-2 text-xl font-bold text-slate-900">
-                        {{ number_format((float) $attempt->total_score, 2) }}%
+                    <p class="mt-2 text-lg font-bold text-slate-900">
+                        @if (($attempt->result_mode->value ?? $attempt->result_mode) === 'pass_fail')
+                            {{ number_format((float) ($attempt->passing_score ?? 0), 2) }} pts
+                        @else
+                            Score Only
+                        @endif
+                    </p>
+                    <p class="text-xs font-semibold text-slate-500 mt-1">
+                        Mode: {{ strtoupper($attempt->result_mode->value ?? $attempt->result_mode) }}
                     </p>
                 </div>
 

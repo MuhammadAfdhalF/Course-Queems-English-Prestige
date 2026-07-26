@@ -171,4 +171,109 @@ class AssessmentScoringService
 
         return 'Thank you for completing the free test! Based on your score, we recommend starting with our foundational modules to strengthen your core English skills.';
     }
+
+    /**
+     * Finalize manual grading for a FinalExamAttempt or ModulePracticeAttempt.
+     *
+     * @param mixed $attempt FinalExamAttempt or ModulePracticeAttempt
+     * @param array $inputAnswers Keyed by answer ID: ['score' => float, 'feedback' => ?string]
+     * @return array Calculated submission payload applied to the attempt
+     */
+    public function finalizeAttempt(mixed $attempt, array $inputAnswers): array
+    {
+        $attemptClass = get_class($attempt);
+
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($attemptClass, $attempt, $inputAnswers) {
+            /** @var mixed $lockedAttempt */
+            $lockedAttempt = $attemptClass::whereKey($attempt->id)->lockForUpdate()->firstOrFail();
+
+            // Idempotency check: Must be in waiting_review status and graded_at IS NULL
+            if ($lockedAttempt->status !== 'waiting_review' || $lockedAttempt->graded_at !== null) {
+                throw ValidationException::withMessages([
+                    'attempt' => ['This attempt has already been finalized or is not waiting for review.'],
+                ]);
+            }
+
+            if ($lockedAttempt->submitted_at === null) {
+                throw ValidationException::withMessages([
+                    'attempt' => ['Cannot finalize an attempt that has not been submitted.'],
+                ]);
+            }
+
+            $lockedAttempt->load(['answers.question']);
+
+            $maxScore = round((float) ($lockedAttempt->max_score ?? 100), 2);
+            $rawMode = $lockedAttempt->result_mode;
+            $resultMode = $rawMode instanceof AssessmentResultMode
+                ? $rawMode->value
+                : (string) $rawMode;
+
+            $passingScore = $lockedAttempt->passing_score !== null
+                ? round((float) $lockedAttempt->passing_score, 2)
+                : null;
+
+            foreach ($lockedAttempt->answers as $answer) {
+                $question = $answer->question;
+                if (! $question) {
+                    continue;
+                }
+
+                if (in_array($question->question_type, ['short_answer', 'essay', 'upload'], true)) {
+                    $answerInput = $inputAnswers[$answer->id] ?? [];
+                    if (! isset($answerInput['score']) || $answerInput['score'] === '' || ! is_numeric($answerInput['score'])) {
+                        throw ValidationException::withMessages([
+                            "answers.{$answer->id}.score" => ['All manual questions must be given a valid numeric score.'],
+                        ]);
+                    }
+
+                    $score = round((float) $answerInput['score'], 2);
+                    $maxQuestionScore = round((float) $question->score, 2);
+
+                    if ($score < 0.00 || $score > $maxQuestionScore) {
+                        throw ValidationException::withMessages([
+                            "answers.{$answer->id}.score" => ["Score must be between 0.00 and {$maxQuestionScore}."],
+                        ]);
+                    }
+
+                    $answer->update([
+                        'score' => $score,
+                        'feedback' => isset($answerInput['feedback']) ? trim((string) $answerInput['feedback']) : null,
+                        'is_correct' => ($maxQuestionScore > 0 && $score >= $maxQuestionScore),
+                    ]);
+                }
+            }
+
+            // Reload answers to calculate final raw score
+            $lockedAttempt->unsetRelation('answers');
+            $finalRawScore = round((float) $lockedAttempt->answers()->sum('score'), 2);
+
+            if ($finalRawScore < 0.00 || $finalRawScore > $maxScore) {
+                throw new \UnexpectedValueException("Calculated raw score {$finalRawScore} is out of bounds (0 - {$maxScore}).");
+            }
+
+            $percentageScore = $maxScore > 0 ? round(($finalRawScore / $maxScore) * 100, 2) : 0.00;
+            $gradedAt = now();
+
+            if ($resultMode === AssessmentResultMode::SCORE_ONLY->value) {
+                $isPassed = null;
+                $status = 'submitted';
+            } else {
+                // pass_fail mode
+                $isPassed = ($passingScore !== null) ? ($finalRawScore >= $passingScore) : true;
+                $status = $isPassed ? 'passed' : 'failed';
+            }
+
+            $updatePayload = [
+                'raw_score' => $finalRawScore,
+                'percentage_score' => $percentageScore,
+                'is_passed' => $isPassed,
+                'status' => $status,
+                'graded_at' => $gradedAt,
+            ];
+
+            $lockedAttempt->update($updatePayload);
+
+            return $updatePayload;
+        });
+    }
 }
