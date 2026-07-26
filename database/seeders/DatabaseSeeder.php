@@ -11,11 +11,11 @@ class DatabaseSeeder extends Seeder
     {
         User::updateOrCreate(
             [
-                'email' => 'admin@gmail.com',
+                'email' => 'qeprestige@gmail.com',
             ],
             [
                 'name' => 'Queens Admin',
-                'password' => 'admin12345678',
+                'password' => 'queens@12345678',
                 'role' => 'admin',
                 'is_active' => true,
             ]
