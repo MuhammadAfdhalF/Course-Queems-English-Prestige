@@ -297,6 +297,53 @@ Route::middleware(['auth', 'role:admin'])
                 Route::delete('/programs/{courseProgram}/builder/practice-questions/{modulePracticeQuestion}', [ModulePracticeQuestionController::class, 'builderDestroy'])
                     ->name('programs.builder.questions.destroy');
 
+                // Scoped Builder Final Exam Section & Question Routes (Phase E)
+                Route::post('/programs/{courseProgram}/builder/levels/{courseLevel}/final-exam-sections', [FinalExamController::class, 'builderStore'])
+                    ->name('programs.builder.final-exams.store');
+
+                Route::get('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}/edit', [FinalExamController::class, 'builderEdit'])
+                    ->name('programs.builder.final-exams.edit');
+
+                Route::put('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}', [FinalExamController::class, 'builderUpdate'])
+                    ->name('programs.builder.final-exams.update');
+
+                Route::delete('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}', [FinalExamController::class, 'builderDestroy'])
+                    ->name('programs.builder.final-exams.destroy');
+
+                Route::patch('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}/toggle-active', [FinalExamController::class, 'builderToggleActive'])
+                    ->name('programs.builder.final-exams.toggle-active');
+
+                Route::post('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}/questions', [FinalExamQuestionController::class, 'builderStore'])
+                    ->name('programs.builder.final-exam-questions.store');
+
+                Route::get('/programs/{courseProgram}/builder/final-exam-questions/{finalExamQuestion}/edit', [FinalExamQuestionController::class, 'builderEdit'])
+                    ->name('programs.builder.final-exam-questions.edit');
+
+                Route::put('/programs/{courseProgram}/builder/final-exam-questions/{finalExamQuestion}', [FinalExamQuestionController::class, 'builderUpdate'])
+                    ->name('programs.builder.final-exam-questions.update');
+
+                Route::delete('/programs/{courseProgram}/builder/final-exam-questions/{finalExamQuestion}', [FinalExamQuestionController::class, 'builderDestroy'])
+                    ->name('programs.builder.final-exam-questions.destroy');
+
+                // Scoped Builder Reorder Routes (Phase F)
+                Route::put('/programs/{courseProgram}/builder/levels/reorder', [CourseLevelController::class, 'builderReorder'])
+                    ->name('programs.builder.levels.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/levels/{courseLevel}/modules/reorder', [ModuleController::class, 'builderReorder'])
+                    ->name('programs.builder.modules.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/modules/{module}/materials/reorder', [ModuleMaterialController::class, 'builderReorder'])
+                    ->name('programs.builder.materials.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/practices/{modulePractice}/questions/reorder', [ModulePracticeQuestionController::class, 'builderReorder'])
+                    ->name('programs.builder.practice-questions.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/levels/{courseLevel}/final-exam-sections/reorder', [FinalExamController::class, 'builderReorder'])
+                    ->name('programs.builder.final-exam-sections.reorder');
+
+                Route::put('/programs/{courseProgram}/builder/final-exam-sections/{finalExam}/questions/reorder', [FinalExamQuestionController::class, 'builderReorder'])
+                    ->name('programs.builder.final-exam-questions.reorder');
+
                 // Course Programs Reorder
                 Route::post('/programs/reorder', [CourseProgramController::class, 'reorder'])
                     ->name('programs.reorder');

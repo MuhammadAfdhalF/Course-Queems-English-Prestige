@@ -203,6 +203,49 @@ class ModulePracticeQuestionController extends Controller
         ]);
     }
 
+    public function builderReorder(Request $request, CourseProgram $courseProgram, ModulePractice $modulePractice)
+    {
+        $modulePractice->load('module.courseLevel');
+
+        if ($modulePractice->module?->courseLevel?->course_program_id !== $courseProgram->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized operation: practice does not belong to this course program.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'ordered_ids' => ['required', 'array'],
+            'ordered_ids.*' => ['required', 'integer'],
+        ]);
+
+        $orderedIds = array_map('intval', $validated['ordered_ids']);
+        $existingIds = $modulePractice->questions()->pluck('id')->toArray();
+
+        $existingIdsCopy = $existingIds;
+        $orderedIdsCopy = $orderedIds;
+        sort($existingIdsCopy);
+        sort($orderedIdsCopy);
+
+        if (count($orderedIds) !== count($existingIds) || $existingIdsCopy !== $orderedIdsCopy || count(array_unique($orderedIds)) !== count($orderedIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The item list has changed. Reload the latest order and try again.'
+            ], 422);
+        }
+
+        DB::transaction(function () use ($orderedIds) {
+            foreach ($orderedIds as $index => $id) {
+                ModulePracticeQuestion::where('id', $id)->update(['sort_order' => $index + 1]);
+            }
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Practice questions order updated successfully.'
+        ]);
+    }
+
     // ==========================================
     // LEGACY FULL-PAGE ENDPOINTS
     // ==========================================

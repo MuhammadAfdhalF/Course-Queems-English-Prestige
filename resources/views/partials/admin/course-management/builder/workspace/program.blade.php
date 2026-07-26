@@ -62,13 +62,30 @@
     <div class="space-y-3">
         <div class="flex items-center justify-between">
             <h3 class="text-sm font-bold text-slate-800">Course Levels in {{ $courseProgram->name }}</h3>
-            <button
-                type="button"
-                @click="openCreateLevelDrawer('{{ route('admin.course-management.programs.levels.store', $courseProgram->id) }}')"
-                class="text-xs font-bold text-[var(--color-brand-blue)] hover:underline">
-                + Add Level
-            </button>
+            <div class="flex items-center gap-2">
+                @if ($courseProgram->courseLevels->count() > 1)
+                    <button
+                        type="button"
+                        x-show="!reorderMode"
+                        @click="startReorder('levels', 'Reorder Course Levels', '{{ route('admin.course-management.programs.builder.levels.reorder', $courseProgram->id) }}', {{ json_encode($courseProgram->courseLevels->map(fn($l) => ['id' => $l->id, 'title' => $l->name, 'sort_order' => $l->sort_order])->values()) }})"
+                        class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                        <span>Reorder Levels</span>
+                    </button>
+                @endif
+                <button
+                    type="button"
+                    x-show="!reorderMode"
+                    @click="openCreateLevelDrawer('{{ route('admin.course-management.programs.levels.store', $courseProgram->id) }}')"
+                    class="text-xs font-bold text-[var(--color-brand-blue)] hover:underline">
+                    + Add Level
+                </button>
+            </div>
         </div>
+
+        @include('partials.admin.course-management.builder.workspace.reorder-bar')
 
         @if ($courseProgram->courseLevels->isEmpty())
             <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin\CourseManagement;
 
 use App\Http\Controllers\Controller;
+use App\Models\CourseProgram;
 use App\Models\FinalExam;
 use App\Models\FinalExamQuestion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FinalExamQuestionController extends Controller
 {
@@ -39,6 +41,218 @@ class FinalExamQuestionController extends Controller
         ));
     }
 
+    // ==========================================
+    // SCOPED BUILDER AJAX ENDPOINTS (PHASE E)
+    // ==========================================
+
+    public function builderStore(Request $request, CourseProgram $courseProgram, FinalExam $finalExam)
+    {
+        $finalExam->load('courseLevel');
+
+        if ($finalExam->courseLevel?->course_program_id !== $courseProgram->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized operation: exam section does not belong to this program.'
+            ], 403);
+        }
+
+        $validated = $this->validateQuestion($request);
+        $questionIsActive = $request->boolean('is_active');
+
+        $question = DB::transaction(function () use ($finalExam, $validated, $questionIsActive) {
+            $sortOrder = $validated['sort_order'] ?? (((int) $finalExam->questions()->max('sort_order')) + 1);
+
+            $q = $finalExam->questions()->create([
+                'question_type' => $validated['question_type'],
+                'question' => $validated['question'],
+                'explanation' => $validated['explanation'] ?? null,
+                'score' => $validated['score'] ?? 0,
+                'sort_order' => $sortOrder,
+                'is_active' => $questionIsActive,
+            ]);
+
+            if ($validated['question_type'] === 'multiple_choice') {
+                $this->saveOptions($q, $validated['options'], $validated['correct_option']);
+            }
+
+            return $q;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Final Exam question created successfully.',
+            'question_id' => $question->id,
+            'redirect_node' => [
+                'level' => $finalExam->course_level_id,
+                'module' => null,
+                'exam' => $finalExam->id,
+                'tab' => 'questions'
+            ]
+        ]);
+    }
+
+    public function builderEdit(Request $request, CourseProgram $courseProgram, FinalExamQuestion $finalExamQuestion)
+    {
+        $finalExamQuestion->load('finalExam.courseLevel', 'options');
+
+        if ($finalExamQuestion->finalExam?->courseLevel?->course_program_id !== $courseProgram->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized operation: question does not belong to this program.'
+            ], 403);
+        }
+
+        $optionsDict = [];
+        $correctOption = null;
+        foreach ($finalExamQuestion->options as $opt) {
+            $optionsDict[$opt->option_label] = $opt->option_text;
+            if ($opt->is_correct) {
+                $correctOption = $opt->option_label;
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'id' => $finalExamQuestion->id,
+                'final_exam_id' => $finalExamQuestion->final_exam_id,
+                'question_type' => $finalExamQuestion->question_type,
+                'question' => $finalExamQuestion->question,
+                'explanation' => $finalExamQuestion->explanation,
+                'score' => $finalExamQuestion->score,
+                'sort_order' => $finalExamQuestion->sort_order,
+                'is_active' => (bool) $finalExamQuestion->is_active,
+                'options' => $optionsDict,
+                'correct_option' => $correctOption,
+                'update_url' => route('admin.course-management.programs.builder.final-exam-questions.update', ['courseProgram' => $courseProgram->id, 'finalExamQuestion' => $finalExamQuestion->id]),
+            ]
+        ]);
+    }
+
+    public function builderUpdate(Request $request, CourseProgram $courseProgram, FinalExamQuestion $finalExamQuestion)
+    {
+        $finalExamQuestion->load('finalExam.courseLevel');
+
+        if ($finalExamQuestion->finalExam?->courseLevel?->course_program_id !== $courseProgram->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized operation: question does not belong to this program.'
+            ], 403);
+        }
+
+        $validated = $this->validateQuestion($request);
+
+        DB::transaction(function () use ($finalExamQuestion, $validated, $request) {
+            $finalExamQuestion->update([
+                'question_type' => $validated['question_type'],
+                'question' => $validated['question'],
+                'explanation' => $validated['explanation'] ?? null,
+                'score' => $validated['score'] ?? 0,
+                'sort_order' => $validated['sort_order'] ?? $finalExamQuestion->sort_order,
+                'is_active' => $request->boolean('is_active'),
+            ]);
+
+            if ($validated['question_type'] === 'multiple_choice') {
+                $this->saveOptions($finalExamQuestion, $validated['options'], $validated['correct_option']);
+            } else {
+                $finalExamQuestion->options()->delete();
+            }
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Final Exam question updated successfully.',
+            'question_id' => $finalExamQuestion->id,
+            'redirect_node' => [
+                'level' => $finalExamQuestion->finalExam->course_level_id,
+                'module' => null,
+                'exam' => $finalExamQuestion->final_exam_id,
+                'tab' => 'questions'
+            ]
+        ]);
+    }
+
+    public function builderDestroy(Request $request, CourseProgram $courseProgram, FinalExamQuestion $finalExamQuestion)
+    {
+        $finalExamQuestion->load('finalExam.courseLevel');
+
+        if ($finalExamQuestion->finalExam?->courseLevel?->course_program_id !== $courseProgram->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized operation: question does not belong to this program.'
+            ], 403);
+        }
+
+        // Delete Guard: Check if student answers exist
+        if ($finalExamQuestion->answers()->exists()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cannot delete question because student answers exist.'
+            ], 422);
+        }
+
+        $finalExam = $finalExamQuestion->finalExam;
+        $finalExamQuestion->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Final Exam question deleted successfully.',
+            'redirect_node' => [
+                'level' => $finalExam->course_level_id,
+                'module' => null,
+                'exam' => $finalExam->id,
+                'tab' => 'questions'
+            ]
+        ]);
+    }
+
+    public function builderReorder(Request $request, CourseProgram $courseProgram, FinalExam $finalExam)
+    {
+        $finalExam->load('courseLevel');
+
+        if ($finalExam->courseLevel?->course_program_id !== $courseProgram->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized operation: exam section does not belong to this program.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'ordered_ids' => ['required', 'array'],
+            'ordered_ids.*' => ['required', 'integer'],
+        ]);
+
+        $orderedIds = array_map('intval', $validated['ordered_ids']);
+        $existingIds = $finalExam->questions()->pluck('id')->toArray();
+
+        $existingIdsCopy = $existingIds;
+        $orderedIdsCopy = $orderedIds;
+        sort($existingIdsCopy);
+        sort($orderedIdsCopy);
+
+        if (count($orderedIds) !== count($existingIds) || $existingIdsCopy !== $orderedIdsCopy || count(array_unique($orderedIds)) !== count($orderedIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The item list has changed. Reload the latest order and try again.'
+            ], 422);
+        }
+
+        DB::transaction(function () use ($orderedIds) {
+            foreach ($orderedIds as $index => $id) {
+                FinalExamQuestion::where('id', $id)->update(['sort_order' => $index + 1]);
+            }
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Final Exam questions order updated successfully.'
+        ]);
+    }
+
+    // ==========================================
+    // LEGACY FULL-PAGE ENDPOINTS
+    // ==========================================
+
     public function store(Request $request, FinalExam $finalExam)
     {
         $validated = $this->validateQuestion($request);
@@ -61,11 +275,6 @@ class FinalExamQuestionController extends Controller
         $activateWhenReady = $request->boolean('activate_when_ready');
         $sectionActivated = false;
 
-        // Auto-activate Final Exam section only if ALL conditions are met:
-        // 1. request brings activate_when_ready=1
-        // 2. question being created has is_active = true
-        // 3. Final Exam section is currently is_active = false
-        // 4. this is the first active question for that section
         if ($activateWhenReady && $questionIsActive && ! $finalExam->is_active) {
             $activeQuestionsCount = $finalExam->questions()->where('is_active', true)->count();
             if ($activeQuestionsCount === 1) {

@@ -93,6 +93,22 @@
                     </div>
 
                     <div class="flex items-center gap-3">
+                        @php
+                            $allMatsList = isset($allMaterials) && $allMaterials->count() > 0 ? $allMaterials : collect($materialsList ?? []);
+                        @endphp
+                        @if ($allMatsList->count() > 1)
+                            <button
+                                type="button"
+                                x-show="!reorderMode"
+                                @click="startReorder('materials', 'Reorder Materials', '{{ route('admin.course-management.programs.builder.materials.reorder', ['courseProgram' => $courseProgram->id, 'module' => $module->id]) }}', {{ json_encode($allMatsList->map(fn($m) => ['id' => $m->id, 'title' => $m->title, 'sort_order' => $m->sort_order])->values()) }})"
+                                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                </svg>
+                                <span>Reorder Materials</span>
+                            </button>
+                        @endif
+
                         <a
                             href="{{ route('admin.course-management.modules.materials.index', $module->id) }}"
                             class="text-xs font-medium text-slate-400 hover:text-slate-600 hover:underline">
@@ -101,6 +117,7 @@
 
                         <button
                             type="button"
+                            x-show="!reorderMode"
                             @click="openCreateMaterialDrawer('{{ $module->id }}', '{{ route('admin.course-management.programs.builder.materials.store', ['courseProgram' => $courseProgram->id, 'module' => $module->id]) }}')"
                             class="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-brand-blue)] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,6 +127,8 @@
                         </button>
                     </div>
                 </div>
+
+                @include('partials.admin.course-management.builder.workspace.reorder-bar')
 
                 @if (empty($materialsList) || count($materialsList) === 0)
                     <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">

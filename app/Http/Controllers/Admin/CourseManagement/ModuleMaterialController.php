@@ -374,4 +374,47 @@ class ModuleMaterialController extends Controller
 
         return $request->file('file_path')->store($folder, 'public');
     }
+
+    public function builderReorder(Request $request, CourseProgram $courseProgram, Module $module)
+    {
+        $module->load('courseLevel');
+
+        if ($module->courseLevel?->course_program_id !== $courseProgram->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized operation: module does not belong to this program.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'ordered_ids' => ['required', 'array'],
+            'ordered_ids.*' => ['required', 'integer'],
+        ]);
+
+        $orderedIds = array_map('intval', $validated['ordered_ids']);
+        $existingIds = $module->materials()->pluck('id')->toArray();
+
+        $existingIdsCopy = $existingIds;
+        $orderedIdsCopy = $orderedIds;
+        sort($existingIdsCopy);
+        sort($orderedIdsCopy);
+
+        if (count($orderedIds) !== count($existingIds) || $existingIdsCopy !== $orderedIdsCopy || count(array_unique($orderedIds)) !== count($orderedIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The item list has changed. Reload the latest order and try again.'
+            ], 422);
+        }
+
+        DB::transaction(function () use ($orderedIds) {
+            foreach ($orderedIds as $index => $id) {
+                ModuleMaterial::where('id', $id)->update(['sort_order' => $index + 1]);
+            }
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Materials order updated successfully.'
+        ]);
+    }
 }

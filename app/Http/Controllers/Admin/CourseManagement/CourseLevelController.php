@@ -365,4 +365,38 @@ class CourseLevelController extends Controller
 
         return $slug;
     }
+
+    public function builderReorder(Request $request, CourseProgram $courseProgram)
+    {
+        $validated = $request->validate([
+            'ordered_ids' => ['required', 'array'],
+            'ordered_ids.*' => ['required', 'integer'],
+        ]);
+
+        $orderedIds = array_map('intval', $validated['ordered_ids']);
+        $existingIds = $courseProgram->courseLevels()->pluck('id')->toArray();
+
+        $existingIdsCopy = $existingIds;
+        $orderedIdsCopy = $orderedIds;
+        sort($existingIdsCopy);
+        sort($orderedIdsCopy);
+
+        if (count($orderedIds) !== count($existingIds) || $existingIdsCopy !== $orderedIdsCopy || count(array_unique($orderedIds)) !== count($orderedIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The item list has changed. Reload the latest order and try again.'
+            ], 422);
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($orderedIds) {
+            foreach ($orderedIds as $index => $id) {
+                CourseLevel::where('id', $id)->update(['sort_order' => $index + 1]);
+            }
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Course levels order updated successfully.'
+        ]);
+    }
 }

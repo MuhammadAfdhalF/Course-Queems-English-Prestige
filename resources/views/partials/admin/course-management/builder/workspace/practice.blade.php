@@ -133,6 +133,22 @@
                 </div>
 
                 <div class="flex items-center gap-3">
+                    @php
+                        $allQList = isset($allPracticeQuestions) && $allPracticeQuestions->count() > 0 ? $allPracticeQuestions : collect($questionsList ?? []);
+                    @endphp
+                    @if ($allQList->count() > 1)
+                        <button
+                            type="button"
+                            x-show="!reorderMode"
+                            @click="startReorder('practice_questions', 'Reorder Practice Questions', '{{ route('admin.course-management.programs.builder.practice-questions.reorder', ['courseProgram' => $courseProgram->id, 'modulePractice' => $practice->id]) }}', {{ json_encode($allQList->map(fn($q) => ['id' => $q->id, 'question' => Str::limit(strip_tags($q->question), 60), 'sort_order' => $q->sort_order])->values()) }})"
+                            class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                            <span>Reorder Questions</span>
+                        </button>
+                    @endif
+
                     <a
                         href="{{ route('admin.course-management.practices.questions.index', $practice->id) }}"
                         class="text-xs font-medium text-slate-400 hover:text-slate-600 hover:underline">
@@ -141,6 +157,7 @@
 
                     <button
                         type="button"
+                        x-show="!reorderMode"
                         @click="openCreateQuestionDrawer('{{ route('admin.course-management.programs.builder.questions.store', ['courseProgram' => $courseProgram->id, 'modulePractice' => $practice->id]) }}')"
                         class="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-brand-blue)] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -150,6 +167,8 @@
                     </button>
                 </div>
             </div>
+
+            @include('partials.admin.course-management.builder.workspace.reorder-bar')
 
             @php
                 $questionsList = isset($questionsPaginator) ? $questionsPaginator->items() : $practice->questions;

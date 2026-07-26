@@ -58,6 +58,17 @@
             deleteModalError: null,
             deleteRedirectNode: null,
 
+            // Reorder Mode State (Phase F)
+            reorderMode: false,
+            reorderType: null,
+            reorderTitle: '',
+            reorderItems: [],
+            originalReorderItems: '',
+            reorderSaving: false,
+            reorderError: null,
+            reorderSaveUrl: '',
+            draggedItemIndex: null,
+
             init() {
                 this.loadExpandedState();
                 this.readQueryParams();
@@ -222,6 +233,115 @@
                     }
                 })
                 .catch(e => {});
+            },
+
+            // PHASE F: REORDER MANAGEMENT METHODS
+            startReorder(type, title, saveUrl, itemsList = []) {
+                this.reorderType = type;
+                this.reorderTitle = title;
+                this.reorderSaveUrl = saveUrl;
+                this.reorderItems = JSON.parse(JSON.stringify(itemsList));
+                this.originalReorderItems = JSON.stringify(itemsList);
+                this.reorderSaving = false;
+                this.reorderError = null;
+                this.reorderMode = true;
+            },
+
+            moveReorderItem(index, direction) {
+                const targetIndex = index + direction;
+                if (targetIndex < 0 || targetIndex >= this.reorderItems.length) return;
+                const temp = this.reorderItems[index];
+                this.reorderItems[index] = this.reorderItems[targetIndex];
+                this.reorderItems[targetIndex] = temp;
+            },
+
+            moveReorderItemToBoundary(index, position) {
+                if (position === 'top' && index > 0) {
+                    const item = this.reorderItems.splice(index, 1)[0];
+                    this.reorderItems.unshift(item);
+                } else if (position === 'bottom' && index < this.reorderItems.length - 1) {
+                    const item = this.reorderItems.splice(index, 1)[0];
+                    this.reorderItems.push(item);
+                }
+            },
+
+            handleDragStart(index, event) {
+                this.draggedItemIndex = index;
+                if (event.dataTransfer) {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', index);
+                }
+            },
+
+            handleDragOver(index, event) {
+                event.preventDefault();
+                if (event.dataTransfer) {
+                    event.dataTransfer.dropEffect = 'move';
+                }
+            },
+
+            handleDrop(index, event) {
+                event.preventDefault();
+                if (this.draggedItemIndex === null || this.draggedItemIndex === index) return;
+                const item = this.reorderItems.splice(this.draggedItemIndex, 1)[0];
+                this.reorderItems.splice(index, 0, item);
+                this.draggedItemIndex = null;
+            },
+
+            discardReorder(force = false) {
+                if (!force && JSON.stringify(this.reorderItems) !== this.originalReorderItems) {
+                    if (!confirm('Are you sure you want to discard unsaved order changes?')) return;
+                }
+                this.reorderItems = JSON.parse(this.originalReorderItems);
+                this.reorderMode = false;
+                this.reorderError = null;
+            },
+
+            saveReorder() {
+                if (this.reorderSaving) return;
+                this.reorderSaving = true;
+                this.reorderError = null;
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const orderedIds = this.reorderItems.map(item => item.id);
+
+                fetch(this.reorderSaveUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify({ ordered_ids: orderedIds }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken || ''
+                    }
+                })
+                .then(res => {
+                    if (res.status === 422) {
+                        return res.json().then(errData => {
+                            this.reorderError = errData.message || 'The item list has changed. Reload the latest order and try again.';
+                            throw new Error('Conflict/Validation Error');
+                        });
+                    }
+                    if (!res.ok) throw new Error(`Server returned status ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        this.reorderMode = false;
+                        this.refreshTree();
+                        this.fetchWorkspace();
+                    } else {
+                        this.reorderError = data.message || 'Failed to save new order.';
+                    }
+                })
+                .catch(err => {
+                    if (err.message !== 'Conflict/Validation Error') {
+                        this.reorderError = err.message || 'Error saving order.';
+                    }
+                })
+                .finally(() => {
+                    this.reorderSaving = false;
+                });
             },
 
             // DRAWER ACTIONS
@@ -583,6 +703,175 @@
                 });
             },
 
+            // PHASE E: FINAL EXAM DRAWER ACTIONS
+            openCreateFinalExamSectionDrawer(storeUrl) {
+                this.drawerType = 'create_final_exam_section';
+                this.drawerTitle = 'Add Final Exam Section';
+                this.drawerParentContext = 'Course Level Final Exam';
+                this.drawerActionUrl = storeUrl;
+                this.drawerMethod = 'POST';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = false;
+                this.drawerSaving = false;
+
+                this.drawerData = {
+                    title: '',
+                    description: '',
+                    passing_grade: 75,
+                    grading_method: 'auto',
+                    max_attempts: '',
+                    is_active: true
+                };
+
+                this.drawerOpen = true;
+            },
+
+            openEditFinalExamSectionDrawer(editUrl) {
+                this.drawerType = 'edit_final_exam_section';
+                this.drawerTitle = 'Edit Final Exam Section';
+                this.drawerParentContext = 'Course Level Final Exam';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = true;
+                this.drawerSaving = false;
+                this.drawerOpen = true;
+
+                fetch(editUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        const d = res.data;
+                        this.drawerActionUrl = d.update_url;
+                        this.drawerMethod = 'PUT';
+                        this.drawerData = {
+                            id: d.id,
+                            course_level_id: d.course_level_id,
+                            title: d.title || '',
+                            description: d.description || '',
+                            passing_grade: d.passing_grade || 75,
+                            grading_method: d.grading_method || 'auto',
+                            max_attempts: d.max_attempts || '',
+                            sort_order: d.sort_order,
+                            is_active: !!d.is_active
+                        };
+                    } else {
+                        this.drawerGeneralError = res.message || 'Failed to fetch section details.';
+                    }
+                })
+                .catch(err => {
+                    this.drawerGeneralError = err.message || 'Server error loading section.';
+                })
+                .finally(() => {
+                    this.drawerLoading = false;
+                });
+            },
+
+            openCreateFinalExamQuestionDrawer(storeUrl) {
+                this.drawerType = 'create_final_exam_question';
+                this.drawerTitle = 'Add Final Exam Question';
+                this.drawerParentContext = 'Final Exam Section Question';
+                this.drawerActionUrl = storeUrl;
+                this.drawerMethod = 'POST';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = false;
+                this.drawerSaving = false;
+
+                this.drawerData = {
+                    question_type: 'multiple_choice',
+                    question: '',
+                    explanation: '',
+                    score: 10,
+                    options: { A: '', B: '', C: '', D: '' },
+                    correct_option: 'A',
+                    is_active: true
+                };
+
+                this.drawerOpen = true;
+            },
+
+            openEditFinalExamQuestionDrawer(editUrl) {
+                this.drawerType = 'edit_final_exam_question';
+                this.drawerTitle = 'Edit Final Exam Question';
+                this.drawerParentContext = 'Final Exam Section Question';
+                this.drawerErrors = {};
+                this.drawerGeneralError = null;
+                this.drawerLoading = true;
+                this.drawerSaving = false;
+                this.drawerOpen = true;
+
+                fetch(editUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        const d = res.data;
+                        this.drawerActionUrl = d.update_url;
+                        this.drawerMethod = 'PUT';
+                        this.drawerData = {
+                            id: d.id,
+                            final_exam_id: d.final_exam_id,
+                            question_type: d.question_type || 'multiple_choice',
+                            question: d.question || '',
+                            explanation: d.explanation || '',
+                            score: d.score || 10,
+                            sort_order: d.sort_order,
+                            options: d.options || { A: '', B: '', C: '', D: '' },
+                            correct_option: d.correct_option || 'A',
+                            is_active: !!d.is_active
+                        };
+                    } else {
+                        this.drawerGeneralError = res.message || 'Failed to fetch question details.';
+                    }
+                })
+                .catch(err => {
+                    this.drawerGeneralError = err.message || 'Server error loading question.';
+                })
+                .finally(() => {
+                    this.drawerLoading = false;
+                });
+            },
+
+            toggleFinalExamSectionActive(toggleUrl) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                fetch(toggleUrl, {
+                    method: 'PATCH',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken || ''
+                    }
+                })
+                .then(res => {
+                    if (res.status === 422) {
+                        return res.json().then(data => {
+                            alert(data.message || 'Cannot activate section.');
+                        });
+                    }
+                    if (!res.ok) throw new Error(`Status ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    if (data && data.status === 'success') {
+                        this.refreshTree();
+                        this.fetchWorkspace();
+                    }
+                })
+                .catch(err => {
+                    alert(err.message || 'Error toggling section status.');
+                });
+            },
+
             isDrawerDirty() {
                 if (!this.drawerOpen || this.drawerSaving || this.drawerLoading) return false;
                 if (this.drawerType === 'create_level' && (this.drawerData.name || this.drawerData.short_description)) return true;
@@ -590,6 +879,8 @@
                 if (this.drawerType === 'create_material' && (this.drawerData.title || this.drawerData.content)) return true;
                 if (this.drawerType === 'create_practice' && (this.drawerData.title || this.drawerData.description)) return true;
                 if (this.drawerType === 'create_question' && (this.drawerData.question)) return true;
+                if (this.drawerType === 'create_final_exam_section' && (this.drawerData.title || this.drawerData.description)) return true;
+                if (this.drawerType === 'create_final_exam_question' && (this.drawerData.question)) return true;
                 return false;
             },
 
@@ -665,9 +956,34 @@
                     if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
                     if (this.drawerData.is_required) formData.set('is_required', '1'); else formData.delete('is_required');
                     if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
-                } else if (this.drawerType.includes('question')) {
+                } else if (this.drawerType.includes('question') && !this.drawerType.includes('final_exam')) {
                     formData.set('question_type', this.drawerData.question_type || 'multiple_choice');
                     formData.set('question', this.drawerData.question || (document.getElementById('drawer_question_text')?.value || ''));
+                    formData.set('explanation', this.drawerData.explanation || '');
+                    formData.set('score', this.drawerData.score || 10);
+                    if (this.drawerData.question_type === 'multiple_choice') {
+                        if (this.drawerData.options) {
+                            formData.set('options[A]', this.drawerData.options.A || '');
+                            formData.set('options[B]', this.drawerData.options.B || '');
+                            formData.set('options[C]', this.drawerData.options.C || '');
+                            formData.set('options[D]', this.drawerData.options.D || '');
+                        }
+                        if (this.drawerData.correct_option) {
+                            formData.set('correct_option', this.drawerData.correct_option);
+                        }
+                    }
+                    if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
+                } else if (this.drawerType.includes('final_exam_section')) {
+                    formData.set('title', this.drawerData.title || '');
+                    formData.set('description', this.drawerData.description || '');
+                    formData.set('passing_grade', this.drawerData.passing_grade || 75);
+                    formData.set('grading_method', this.drawerData.grading_method || 'auto');
+                    if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
+                    if (this.drawerData.sort_order !== undefined) formData.set('sort_order', this.drawerData.sort_order);
+                    if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
+                } else if (this.drawerType.includes('final_exam_question')) {
+                    formData.set('question_type', this.drawerData.question_type || 'multiple_choice');
+                    formData.set('question', this.drawerData.question || (document.getElementById('drawer_exam_question_text')?.value || ''));
                     formData.set('explanation', this.drawerData.explanation || '');
                     formData.set('score', this.drawerData.score || 10);
                     if (this.drawerData.question_type === 'multiple_choice') {
@@ -731,7 +1047,7 @@
 
             // DELETE MODAL ACTIONS
             confirmDelete(type, id, title, deleteUrl, redirectNode = null) {
-                this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : (type === 'module' ? 'Delete Module' : (type === 'material' ? 'Delete Material' : (type === 'practice' ? 'Delete Practice' : 'Delete Question')));
+                this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : (type === 'module' ? 'Delete Module' : (type === 'material' ? 'Delete Material' : (type === 'practice' ? 'Delete Practice' : (type === 'final_exam_section' ? 'Delete Exam Section' : 'Delete Question'))));
                 this.deleteModalItemTitle = title;
                 this.deleteModalUrl = deleteUrl;
                 this.deleteRedirectNode = redirectNode || { level: null, module: null, exam: null, tab: 'overview' };

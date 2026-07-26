@@ -178,21 +178,26 @@ class CourseBuilderController extends Controller
                     ->paginate(15, ['*'], 'page', $page);
             }
 
+            $allPracticeQuestions = $practice ? $practice->questions()->orderBy('sort_order')->orderBy('id')->get(['id', 'question', 'question_type', 'score', 'sort_order']) : collect();
+
             $html = view('partials.admin.course-management.builder.workspace.practice', [
                 'courseProgram' => $courseProgram,
                 'level' => $selectedLevel,
                 'module' => $selectedModule,
                 'practice' => $practice,
                 'questionsPaginator' => $questionsPaginator,
+                'allPracticeQuestions' => $allPracticeQuestions,
             ])->render();
         } elseif ($selectedModule) {
             $materialsPaginator = null;
+            $allMaterials = collect();
             if ($tab === 'materials') {
                 $page = max(1, (int)$request->query('page', 1));
                 $materialsPaginator = $selectedModule->materials()
                     ->orderBy('sort_order')
                     ->orderBy('id')
                     ->paginate(15, ['*'], 'page', $page);
+                $allMaterials = $selectedModule->materials()->orderBy('sort_order')->orderBy('id')->get(['id', 'title', 'material_type', 'sort_order']);
             }
 
             $html = view('partials.admin.course-management.builder.workspace.module', [
@@ -202,13 +207,25 @@ class CourseBuilderController extends Controller
                 'selectedModule' => $selectedModule,
                 'tab' => $tab ?: 'overview',
                 'materialsPaginator' => $materialsPaginator,
+                'allMaterials' => $allMaterials,
             ])->render();
         } elseif ($selectedExam) {
+            $page = max(1, (int)$request->query('page', 1));
+            $questionsPaginator = $selectedExam->questions()
+                ->with('options')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->paginate(15, ['*'], 'page', $page);
+
+            $allExamQuestions = $selectedExam->questions()->orderBy('sort_order')->orderBy('id')->get(['id', 'question', 'question_type', 'score', 'sort_order']);
+
             $html = view('partials.admin.course-management.builder.workspace.final-exam-section', [
                 'courseProgram' => $courseProgram,
                 'level' => $selectedLevel,
                 'exam' => $selectedExam,
                 'tab' => $tab ?: 'overview',
+                'questionsPaginator' => $questionsPaginator,
+                'allExamQuestions' => $allExamQuestions,
             ])->render();
         } elseif ($selectedLevel && $tab === 'final-exam') {
             $selectedLevel->load(['finalExams' => fn($q) => $q->orderBy('sort_order')->orderBy('id')->withCount('questions')]);
