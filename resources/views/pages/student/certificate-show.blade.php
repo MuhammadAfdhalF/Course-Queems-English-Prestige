@@ -35,7 +35,8 @@ $birthDateSuffix = $birthDateRaw ? $birthDateRaw->format('S') : '';
 $birthDateYear = $birthDateRaw ? $birthDateRaw->format('Y') : '';
 $hasBirthInfo = !empty($birthPlace) && !empty($birthDateRaw);
 
-$courseName = $courseLevel?->name ?? 'English Language Program';
+$courseName = \App\Services\CertificatePresentationService::courseDisplayName($courseProgram ?? $courseLevel?->courseProgram, $courseLevel);
+$certificateScoreLabel = \App\Services\CertificatePresentationService::scoreLabel($courseLevel);
 $issuedDateRaw = $certificate->issued_at ?? $certificate->created_at;
 
 $completionDateDayOfWeekMonthDay = $issuedDateRaw ? $issuedDateRaw->format('l, F j') : date('l, F j');
@@ -192,7 +193,7 @@ $sectionCount = count($sectionScores);
                         @if ($hasSectionScores && $sectionCount <= 5)
                         <div class="mt-2 text-center">
                             <p class="mb-1 text-[0.6rem] font-bold text-[#0f172a] sm:text-xs">
-                                TOEFL Prediction Score:
+                                {{ $certificateScoreLabel }}:
                             </p>
                             <table class="mx-auto w-[54%] border-collapse border-[1.5px] border-black bg-white text-[0.6rem] sm:text-xs">
                                 <tbody>

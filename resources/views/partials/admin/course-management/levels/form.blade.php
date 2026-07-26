@@ -197,14 +197,14 @@ $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? '
 
         <div class="grid gap-6 md:grid-cols-2">
             <x-admin.form.input
-                label="Price"
+                label="Price (Rp)"
                 name="price"
                 id="price"
-                type="number"
-                min="0"
-                step="1000"
-                :value="old('price', $courseLevel?->price ?? 0)"
-                placeholder="Example: 500000"
+                type="text"
+                inputmode="numeric"
+                :value="old('price') ? old('price') : number_format((float) ($courseLevel?->price ?? 0), 0, ',', '.')"
+                placeholder="Example: 500.000"
+                @input="$el.value = window.formatRupiah($el.value)"
                 :required="true" />
 
             <x-admin.form.select
@@ -241,6 +241,25 @@ $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? '
                 :value="old('access_duration_days', $courseLevel?->access_duration_days)"
                 placeholder="Example: 90" />
         </div>
+
+        <div class="border-t border-slate-200 pt-8">
+            <h2 class="text-xl font-bold text-slate-900">
+                Certificate Configuration
+            </h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Configure how scores and title labels appear on student completion certificates.
+            </p>
+        </div>
+
+        <x-admin.form.input
+            label="Certificate Score Label"
+            name="certificate_score_label"
+            id="certificate_score_label"
+            type="text"
+            maxlength="100"
+            :value="old('certificate_score_label', $courseLevel?->certificate_score_label)"
+            placeholder="Final Score"
+            hint="Optional. Used as the score heading on certificates. Leave empty to use “Final Score”." />
 
         <div class="border-t border-slate-200 pt-8">
             <h2 class="text-xl font-bold text-slate-900">

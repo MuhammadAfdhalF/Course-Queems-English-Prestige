@@ -131,6 +131,9 @@ class FinalExamQuestionController extends Controller
             }
         }
 
+        $finalExam = $finalExamQuestion->finalExam;
+        $readiness = $this->configService->getReadinessStatus($finalExam);
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -139,12 +142,17 @@ class FinalExamQuestionController extends Controller
                 'question_type' => $finalExamQuestion->question_type,
                 'question' => $finalExamQuestion->question,
                 'explanation' => $finalExamQuestion->explanation,
-                'score' => $finalExamQuestion->score,
+                'score' => (float) $finalExamQuestion->score,
                 'sort_order' => $finalExamQuestion->sort_order,
                 'is_active' => (bool) $finalExamQuestion->is_active,
-                'is_locked' => $this->configService->hasHistory($finalExamQuestion->finalExam),
+                'is_locked' => $this->configService->hasHistory($finalExam),
                 'options' => $optionsDict,
                 'correct_option' => $correctOption,
+                'allocation' => [
+                    'total_score' => (float) $readiness['total_score'],
+                    'allocated_score' => (float) $readiness['allocated_score'],
+                    'remaining_score' => (float) $readiness['remaining_score'],
+                ],
                 'update_url' => route('admin.course-management.programs.builder.final-exam-questions.update', ['courseProgram' => $courseProgram->id, 'finalExamQuestion' => $finalExamQuestion->id]),
             ]
         ]);

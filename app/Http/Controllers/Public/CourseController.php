@@ -9,6 +9,8 @@ use App\Models\Order;
 use App\Models\StudentCourseEnrollment;
 use Illuminate\Http\Request;
 
+use App\Models\Module;
+
 class CourseController extends Controller
 {
     public function index(Request $request)
@@ -95,6 +97,7 @@ class CourseController extends Controller
 
         $hasPendingOrder = false;
         $hasActiveEnrollment = false;
+        $activeEnrollment = null;
 
         if (auth()->check() && auth()->user()->isStudent()) {
             $studentId = auth()->id();
@@ -105,17 +108,77 @@ class CourseController extends Controller
                 ->where('status', 'pending')
                 ->exists();
 
-            $hasActiveEnrollment = StudentCourseEnrollment::query()
+            $activeEnrollment = StudentCourseEnrollment::query()
                 ->where('student_id', $studentId)
                 ->where('course_level_id', $courseLevel->id)
                 ->where('status', 'active')
-                ->exists();
+                ->first();
+
+            $hasActiveEnrollment = $activeEnrollment !== null;
         }
 
         return view('pages.public.course-detail', compact(
             'courseLevel',
             'hasPendingOrder',
-            'hasActiveEnrollment'
+            'hasActiveEnrollment',
+            'activeEnrollment'
+        ));
+    }
+
+    public function previewModule(CourseLevel $courseLevel, Module $module)
+    {
+        abort_unless($courseLevel->is_active, 404);
+
+        abort_if(
+            ! $courseLevel->courseProgram || ! $courseLevel->courseProgram->is_active,
+            404
+        );
+
+        abort_unless($module->course_level_id === $courseLevel->id, 404);
+        abort_unless($module->is_active, 404);
+        abort_unless($module->is_preview, 404);
+
+        $module->load([
+            'materials' => function ($query) {
+                $query
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->orderBy('title');
+            },
+        ]);
+
+        $readableMaterials = $module->materials->filter(function ($material) {
+            $type = strtolower($material->material_type ?? 'text');
+            return in_array($type, ['text', 'rich_text', 'content', 'image', 'thumbnail', 'photo', 'picture'], true);
+        });
+
+        $hasExcludedMedia = $module->materials->contains(function ($material) {
+            $type = strtolower($material->material_type ?? 'text');
+            return in_array($type, ['video', 'audio', 'pdf', 'file', 'document', 'sound'], true);
+        });
+
+        $hasActiveEnrollment = false;
+        $activeEnrollment = null;
+
+        if (auth()->check() && auth()->user()->isStudent()) {
+            $studentId = auth()->id();
+
+            $activeEnrollment = StudentCourseEnrollment::query()
+                ->where('student_id', $studentId)
+                ->where('course_level_id', $courseLevel->id)
+                ->where('status', 'active')
+                ->first();
+
+            $hasActiveEnrollment = $activeEnrollment !== null;
+        }
+
+        return view('pages.public.course-module-preview', compact(
+            'courseLevel',
+            'module',
+            'readableMaterials',
+            'hasExcludedMedia',
+            'hasActiveEnrollment',
+            'activeEnrollment'
         ));
     }
 

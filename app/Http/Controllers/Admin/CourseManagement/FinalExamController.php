@@ -179,6 +179,7 @@ class FinalExamController extends Controller
         }
 
         $finalExam->update($data);
+        $this->configService->syncAssessmentReadinessState($finalExam);
 
         $msg = $deactivatedByConfig
             ? 'Final Exam section updated, but was deactivated because its scoring configuration changed.'

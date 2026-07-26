@@ -1,83 +1,65 @@
-<x-admin.table-card class="overflow-hidden">
-    <div class="border-b border-slate-200 bg-slate-50/70 px-6 py-5">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-                    Priority
-                </p>
-
-                <h3 class="mt-1 text-2xl font-black text-slate-900">
-                    Action Center
-                </h3>
-
-                <p class="mt-1 text-sm font-semibold text-slate-500">
-                    Items that may need admin attention.
-                </p>
-            </div>
-
-            @php
-            $totalActionCount = collect($actionItems)->sum('count');
-            @endphp
-
-            <span class="inline-flex rounded-full {{ $totalActionCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700' }} px-4 py-2 text-xs font-black">
-                {{ $totalActionCount > 0 ? $totalActionCount . ' Need Action' : 'All Clear' }}
-            </span>
+<div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs">
+    <div class="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4 sm:px-6">
+        <div>
+            <h3 class="text-base font-bold text-slate-900">
+                Action Center
+            </h3>
+            <p class="text-xs font-medium text-slate-500">
+                Items requiring admin attention.
+            </p>
         </div>
+
+        @php
+        $totalActionCount = collect($actionItems)->sum('count');
+        @endphp
+
+        <span class="inline-flex rounded-full {{ $totalActionCount > 0 ? 'bg-[#AD6B10]/10 text-[#AD6B10]' : 'bg-emerald-50 text-emerald-700' }} px-3 py-1 text-xs font-extrabold">
+            {{ $totalActionCount > 0 ? $totalActionCount . ' Pending' : 'All Clear' }}
+        </span>
     </div>
 
-    <div class="space-y-4 p-5">
+    <div class="divide-y divide-slate-100">
         @foreach ($actionItems as $item)
         @php
         $hasAction = (int) $item['count'] > 0;
-
-        $toneClasses = match ($item['tone']) {
-        'amber' => $hasAction
-        ? 'bg-amber-50 text-amber-700 border-amber-100'
-        : 'bg-slate-50 text-slate-500 border-slate-200',
-        'emerald' => $hasAction
-        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-        : 'bg-slate-50 text-slate-500 border-slate-200',
-        default => $hasAction
-        ? 'bg-blue-50 text-blue-700 border-blue-100'
-        : 'bg-slate-50 text-slate-500 border-slate-200',
-        };
-
-        $buttonClasses = $hasAction
-        ? 'bg-[var(--color-brand-blue)] text-white hover:opacity-90'
-        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50';
         @endphp
 
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-            <div class="flex items-start justify-between gap-4">
+        <a
+            href="{{ $item['href'] }}"
+            class="group flex items-center justify-between gap-4 p-4 transition-colors hover:bg-slate-50/80">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $hasAction ? 'bg-[#AD6B10]/10 text-[#AD6B10]' : 'bg-slate-100 text-slate-400' }}">
+                    @if($hasAction)
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    @else
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    @endif
+                </div>
+
                 <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <p class="text-base font-black text-slate-900">
-                            {{ $item['title'] }}
-                        </p>
-
-                        @if (! $hasAction)
-                        <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-emerald-700">
-                            Clear
-                        </span>
-                        @endif
-                    </div>
-
-                    <p class="mt-2 text-sm font-semibold leading-6 text-slate-500">
+                    <p class="text-xs font-bold text-slate-900 group-hover:text-[#080D4D] truncate">
+                        {{ $item['title'] }}
+                    </p>
+                    <p class="text-[11px] font-medium text-slate-500 truncate">
                         {{ $item['description'] }}
                     </p>
                 </div>
-
-                <span class="inline-flex min-w-[46px] justify-center rounded-2xl border px-3 py-2 text-sm font-black {{ $toneClasses }}">
-                    {{ $item['count'] }}
-                </span>
             </div>
 
-            <a
-                href="{{ $item['href'] }}"
-                class="mt-5 inline-flex h-10 items-center justify-center rounded-xl px-4 text-xs font-black transition {{ $buttonClasses }}">
-                {{ $item['buttonLabel'] }}
-            </a>
-        </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="inline-flex min-w-[28px] justify-center rounded-md border px-2 py-0.5 text-xs font-bold {{ $hasAction ? 'border-amber-200 bg-[#AD6B10]/10 text-[#AD6B10]' : 'border-slate-200/80 bg-slate-50 text-slate-400' }}">
+                    {{ $item['count'] }}
+                </span>
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 group-hover:text-[#080D4D] transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        </a>
         @endforeach
     </div>
-</x-admin.table-card>
+</div>

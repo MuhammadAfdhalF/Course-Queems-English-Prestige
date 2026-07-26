@@ -41,7 +41,7 @@
 
                 @if ($module->short_description)
                 <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-                    {{ $module->short_description }}
+                    {{ \App\Support\RichText::toPlainText($module->short_description) }}
                 </p>
                 @endif
             </div>

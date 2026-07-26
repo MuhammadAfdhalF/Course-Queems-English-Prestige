@@ -40,7 +40,10 @@
                         :title="$module->title"
                         :content="$module->short_description ?: 'Module description will be available soon.'"
                         :open="$loop->first"
-                        :is-preview="$module->is_preview" />
+                        :is-preview="$module->is_preview"
+                        :preview-href="route('courses.preview-module', [$courseLevel, $module])"
+                        :learning-href="$hasActiveEnrollment && isset($activeEnrollment) ? route('student.learning-path', $activeEnrollment) : null"
+                        :has-active-enrollment="$hasActiveEnrollment" />
                 </div>
                 @endforeach
             </div>

@@ -1,91 +1,83 @@
-<x-admin.table-card class="overflow-hidden">
-    <div class="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+<div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs">
+    <div class="flex flex-col gap-3 border-b border-slate-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-                Orders
-            </p>
-
-            <h3 class="mt-1 text-2xl font-black text-slate-900">
+            <h3 class="text-base font-bold text-slate-900">
                 Recent Transactions
             </h3>
-
-            <p class="mt-1 text-sm font-semibold text-slate-500">
+            <p class="text-xs font-medium text-slate-500">
                 Latest course orders and approval status.
             </p>
         </div>
 
-        <a href="{{ route('admin.orders.index') }}">
-            <x-ui.button variant="outline">
-                View All Orders
-            </x-ui.button>
+        <a href="{{ route('admin.orders.index') }}" class="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white px-3 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:text-[#080D4D]">
+            View All Orders
         </a>
     </div>
 
     <div class="overflow-x-auto">
         <table class="min-w-full text-left">
-            <thead class="border-b border-slate-200 bg-white">
-                <tr class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-                    <th class="px-6 py-4">Order ID</th>
-                    <th class="px-6 py-4">Student</th>
-                    <th class="px-6 py-4">Course</th>
-                    <th class="px-6 py-4">Price</th>
-                    <th class="px-6 py-4">Status</th>
-                    <th class="px-6 py-4">Date</th>
-                    <th class="px-6 py-4">Action</th>
+            <thead class="border-b border-slate-100 bg-slate-50/60">
+                <tr class="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th class="px-5 py-3 sm:px-6">Order ID</th>
+                    <th class="px-5 py-3 sm:px-6">Student</th>
+                    <th class="px-5 py-3 sm:px-6">Course</th>
+                    <th class="px-5 py-3 sm:px-6">Price</th>
+                    <th class="px-5 py-3 sm:px-6">Status</th>
+                    <th class="px-5 py-3 sm:px-6">Date</th>
+                    <th class="px-5 py-3 sm:px-6 text-right">Action</th>
                 </tr>
             </thead>
 
             <tbody class="divide-y divide-slate-100 bg-white">
                 @forelse ($transactions as $transaction)
-                <tr class="transition hover:bg-slate-50/80">
-                    <td class="whitespace-nowrap px-6 py-5">
-                        <p class="font-black text-slate-900">
+                <tr class="transition-colors hover:bg-indigo-50/20">
+                    <td class="whitespace-nowrap px-5 py-3.5 sm:px-6">
+                        <p class="text-xs font-bold text-slate-900">
                             {{ $transaction['orderId'] }}
                         </p>
                     </td>
 
-                    <td class="whitespace-nowrap px-6 py-5">
-                        <p class="font-bold text-slate-900">
+                    <td class="whitespace-nowrap px-5 py-3.5 sm:px-6">
+                        <p class="text-xs font-bold text-slate-900">
                             {{ $transaction['student'] }}
                         </p>
                     </td>
 
-                    <td class="min-w-[220px] px-6 py-5">
-                        <p class="line-clamp-1 font-semibold text-slate-700">
+                    <td class="min-w-[180px] px-5 py-3.5 sm:px-6">
+                        <p class="line-clamp-1 text-xs font-medium text-slate-700">
                             {{ $transaction['course'] }}
                         </p>
                     </td>
 
-                    <td class="whitespace-nowrap px-6 py-5 font-black text-slate-900">
+                    <td class="whitespace-nowrap px-5 py-3.5 sm:px-6 text-xs font-bold tabular-nums text-slate-900">
                         {{ $transaction['price'] }}
                     </td>
 
-                    <td class="whitespace-nowrap px-6 py-5">
+                    <td class="whitespace-nowrap px-5 py-3.5 sm:px-6">
                         <x-admin.status-badge :variant="$transaction['statusVariant']">
                             {{ $transaction['status'] }}
                         </x-admin.status-badge>
                     </td>
 
-                    <td class="whitespace-nowrap px-6 py-5 text-sm font-semibold text-slate-500">
+                    <td class="whitespace-nowrap px-5 py-3.5 sm:px-6 text-xs font-medium text-slate-500">
                         {{ $transaction['date'] }}
                     </td>
 
-                    <td class="whitespace-nowrap px-6 py-5">
+                    <td class="whitespace-nowrap px-5 py-3.5 sm:px-6 text-right">
                         <a
                             href="{{ $transaction['href'] }}"
-                            class="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-black text-slate-700 transition hover:bg-slate-50">
+                            class="inline-flex h-7 items-center justify-center rounded-lg border border-slate-200/80 bg-white px-2.5 text-[11px] font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:text-[#080D4D]">
                             Detail
                         </a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center">
-                        <h4 class="text-base font-black text-slate-900">
+                    <td colspan="7" class="px-6 py-8 text-center">
+                        <h4 class="text-xs font-bold text-slate-900">
                             No transactions yet
                         </h4>
-
-                        <p class="mt-2 text-sm font-semibold leading-6 text-slate-500">
+                        <p class="mt-0.5 text-[11px] font-medium text-slate-500">
                             Student course orders will appear here.
                         </p>
                     </td>
@@ -95,15 +87,15 @@
         </table>
     </div>
 
-    <div class="flex flex-col gap-4 border-t border-slate-200 bg-slate-50/60 px-6 py-5 text-sm font-semibold text-slate-500 lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/40 px-5 py-3.5 text-xs font-medium text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p>
             Showing {{ count($transactions) }} of {{ $totalTransactions }} transactions
         </p>
 
         <a
             href="{{ route('admin.orders.index') }}"
-            class="inline-flex items-center justify-center rounded-xl bg-[var(--color-brand-blue)] px-5 py-2.5 text-sm font-black text-white transition hover:opacity-90">
+            class="inline-flex h-8 items-center justify-center rounded-lg bg-[#080D4D] px-3.5 text-xs font-bold text-white shadow-2xs transition hover:bg-[#060A3B]">
             Manage Orders
         </a>
     </div>
-</x-admin.table-card>
+</div>

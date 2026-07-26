@@ -76,6 +76,7 @@ Route::get('/about-us', [PublicAboutController::class, 'index'])->name('about');
 
 Route::get('/courses', [PublicCourseController::class, 'index'])->name('courses');
 Route::get('/courses/{courseLevel:slug}', [PublicCourseController::class, 'show'])->name('courses.show');
+Route::get('/courses/{courseLevel:slug}/preview/{module:slug}', [PublicCourseController::class, 'previewModule'])->name('courses.preview-module');
 
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/courses/{courseLevel:slug}/order', [PublicCourseOrderController::class, 'create'])
