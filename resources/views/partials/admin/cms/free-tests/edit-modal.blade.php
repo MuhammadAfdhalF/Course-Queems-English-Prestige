@@ -36,7 +36,13 @@
                 x-model="selectedFreeTest.description"
                 rows="4" />
 
-            <div class="grid gap-6 md:grid-cols-2">
+            <template x-if="selectedFreeTest.is_locked">
+                <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">
+                    Scoring configuration cannot be changed because this free test already has student results.
+                </div>
+            </template>
+
+            <div class="grid gap-6 md:grid-cols-3">
                 <x-admin.form.input
                     label="Duration Minutes"
                     name="duration_minutes"
@@ -45,14 +51,50 @@
                     min="1"
                     x-model="selectedFreeTest.duration_minutes" />
 
-                <x-admin.form.input
-                    label="Passing Grade (%)"
-                    name="passing_grade"
-                    id="edit_passing_grade"
-                    type="number"
-                    min="0"
-                    max="100"
-                    x-model="selectedFreeTest.passing_grade" />
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Result Type <span class="text-rose-500">*</span></label>
+                    <select
+                        name="result_mode"
+                        id="edit_result_mode"
+                        x-model="selectedFreeTest.result_mode"
+                        :disabled="selectedFreeTest.is_locked"
+                        required
+                        class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500">
+                        <option value="score_only">Score Only</option>
+                        <option value="pass_fail">Pass / Fail</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Total Score <span class="text-rose-500">*</span></label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        name="total_score"
+                        id="edit_total_score"
+                        x-model="selectedFreeTest.total_score"
+                        :disabled="selectedFreeTest.is_locked"
+                        required
+                        class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500" />
+                </div>
+            </div>
+
+            <div x-show="selectedFreeTest.result_mode === 'pass_fail'" class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Minimum Passing Score <span class="text-rose-500">*</span></label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        :max="selectedFreeTest.total_score"
+                        name="passing_score"
+                        id="edit_passing_score"
+                        x-model="selectedFreeTest.passing_score"
+                        :disabled="selectedFreeTest.is_locked"
+                        :required="selectedFreeTest.result_mode === 'pass_fail'"
+                        class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500" />
+                </div>
             </div>
 
             <x-admin.form.checkbox

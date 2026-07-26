@@ -6,10 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\CourseLevel;
 use App\Models\CourseProgram;
 use App\Models\FinalExam;
+use App\Services\AssessmentConfigService;
 use Illuminate\Http\Request;
 
 class FinalExamController extends Controller
 {
+    public function __construct(
+        protected AssessmentConfigService $configService
+    ) {}
+
     public function index(CourseLevel $courseLevel)
     {
         $courseLevel->load('courseProgram');
@@ -23,7 +28,7 @@ class FinalExamController extends Controller
                 'attempts',
             ])
             ->orderBy('sort_order')
-            ->orderBy('id')
+            ->orderBy('title')
             ->get();
 
         return view('pages.admin.course-management.final-exams.index', compact(
@@ -35,7 +40,6 @@ class FinalExamController extends Controller
     public function create(CourseLevel $courseLevel)
     {
         $courseLevel->load('courseProgram');
-
         $nextSortOrder = ((int) $courseLevel->finalExams()->max('sort_order')) + 1;
 
         return view('pages.admin.course-management.final-exams.create', compact(
@@ -60,21 +64,21 @@ class FinalExamController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'passing_grade' => ['required', 'integer', 'min:0', 'max:100'],
             'grading_method' => ['required', 'in:auto,manual,mixed'],
-            'max_attempts' => ['nullable', 'integer', 'min:1'],
             'sort_order' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $validated['course_level_id'] = $courseLevel->id;
-        $validated['sort_order'] = $validated['sort_order'] ?? (((int) $courseLevel->finalExams()->max('sort_order')) + 1);
+        $config = $this->configService->validateAndNormalize($request, null, true);
+
+        $data = array_merge($validated, $config);
+        $data['course_level_id'] = $courseLevel->id;
+        $data['sort_order'] = $data['sort_order'] ?? (((int) $courseLevel->finalExams()->max('sort_order')) + 1);
+        $data['is_active'] = false; // Initial section has 0 active questions
+
+        $finalExam = FinalExam::create($data);
 
         $requestedActive = $request->boolean('is_active');
-        $validated['is_active'] = false; // Initial section has 0 active questions
-
-        $finalExam = FinalExam::create($validated);
-
         $msg = $requestedActive
             ? 'Final Exam section created as inactive (0 active questions). Add active questions, then activate it.'
             : 'Final Exam section created successfully.';
@@ -103,6 +107,11 @@ class FinalExamController extends Controller
             ], 403);
         }
 
+        $resultModeVal = $finalExam->result_mode?->value ?? (string) $finalExam->result_mode ?? 'pass_fail';
+        $maxAttempts = $finalExam->max_attempts;
+        $attemptMode = $maxAttempts === 1 ? 'one' : ($maxAttempts > 1 ? 'multiple' : 'unlimited');
+        $hasAttempts = $finalExam->attempts()->exists();
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -110,11 +119,16 @@ class FinalExamController extends Controller
                 'course_level_id' => $finalExam->course_level_id,
                 'title' => $finalExam->title,
                 'description' => $finalExam->description,
+                'total_score' => (float) $finalExam->total_score,
+                'result_mode' => $resultModeVal,
+                'passing_score' => $finalExam->passing_score !== null ? (float) $finalExam->passing_score : null,
                 'passing_grade' => $finalExam->passing_grade,
                 'grading_method' => $finalExam->grading_method,
-                'max_attempts' => $finalExam->max_attempts,
+                'attempt_mode' => $attemptMode,
+                'max_attempts' => $maxAttempts,
                 'sort_order' => $finalExam->sort_order,
                 'is_active' => (bool) $finalExam->is_active,
+                'is_locked' => $hasAttempts,
                 'update_url' => route('admin.course-management.programs.builder.final-exams.update', ['courseProgram' => $courseProgram->id, 'finalExam' => $finalExam->id]),
             ]
         ]);
@@ -134,17 +148,25 @@ class FinalExamController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'passing_grade' => ['required', 'integer', 'min:0', 'max:100'],
             'grading_method' => ['required', 'in:auto,manual,mixed'],
-            'max_attempts' => ['nullable', 'integer', 'min:1'],
             'sort_order' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $validated['sort_order'] = $validated['sort_order'] ?? $finalExam->sort_order;
-        $requestedActive = $request->boolean('is_active');
+        $config = $this->configService->validateAndNormalize($request, $finalExam, true);
 
-        if ($requestedActive) {
+        $data = array_merge($validated, $config);
+        $data['sort_order'] = $data['sort_order'] ?? $finalExam->sort_order;
+
+        $requestedActive = $request->boolean('is_active');
+        $deactivatedByConfig = false;
+
+        $data['is_active'] = $this->configService->resolveIsActiveStatus($request, $finalExam, $config);
+        if ($requestedActive && !$data['is_active']) {
+            $deactivatedByConfig = true;
+        }
+
+        if ($data['is_active']) {
             $activeQuestionsCount = $finalExam->questions()->where('is_active', true)->count();
             if ($activeQuestionsCount === 0) {
                 return response()->json([
@@ -157,12 +179,15 @@ class FinalExamController extends Controller
             }
         }
 
-        $validated['is_active'] = $requestedActive;
-        $finalExam->update($validated);
+        $finalExam->update($data);
+
+        $msg = $deactivatedByConfig
+            ? 'Final Exam section updated, but was deactivated because its scoring configuration changed.'
+            : 'Final Exam section updated successfully.';
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Final Exam section updated successfully.',
+            'message' => $msg,
             'section_id' => $finalExam->id,
             'redirect_node' => [
                 'level' => $finalExam->course_level_id,
@@ -337,18 +362,19 @@ class FinalExamController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'passing_grade' => ['required', 'integer', 'min:0', 'max:100'],
             'grading_method' => ['required', 'in:auto,manual,mixed'],
-            'max_attempts' => ['nullable', 'integer', 'min:1'],
             'sort_order' => ['required', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $validated['course_level_id'] = $courseLevel->id;
-        $requestedActive = $request->boolean('is_active');
+        $config = $this->configService->validateAndNormalize($request, null, true);
 
-        $validated['is_active'] = false;
-        $finalExam = FinalExam::create($validated);
+        $data = array_merge($validated, $config);
+        $data['course_level_id'] = $courseLevel->id;
+        $requestedActive = $request->boolean('is_active');
+        $data['is_active'] = false;
+
+        $finalExam = FinalExam::create($data);
 
         if ($requestedActive) {
             return redirect()
@@ -376,20 +402,22 @@ class FinalExamController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'passing_grade' => ['required', 'integer', 'min:0', 'max:100'],
             'grading_method' => ['required', 'in:auto,manual,mixed'],
-            'max_attempts' => ['nullable', 'integer', 'min:1'],
             'sort_order' => ['required', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $config = $this->configService->validateAndNormalize($request, $finalExam, true);
+
+        $data = array_merge($validated, $config);
         $requestedActive = $request->boolean('is_active');
+        $deactivatedByConfig = false;
 
         if ($requestedActive) {
             $activeQuestionsCount = $finalExam->questions()->where('is_active', true)->count();
             if ($activeQuestionsCount === 0) {
-                $validated['is_active'] = false;
-                $finalExam->update($validated);
+                $data['is_active'] = false;
+                $finalExam->update($data);
 
                 return redirect()
                     ->route('admin.course-management.levels.final-exam.index', $finalExam->courseLevel)
@@ -397,12 +425,20 @@ class FinalExamController extends Controller
             }
         }
 
-        $validated['is_active'] = $requestedActive;
-        $finalExam->update($validated);
+        $data['is_active'] = $this->configService->resolveIsActiveStatus($request, $finalExam, $config);
+        if ($requestedActive && !$data['is_active']) {
+            $deactivatedByConfig = true;
+        }
+
+        $finalExam->update($data);
+
+        $msg = $deactivatedByConfig
+            ? 'Final Exam section updated, but was deactivated because its scoring configuration changed.'
+            : 'Final Exam section has been updated successfully.';
 
         return redirect()
             ->route('admin.course-management.levels.final-exam.index', $finalExam->courseLevel)
-            ->with('success', 'Final Exam section has been updated successfully.');
+            ->with($deactivatedByConfig ? 'warning' : 'success', $msg);
     }
 
     public function toggleActive(FinalExam $finalExam)

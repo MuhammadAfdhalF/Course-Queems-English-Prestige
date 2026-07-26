@@ -319,9 +319,9 @@ Snapshot `section_scores` pada tabel `certificates` untuk sertifikat baru menyim
 
 - [x] **Phase A — Preparation, Reset, Schema & Backfill**: (IMPLEMENTED & TESTED 2026-07-26)
   Backup SQL dev (`queens_english_db_backup_2026_07_26_154452.sql`), catat record count, FK audit, reset 44 dummy transaction records, migrasi schema master (`total_score`, `result_mode`, `passing_score`) & attempt snapshot (`percentage_score`, `raw_score`, `max_score`, `result_mode`, `passing_score`, `is_passed`), backfill master data, set zero-question assessment `is_active = false`.
-- [ ] **Phase B — Admin Assessment Configuration**:
-  Form Admin (Result Type, Total Score, Passing Score, Attempt Limit) & validasi form.
-- **Phase C — Course Builder Allocation & Locking Guards**:
+- [x] **Phase B — Admin Assessment Configuration**: (IMPLEMENTED & TESTED 2026-07-26)
+  Form Admin (Result Type, Total Score, Passing Score, Attempt Limit) & validasi server-side (`AssessmentConfigService`), normalisasi `passing_score = NULL` untuk mode `score_only`, config mutability guard jika attempts exist, max attempts guard, deactivation guard pada perubahan config scoring.
+- [ ] **Phase C — Course Builder Allocation & Locking Guards**:
   Score allocation bar, over-allocation rejection (422), under-allocation auto-deactivation, manual activation guard, dan permanent config/question locking rule.
 - **Phase D — Student Attempt Snapshot & Submission Engine**:
   Snapshot saat attempt start (`raw_score = NULL`), percentage calculation, pass/fail evaluation, dan score_only flow.

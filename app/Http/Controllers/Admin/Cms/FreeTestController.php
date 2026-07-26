@@ -29,6 +29,10 @@ class FreeTestController extends Controller
         ));
     }
 
+    public function __construct(
+        protected \App\Services\AssessmentConfigService $configService
+    ) {}
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -36,15 +40,17 @@ class FreeTestController extends Controller
             'free_test_category_id' => ['nullable', 'exists:free_test_categories,id'],
             'description' => ['nullable', 'string'],
             'duration_minutes' => ['nullable', 'integer', 'min:1'],
-            'passing_grade' => ['nullable', 'integer', 'min:0', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $validated['total_questions'] = 0;
-        $validated['is_active'] = $request->boolean('is_active');
-        $validated['category'] = $this->resolveCategoryName($validated['free_test_category_id'] ?? null);
+        $config = $this->configService->validateAndNormalize($request, null, false);
 
-        FreeTest::create($validated);
+        $data = array_merge($validated, $config);
+        $data['total_questions'] = 0;
+        $data['is_active'] = $request->boolean('is_active');
+        $data['category'] = $this->resolveCategoryName($data['free_test_category_id'] ?? null);
+
+        FreeTest::create($data);
 
         return redirect()
             ->route('admin.cms.free-tests.index')
@@ -58,14 +64,16 @@ class FreeTestController extends Controller
             'free_test_category_id' => ['nullable', 'exists:free_test_categories,id'],
             'description' => ['nullable', 'string'],
             'duration_minutes' => ['nullable', 'integer', 'min:1'],
-            'passing_grade' => ['nullable', 'integer', 'min:0', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $config = $this->configService->validateAndNormalize($request, $freeTest, false);
 
-        $validated['is_active'] = $request->boolean('is_active');
-        $validated['category'] = $this->resolveCategoryName($validated['free_test_category_id'] ?? null);
-        $freeTest->update($validated);
+        $data = array_merge($validated, $config);
+        $data['is_active'] = $request->boolean('is_active');
+        $data['category'] = $this->resolveCategoryName($data['free_test_category_id'] ?? null);
+
+        $freeTest->update($data);
 
         return redirect()
             ->route('admin.cms.free-tests.index')
