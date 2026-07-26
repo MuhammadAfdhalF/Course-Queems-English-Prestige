@@ -52,11 +52,11 @@ Task ini bertujuan menyelesaikan 4 masalah usability dan form integrity pada Uni
 
 ## 3. Implementation Checklist
 
-- [ ] **Phase A — Price Formatting & Server Normalization**
-- [ ] **Phase B — Tree-Workspace Synchronization & Ancestor Expansion**
-- [ ] **Phase C — Practice & Final Exam Form Payload Hardening (Fix 422)**
-- [ ] **Phase D — Continuous Assessment Readiness Auto-Activation**
-- [ ] **Phase E — Isolated Testing & Parity Verification**
+- [x] **Phase A — Price Formatting & Server Normalization**: Strict `parseRupiahPrice()` parser implemented (rejects negative numbers, negative prefixes, decimals, and leading/trailing alpha strings).
+- [x] **Phase B — Tree-Workspace Synchronization & Ancestor Expansion**: Typed node keys (`level_{id}`, `module_{id}`, `level_{id}_exam`) used to prevent ID collision. Smooth `scrollIntoView()` implemented.
+- [x] **Phase C — Practice & Final Exam Form Payload Hardening (Fix 422)**: Fixed missing `result_mode`, `total_score`, `passing_score`, `attempt_mode`, `max_attempts` fields in JS `submitDrawerForm()` and added missing HTML `name` attributes.
+- [x] **Phase D — Continuous Assessment Readiness Auto-Activation**: `syncAssessmentReadinessState()` parity added across both Practice and Final Exam (auto-activates when question total score equals assessment total_score, auto-deactivates on mismatch).
+- [x] **Phase E — Isolated Testing & Parity Verification**: 65/65 tests passed on `queens_english_test`. Zero data corruption on `queens_english_db`.
 
 ---
 

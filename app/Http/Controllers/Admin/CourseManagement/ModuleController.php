@@ -44,7 +44,7 @@ class ModuleController extends Controller
         $validated['course_level_id'] = $courseLevel->id;
         $validated['slug'] = $this->generateUniqueSlug($validated['slug'] ?? $validated['title']);
         $validated['is_preview'] = $request->boolean('is_preview');
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
         $module = \Illuminate\Support\Facades\DB::transaction(function () use ($courseLevel, $validated) {
             $lockedLevel = CourseLevel::whereKey($courseLevel->id)->lockForUpdate()->firstOrFail();
             $validated['sort_order'] = $validated['sort_order'] ?? (((int) $lockedLevel->modules()->max('sort_order')) + 1);

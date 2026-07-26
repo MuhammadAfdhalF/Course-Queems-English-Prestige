@@ -181,4 +181,95 @@ class CourseBuilderFormHardeningTest extends TestCase
         $practice->refresh();
         $this->assertTrue((bool) $practice->is_active);
     }
+
+    public function test_invalid_price_formats_are_rejected()
+    {
+        $invalidPrices = [
+            '-100000',
+            'Rp -100.000',
+            'abc100000',
+            '100000abc',
+            '100,50',
+        ];
+
+        foreach ($invalidPrices as $invalidPrice) {
+            $response = $this->actingAs($this->admin)->post(
+                route('admin.course-management.programs.levels.store', $this->program),
+                [
+                    'name' => 'Invalid Price Level',
+                    'slug' => 'invalid-price-level-' . uniqid(),
+                    'thumbnail_type' => 'image',
+                    'price' => $invalidPrice,
+                    'learning_mode' => 'online',
+                    'access_type' => 'lifetime',
+                    'is_active' => true,
+                ]
+            );
+
+            $response->assertSessionHasErrors('price');
+        }
+    }
+
+    public function test_builder_final_exam_section_store_payload_succeeds_without_422()
+    {
+        $response = $this->actingAs($this->admin)->postJson(
+            route('admin.course-management.programs.builder.final-exams.store', [
+                'courseProgram' => $this->program->id,
+                'courseLevel' => $this->level->id,
+            ]),
+            [
+                'title' => 'Final Exam Listening',
+                'description' => 'Listening section',
+                'result_mode' => 'pass_fail',
+                'total_score' => 50,
+                'passing_score' => 25,
+                'grading_method' => 'auto',
+                'attempt_mode' => 'unlimited',
+            ]
+        );
+
+        $response->assertStatus(200);
+        $response->assertJson(['status' => 'success']);
+
+        $this->assertDatabaseHas('final_exams', [
+            'course_level_id' => $this->level->id,
+            'title' => 'Final Exam Listening',
+            'result_mode' => 'pass_fail',
+            'total_score' => 50,
+            'passing_score' => 25,
+            'is_active' => false,
+        ]);
+    }
+
+    public function test_continuous_readiness_auto_activates_final_exam_section()
+    {
+        $finalExam = \App\Models\FinalExam::create([
+            'course_level_id' => $this->level->id,
+            'title' => 'Final Exam Reading',
+            'result_mode' => 'pass_fail',
+            'total_score' => 50,
+            'passing_score' => 25,
+            'grading_method' => 'auto',
+            'max_attempts' => null,
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($this->admin)->postJson(
+            route('admin.course-management.programs.builder.final-exam-questions.store', [
+                'courseProgram' => $this->program->id,
+                'finalExam' => $finalExam->id,
+            ]),
+            [
+                'question_type' => 'multiple_choice',
+                'question' => 'Select correct answer',
+                'options' => ['A' => 'Opt A', 'B' => 'Opt B', 'C' => 'Opt C', 'D' => 'Opt D'],
+                'correct_option' => 'A',
+                'score' => 50,
+                'is_active' => 1,
+            ]
+        );
+
+        $finalExam->refresh();
+        $this->assertTrue((bool) $finalExam->is_active);
+    }
 }

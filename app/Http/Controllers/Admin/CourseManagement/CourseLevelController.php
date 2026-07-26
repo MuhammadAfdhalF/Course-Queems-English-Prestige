@@ -35,11 +35,39 @@ class CourseLevelController extends Controller
         ));
     }
 
+    /**
+     * Parse and normalize Indonesian Rupiah price strings or raw numeric values.
+     * Returns integer raw price, null if empty, or -1 if invalid format or negative.
+     */
+    public static function parseRupiahPrice(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_int($value)) {
+            return $value >= 0 ? $value : -1;
+        }
+
+        if (is_float($value)) {
+            return ($value >= 0 && floor($value) == $value) ? (int) $value : -1;
+        }
+
+        $trimmed = trim((string) $value);
+
+        if (preg_match('/^(?:Rp\s*)?(\d{1,3}(?:\.\d{3})+|\d+)$/i', $trimmed, $matches)) {
+            $clean = str_replace('.', '', $matches[1]);
+            return (int) $clean;
+        }
+
+        return -1;
+    }
+
     public function store(Request $request, CourseProgram $courseProgram)
     {
-        if ($request->has('price') && is_string($request->input('price'))) {
-            $cleanPrice = preg_replace('/[^\d]/', '', $request->input('price'));
-            $request->merge(['price' => $cleanPrice !== '' ? (int) $cleanPrice : 0]);
+        if ($request->has('price')) {
+            $parsedPrice = static::parseRupiahPrice($request->input('price'));
+            $request->merge(['price' => $parsedPrice]);
         }
 
         $validated = $request->validate([
@@ -89,7 +117,7 @@ class CourseLevelController extends Controller
 
         $validated['course_program_id'] = $courseProgram->id;
         $validated['slug'] = $this->generateUniqueSlug($validated['slug'] ?? $validated['name']);
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
 
         if ($validated['access_type'] === 'lifetime') {
             $validated['access_duration_days'] = null;
@@ -164,9 +192,9 @@ class CourseLevelController extends Controller
 
     public function update(Request $request, CourseLevel $courseLevel)
     {
-        if ($request->has('price') && is_string($request->input('price'))) {
-            $cleanPrice = preg_replace('/[^\d]/', '', $request->input('price'));
-            $request->merge(['price' => $cleanPrice !== '' ? (int) $cleanPrice : 0]);
+        if ($request->has('price')) {
+            $parsedPrice = static::parseRupiahPrice($request->input('price'));
+            $request->merge(['price' => $parsedPrice]);
         }
 
         $validated = $request->validate([
