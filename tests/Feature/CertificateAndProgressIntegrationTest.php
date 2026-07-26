@@ -524,4 +524,139 @@ class CertificateAndProgressIntegrationTest extends TestCase
         $this->assertFalse($completed);
         $this->assertFalse(StudentModuleProgress::where('enrollment_id', $this->enrollment->id)->where('module_id', $this->module1->id)->where('status', 'completed')->exists());
     }
+
+    public function test_inconsistent_attempt_status_passed_but_is_passed_null_or_false_is_not_qualifying()
+    {
+        $exam = FinalExam::create([
+            'course_level_id' => $this->level->id,
+            'title' => 'Inconsistent State Exam',
+            'result_mode' => AssessmentResultMode::PASS_FAIL,
+            'total_score' => 100.00,
+            'passing_score' => 70.00,
+            'is_active' => true,
+        ]);
+
+        FinalExamQuestion::create(['final_exam_id' => $exam->id, 'question_type' => 'multiple_choice', 'question' => 'Q1', 'score' => 100.00, 'is_active' => true]);
+
+        // Attempt with status = passed but is_passed = false (inconsistent data)
+        FinalExamAttempt::create([
+            'final_exam_id' => $exam->id,
+            'student_id' => $this->student->id,
+            'attempt_number' => 1,
+            'max_score' => 100.00,
+            'result_mode' => 'pass_fail',
+            'passing_score' => 70.00,
+            'raw_score' => 50.00,
+            'percentage_score' => 50.00,
+            'is_passed' => false,
+            'status' => 'passed', // status is passed, but is_passed is false!
+            'submitted_at' => now(),
+            'graded_at' => now(),
+        ]);
+
+        $cert = $this->certificateService->evaluateAndCreateForEnrollment($this->enrollment);
+        $this->assertNull($cert);
+    }
+
+    public function test_attempt_selection_tie_breaker_uses_latest_graded_at_then_highest_id()
+    {
+        $exam = FinalExam::create([
+            'course_level_id' => $this->level->id,
+            'title' => 'Tie Breaker Exam',
+            'result_mode' => AssessmentResultMode::PASS_FAIL,
+            'total_score' => 100.00,
+            'passing_score' => 70.00,
+            'is_active' => true,
+        ]);
+
+        FinalExamQuestion::create(['final_exam_id' => $exam->id, 'question_type' => 'multiple_choice', 'question' => 'Q1', 'score' => 100.00, 'is_active' => true]);
+
+        $time1 = now()->subHours(2);
+        $time2 = now()->subHour();
+
+        // Attempt 1: 90%, graded at time1
+        $att1 = FinalExamAttempt::create([
+            'final_exam_id' => $exam->id,
+            'student_id' => $this->student->id,
+            'attempt_number' => 1,
+            'max_score' => 100.00,
+            'result_mode' => 'pass_fail',
+            'passing_score' => 70.00,
+            'raw_score' => 90.00,
+            'percentage_score' => 90.00,
+            'is_passed' => true,
+            'status' => 'passed',
+            'submitted_at' => $time1,
+            'graded_at' => $time1,
+        ]);
+
+        // Attempt 2: 90% (same percentage), graded at time2 (later)
+        $att2 = FinalExamAttempt::create([
+            'final_exam_id' => $exam->id,
+            'student_id' => $this->student->id,
+            'attempt_number' => 2,
+            'max_score' => 100.00,
+            'result_mode' => 'pass_fail',
+            'passing_score' => 70.00,
+            'raw_score' => 90.00,
+            'percentage_score' => 90.00,
+            'is_passed' => true,
+            'status' => 'passed',
+            'submitted_at' => $time2,
+            'graded_at' => $time2,
+        ]);
+
+        $cert = $this->certificateService->evaluateAndCreateForEnrollment($this->enrollment);
+        $this->assertNotNull($cert);
+        // Should pick att2 because graded_at is later
+        $this->assertEquals($att2->id, $cert->section_scores[0]['attempt_id']);
+    }
+
+    public function test_newer_failed_attempt_does_not_invalidate_older_passed_practice_attempt()
+    {
+        $practice = ModulePractice::create([
+            'module_id' => $this->module1->id,
+            'title' => 'Multiple Attempt Practice',
+            'result_mode' => AssessmentResultMode::PASS_FAIL,
+            'total_score' => 100.00,
+            'passing_score' => 70.00,
+            'is_active' => true,
+        ]);
+
+        // Attempt 1: Passed
+        ModulePracticeAttempt::create([
+            'module_practice_id' => $practice->id,
+            'student_id' => $this->student->id,
+            'attempt_number' => 1,
+            'max_score' => 100.00,
+            'result_mode' => 'pass_fail',
+            'passing_score' => 70.00,
+            'raw_score' => 85.00,
+            'percentage_score' => 85.00,
+            'is_passed' => true,
+            'status' => 'passed',
+            'submitted_at' => now()->subHour(),
+            'graded_at' => now()->subHour(),
+        ]);
+
+        // Attempt 2: Failed (newer)
+        ModulePracticeAttempt::create([
+            'module_practice_id' => $practice->id,
+            'student_id' => $this->student->id,
+            'attempt_number' => 2,
+            'max_score' => 100.00,
+            'result_mode' => 'pass_fail',
+            'passing_score' => 70.00,
+            'raw_score' => 40.00,
+            'percentage_score' => 40.00,
+            'is_passed' => false,
+            'status' => 'failed',
+            'submitted_at' => now(),
+            'graded_at' => now(),
+        ]);
+
+        // Practice requirement MUST still be satisfied because Attempt 1 was passed
+        $completed = $this->progressService->evaluateAndSyncModuleCompletion($this->enrollment, $this->module1);
+        $this->assertTrue($completed);
+    }
 }

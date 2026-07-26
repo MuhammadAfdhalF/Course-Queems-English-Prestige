@@ -85,7 +85,7 @@
                 <p class="mt-1 line-clamp-2 text-xs text-slate-500">{{ $examSection->description ?: 'No description provided' }}</p>
 
                 <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-                    <span class="font-semibold text-purple-800">{{ $examSection->questions_count }} Questions | Passing: {{ $examSection->passing_grade }}%</span>
+                    <span class="font-semibold text-purple-800">{{ $examSection->questions_count }} Questions | Passing: {{ ($examSection->result_mode->value ?? $examSection->result_mode) === 'pass_fail' ? number_format((float) $examSection->passing_score, 2) . ' pts' : 'Score Only' }}</span>
                     <div class="flex items-center gap-2">
                         <button
                             type="button"

@@ -139,15 +139,4 @@ class FreeTestController extends Controller
 
         return view('pages.public.free-test-result', compact('freeTestResult'));
     }
-
-    private function buildRecommendation(FreeTest $freeTest, int $totalScore): string
-    {
-        $passingGrade = (int) $freeTest->passing_grade;
-
-        if ($passingGrade > 0 && $totalScore >= $passingGrade) {
-            return 'Great job! You passed this free test. You already have a strong foundation, and we recommend continuing with a structured program to sharpen your fluency, accuracy, and confidence.';
-        }
-
-        return 'We recommend starting from a foundational program to strengthen your English basics before moving to more advanced materials. Our team can help you choose the most suitable course based on your result.';
-    }
 }

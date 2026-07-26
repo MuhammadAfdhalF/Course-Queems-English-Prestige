@@ -20,7 +20,6 @@ class FreeTest extends Model
         'passing_score',
         'duration_minutes',
         'total_questions',
-        'passing_grade',
         'is_active',
     ];
 
@@ -30,7 +29,6 @@ class FreeTest extends Model
         'passing_score' => 'decimal:2',
         'duration_minutes' => 'integer',
         'total_questions' => 'integer',
-        'passing_grade' => 'integer',
         'is_active' => 'boolean',
     ];
 

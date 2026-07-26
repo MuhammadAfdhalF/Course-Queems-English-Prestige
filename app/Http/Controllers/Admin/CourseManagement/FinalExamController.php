@@ -122,7 +122,6 @@ class FinalExamController extends Controller
                 'total_score' => (float) $finalExam->total_score,
                 'result_mode' => $resultModeVal,
                 'passing_score' => $finalExam->passing_score !== null ? (float) $finalExam->passing_score : null,
-                'passing_grade' => $finalExam->passing_grade,
                 'grading_method' => $finalExam->grading_method,
                 'attempt_mode' => $attemptMode,
                 'max_attempts' => $maxAttempts,

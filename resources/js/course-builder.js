@@ -1183,7 +1183,6 @@ export function registerCourseBuilder(Alpine) {
             } else if (this.drawerType.includes('practice') && !this.drawerType.includes('question')) {
                 formData.set('title', this.drawerData.title || '');
                 formData.set('description', this.drawerData.description || (document.getElementById('drawer_practice_description')?.value || ''));
-                formData.set('passing_grade', this.drawerData.passing_grade || 70);
                 formData.set('grading_method', this.drawerData.grading_method || 'auto');
                 if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
                 if (this.drawerData.is_required) formData.set('is_required', '1'); else formData.delete('is_required');
@@ -1208,7 +1207,6 @@ export function registerCourseBuilder(Alpine) {
             } else if (this.drawerType.includes('final_exam_section')) {
                 formData.set('title', this.drawerData.title || '');
                 formData.set('description', this.drawerData.description || (document.getElementById('drawer_exam_section_description')?.value || ''));
-                formData.set('passing_grade', this.drawerData.passing_grade || 75);
                 formData.set('grading_method', this.drawerData.grading_method || 'auto');
                 if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
                 if (this.drawerData.sort_order !== undefined) formData.set('sort_order', this.drawerData.sort_order);

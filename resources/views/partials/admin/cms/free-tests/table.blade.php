@@ -23,7 +23,6 @@
         'result_mode' => $resMode,
         'total_score' => (float) $freeTest->total_score,
         'passing_score' => $freeTest->passing_score !== null ? (float) $freeTest->passing_score : null,
-        'passing_grade' => $freeTest->passing_grade,
         'is_active' => (bool) $freeTest->is_active,
         'is_locked' => $freeTest->results()->exists(),
         'update_url' => route('admin.cms.free-tests.update', $freeTest),

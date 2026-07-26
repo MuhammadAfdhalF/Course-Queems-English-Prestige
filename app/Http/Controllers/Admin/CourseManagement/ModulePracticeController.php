@@ -127,7 +127,6 @@ class ModulePracticeController extends Controller
                 'total_score' => (float) $modulePractice->total_score,
                 'result_mode' => $resultModeVal,
                 'passing_score' => $modulePractice->passing_score !== null ? (float) $modulePractice->passing_score : null,
-                'passing_grade' => $modulePractice->passing_grade,
                 'grading_method' => $modulePractice->grading_method,
                 'attempt_mode' => $attemptMode,
                 'max_attempts' => $maxAttempts,

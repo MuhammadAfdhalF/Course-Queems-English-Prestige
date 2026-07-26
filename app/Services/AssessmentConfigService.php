@@ -60,17 +60,14 @@ class AssessmentConfigService
 
         if ($resultMode === AssessmentResultMode::PASS_FAIL->value) {
             $passingScore = round((float) $validated['passing_score'], 2);
-            $passingGrade = $totalScore > 0 ? (int) round(($passingScore / $totalScore) * 100) : 0;
         } else {
             $passingScore = null;
-            $passingGrade = 0;
         }
 
         $normalized = [
             'total_score' => $totalScore,
             'result_mode' => $resultMode,
             'passing_score' => $passingScore,
-            'passing_grade' => $passingGrade,
         ];
 
         if ($supportsAttemptLimit) {

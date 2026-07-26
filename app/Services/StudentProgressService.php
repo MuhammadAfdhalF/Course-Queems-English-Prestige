@@ -94,7 +94,7 @@ class StudentProgressService
                 return true;
             }
 
-            if ($resultModeStr === 'pass_fail' && ($attempt->is_passed === true || $attempt->status === 'passed')) {
+            if ($resultModeStr === 'pass_fail' && $attempt->is_passed === true && $attempt->status === 'passed') {
                 return true;
             }
         }

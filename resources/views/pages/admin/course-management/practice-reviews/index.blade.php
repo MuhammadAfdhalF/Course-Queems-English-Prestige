@@ -46,7 +46,7 @@
                 </span>
 
                 <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
-                    Passing Grade: {{ $modulePractice->passing_grade }}%
+                    Passing Criteria: {{ ($modulePractice->result_mode->value ?? $modulePractice->result_mode) === 'pass_fail' ? number_format((float) $modulePractice->passing_score, 2) . ' pts' : 'Score Only' }}
                 </span>
             </div>
         </div>

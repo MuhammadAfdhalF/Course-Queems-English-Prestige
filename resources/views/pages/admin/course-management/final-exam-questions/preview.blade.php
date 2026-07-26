@@ -77,7 +77,7 @@
                     Passing Grade
                 </p>
                 <p class="mt-2 text-xl font-bold text-slate-900">
-                    {{ $finalExam->passing_grade }}
+                    {{ ($finalExam->result_mode->value ?? $finalExam->result_mode) === 'pass_fail' ? number_format((float) $finalExam->passing_score, 2) : 'Score Only' }}
                 </p>
             </div>
 

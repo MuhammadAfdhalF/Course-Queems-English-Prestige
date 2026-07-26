@@ -1,6 +1,6 @@
 # TASK-008 — Configurable Assessment Total Score & Custom Scale Engine
 
-**Status**: READY FOR IMPLEMENTATION  
+**Status**: COMPLETED — IMPLEMENTED & TESTED  
 **Date Created**: 2026-07-25  
 **Date Approved**: 2026-07-26  
 **Priority**: High  
@@ -327,10 +327,8 @@ Snapshot `section_scores` pada tabel `certificates` untuk sertifikat baru menyim
   Centralized `AssessmentScoringService`, attempt creation snapshot (`max_score`, `result_mode`, `passing_score`), submit transaction & row locking (`lockForUpdate`), `raw_score`, `percentage_score`, `is_passed` calculation using raw attempt snapshot score, Score Only flow (`is_passed = NULL`, `status = submitted`), Manual/Mixed review flow (`status = waiting_review`, `is_passed = NULL`, provisional subtotal policy), Free Test result snapshot & public submission engine, result UI rendering (raw score / max score, percentage, conditional badge), transitional schema hardening (`2026_07_26_100003_harden_assessment_attempt_snapshots`), 11 Phase D feature tests passed (59 assertions), dan full suite 27 tests passed (99 assertions).
 - [x] **Phase E — Manual Grading Lifecycle**: (IMPLEMENTED & TESTED 2026-07-26)
   Centralized `AssessmentScoringService::finalizeAttempt()`, row locking (`lockForUpdate`), atomic DB transaction, snapshot-driven final score evaluation (`max_score`, `result_mode`, `passing_score`), manual score bounds validation (`0.00` to `question.score`), answer score calculation (`final_raw_score = auto + manual`), idempotency guard (`waiting_review` status & `graded_at IS NULL`), Pass/Fail finalization (`raw_score >= attempt.passing_score`), Score Only finalization (`is_passed = NULL`, `status = submitted`), Admin review UI update (provisional subtotal & result criteria), 7 Phase E feature tests passed (36 assertions), dan full suite 34 tests passed (135 assertions).
-- [x] **Phase F — Certificate Eligibility, Progress & Free Test Parity**: (IMPLEMENTED & TESTED 2026-07-26)
-  Qualifying attempt check (`submitted_at` & `graded_at` NOT NULL, `pass_fail` with `is_passed = true` or `score_only`), attempt selection strategy (highest `percentage_score` -> `raw_score` -> latest `graded_at` -> `id`), `CertificateService` `section_scores` snapshot schema (`section_id`, `section_title`, `attempt_id`, `raw_score`, `max_score`, `percentage_score`, `result_mode`, `passing_score`, `is_passed`), preserved `final_score` percentage average formula, certificate issuance idempotency & lock, `StudentProgressService` practice qualification (`isPracticeQualifying` & `evaluateAndSyncModuleCompletion`), Free Test `score_only` parity, 8 Phase F feature tests passed (29 assertions), dan full suite 42 tests passed (164 assertions).
-- **Phase G — Regression, Cleanup & Deprecation**:
-  E2E Testing, audit 25+ referensi `passing_grade`, drop column `passing_grade`, dan pembaruan akhir dokumentasi.
+- [x] **Phase G — Final Regression, Legacy Cleanup, Passing Grade Deprecation & Task Closure**: (IMPLEMENTED & TESTED 2026-07-26)
+  Audit 25+ referensi `passing_grade`, migrasi drop column `2026_07_26_100004_drop_legacy_passing_grade_from_assessments.php` (up: drop `passing_grade` dari `final_exams`, `module_practices`, `free_tests`; down: restore integer `passing_grade` & approximate conversion values), pembersihan total referensi `passing_grade` dari `app/`, `resources/`, `js/`, dan `tests/` (runtime references = 0), data consistency audit (0 invalid master/attempt records), fresh migration & rollback step=1 verification, full test suite 45 passed (168 assertions), asset build clean, git diff clean, dan penutupan resmi TASK-008 (`COMPLETED — IMPLEMENTED & TESTED`).
 
 ---
 

@@ -5,7 +5,6 @@
             'id' => $finalExam->id,
             'title' => $finalExam->title,
             'description' => $finalExam->description,
-            'passing_grade' => $finalExam->passing_grade,
             'grading_method' => $finalExam->grading_method,
             'max_attempts' => $finalExam->max_attempts,
             'sort_order' => $finalExam->sort_order,

@@ -90,14 +90,11 @@ class CertificateService
                             ->where(function ($query) {
                                 $query->where(function ($sub) {
                                     $sub->where('result_mode', 'pass_fail')
-                                        ->where(function ($passQ) {
-                                            $passQ->where('is_passed', true)
-                                                 ->orWhere('status', 'passed');
-                                        });
+                                        ->where('is_passed', true)
+                                        ->where('status', 'passed');
                                 })->orWhere('result_mode', 'score_only');
                             })
                             ->orderByDesc('percentage_score')
-                            ->orderByDesc('raw_score')
                             ->orderByDesc('graded_at')
                             ->orderByDesc('id')
                             ->first();

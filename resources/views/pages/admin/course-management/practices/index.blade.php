@@ -131,7 +131,7 @@
                             Passing Grade
                         </p>
                         <p class="mt-2 text-xl font-bold text-slate-900">
-                            {{ $practice->passing_grade }}
+                            {{ ($practice->result_mode->value ?? $practice->result_mode) === 'pass_fail' ? number_format((float) $practice->passing_score, 2) : 'Score Only' }}
                         </p>
                     </div>
 

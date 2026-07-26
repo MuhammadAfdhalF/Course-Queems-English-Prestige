@@ -43,7 +43,7 @@
                 </span>
 
                 <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
-                    Passing Grade: {{ $finalExam->passing_grade }}%
+                    Passing Criteria: {{ ($finalExam->result_mode->value ?? $finalExam->result_mode) === 'pass_fail' ? number_format((float) $finalExam->passing_score, 2) . ' pts' : 'Score Only' }}
                 </span>
             </div>
         </div>
