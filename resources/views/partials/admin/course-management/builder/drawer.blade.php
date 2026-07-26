@@ -29,7 +29,12 @@
                     x-transition:leave="transform transition ease-in-out duration-300"
                     x-transition:leave-start="translate-x-0"
                     x-transition:leave-end="translate-x-full"
-                    class="pointer-events-auto w-screen max-w-full sm:max-w-2xl bg-white shadow-2xl flex flex-col">
+                    :class="{
+                        'sm:max-w-2xl lg:max-w-3xl xl:max-w-[860px]': drawerSize === 'medium',
+                        'sm:max-w-3xl lg:max-w-4xl xl:max-w-[1120px]': drawerSize === 'wide',
+                        'sm:max-w-4xl lg:max-w-5xl xl:max-w-[1280px]': drawerSize === 'editor'
+                    }"
+                    class="pointer-events-auto w-screen max-w-full bg-white shadow-2xl flex flex-col">
 
                     {{-- Drawer Header --}}
                     <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50">

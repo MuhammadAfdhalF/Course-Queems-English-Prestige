@@ -30,6 +30,7 @@ export function registerCourseBuilder(Alpine) {
         // Drawer State
         drawerOpen: false,
         drawerType: null,
+        drawerSize: 'medium', // 'medium' (860px), 'wide' (1120px), 'editor' (1280px)
         drawerTitle: '',
         drawerParentContext: '',
         drawerLoading: false,
@@ -481,6 +482,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_level';
+            this.drawerSize = 'wide'; // Wide Drawer (~1120px)
             this.drawerTitle = 'Add Course Level';
             this.drawerParentContext = 'Program Course Level';
             this.drawerActionUrl = storeUrl;
@@ -515,6 +517,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_level';
+            this.drawerSize = 'wide'; // Wide Drawer (~1120px)
             this.drawerTitle = 'Edit Course Level';
             this.drawerParentContext = 'Program Course Level';
             this.drawerErrors = {};
@@ -570,6 +573,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_module';
+            this.drawerSize = 'medium'; // Medium Drawer (~860px)
             this.drawerTitle = 'Add Course Module';
             this.drawerParentContext = 'Course Level Module';
             this.drawerActionUrl = storeUrl;
@@ -596,6 +600,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_module';
+            this.drawerSize = 'medium'; // Medium Drawer (~860px)
             this.drawerTitle = 'Edit Course Module';
             this.drawerParentContext = 'Course Level Module';
             this.drawerErrors = {};
@@ -643,6 +648,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_material';
+            this.drawerSize = 'editor'; // Editor Drawer (~1280px)
             this.drawerTitle = 'Add Module Material';
             this.drawerParentContext = 'Module Material';
             this.drawerActionUrl = storeUrl;
@@ -671,6 +677,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_material';
+            this.drawerSize = 'editor'; // Editor Drawer (~1280px)
             this.drawerTitle = 'Edit Module Material';
             this.drawerParentContext = 'Module Material';
             this.drawerErrors = {};
@@ -720,6 +727,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_practice';
+            this.drawerSize = 'medium'; // Medium Drawer (~860px)
             this.drawerTitle = 'Configure Module Practice';
             this.drawerParentContext = 'Module Practice Quiz';
             this.drawerActionUrl = storeUrl;
@@ -748,6 +756,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_practice';
+            this.drawerSize = 'medium'; // Medium Drawer (~860px)
             this.drawerTitle = 'Edit Module Practice';
             this.drawerParentContext = 'Module Practice Quiz';
             this.drawerErrors = {};
@@ -797,6 +806,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_question';
+            this.drawerSize = 'editor'; // Editor Drawer (~1280px)
             this.drawerTitle = 'Add Practice Question';
             this.drawerParentContext = 'Practice Quiz Question';
             this.drawerActionUrl = storeUrl;
@@ -825,6 +835,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_question';
+            this.drawerSize = 'editor'; // Editor Drawer (~1280px)
             this.drawerTitle = 'Edit Practice Question';
             this.drawerParentContext = 'Practice Quiz Question';
             this.drawerErrors = {};
@@ -875,6 +886,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_final_exam_section';
+            this.drawerSize = 'wide'; // Wide Drawer (~1120px)
             this.drawerTitle = 'Add Final Exam Section';
             this.drawerParentContext = 'Course Level Final Exam';
             this.drawerActionUrl = storeUrl;
@@ -902,6 +914,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_final_exam_section';
+            this.drawerSize = 'wide'; // Wide Drawer (~1120px)
             this.drawerTitle = 'Edit Final Exam Section';
             this.drawerParentContext = 'Course Level Final Exam';
             this.drawerErrors = {};
@@ -951,6 +964,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_final_exam_question';
+            this.drawerSize = 'editor'; // Editor Drawer (~1280px)
             this.drawerTitle = 'Add Final Exam Question';
             this.drawerParentContext = 'Final Exam Section Question';
             this.drawerActionUrl = storeUrl;
@@ -979,6 +993,7 @@ export function registerCourseBuilder(Alpine) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_final_exam_question';
+            this.drawerSize = 'editor'; // Editor Drawer (~1280px)
             this.drawerTitle = 'Edit Final Exam Question';
             this.drawerParentContext = 'Final Exam Section Question';
             this.drawerErrors = {};

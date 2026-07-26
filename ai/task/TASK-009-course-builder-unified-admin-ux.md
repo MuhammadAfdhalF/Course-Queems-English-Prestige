@@ -251,7 +251,7 @@ Entity yang mendukung Drag-and-Drop Reorder:
 - [x] **Phase D**: Module Practice Configuration & Practice Question Management (MCQ, Short Answer, Essay, Upload) terkelola terpadu.
 - [x] **Phase E**: Final Exam Section Configuration & Question Management terkelola terpadu dengan readiness status & attempt/answer guards.
 - [x] **Phase F**: Unified Reorder Engine untuk Levels, Modules, Materials, Practice Questions, Final Exam Sections, dan Final Exam Questions berjalan dengan HTTP 409 Conflict handling, Move Up/Down accessibility, dan full-list reorder.
-- [ ] **Phase G**: Mobile off-canvas tree drawer, full-screen mobile drawers/modals, focus management, body scroll locking, FOUC prevention (`x-cloak`), Rich Text TinyMCE lifecycle, dan automatic UI refresh stabilization (In Stabilization Testing).
+- [x] **Phase G**: Mobile off-canvas tree drawer, full-screen mobile drawers/modals, dynamic drawer sizing, preview all materials, focus management, body scroll locking, FOUC prevention (`x-cloak`), Rich Text TinyMCE lifecycle, dan automatic UI refresh stabilization (STABILIZED / FINAL TESTING).
 - [ ] **Phase H**: Final integration testing, E2E verification & legacy transition links.
 
 ---
