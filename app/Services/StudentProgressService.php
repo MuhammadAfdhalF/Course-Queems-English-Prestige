@@ -71,6 +71,50 @@ class StudentProgressService
         ]);
     }
 
+    public function isPracticeQualifying(StudentCourseEnrollment $enrollment, \App\Models\ModulePractice $practice): bool
+    {
+        if (! $practice->is_active) {
+            return true;
+        }
+
+        $attempts = \App\Models\ModulePracticeAttempt::query()
+            ->where('student_id', $enrollment->student_id)
+            ->where('module_practice_id', $practice->id)
+            ->whereNotNull('submitted_at')
+            ->whereNotNull('graded_at')
+            ->get();
+
+        foreach ($attempts as $attempt) {
+            $rawResultMode = $attempt->result_mode;
+            $resultModeStr = $rawResultMode instanceof \App\Enums\AssessmentResultMode
+                ? $rawResultMode->value
+                : (string) $rawResultMode;
+
+            if ($resultModeStr === 'score_only') {
+                return true;
+            }
+
+            if ($resultModeStr === 'pass_fail' && $attempt->is_passed === true && $attempt->status === 'passed') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function evaluateAndSyncModuleCompletion(StudentCourseEnrollment $enrollment, Module $module): bool
+    {
+        $practices = $module->practices()->where('is_active', true)->get();
+        foreach ($practices as $practice) {
+            if (! $this->isPracticeQualifying($enrollment, $practice)) {
+                return false;
+            }
+        }
+
+        $this->markModuleCompleted($enrollment, $module);
+        return true;
+    }
+
     public function isModuleUnlocked(StudentCourseEnrollment $enrollment, Module $module): bool
     {
         $modules = $enrollment->courseLevel

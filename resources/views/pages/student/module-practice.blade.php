@@ -29,7 +29,11 @@
 
             <div class="mt-5 flex flex-wrap gap-2">
                 <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                    Passing Grade: {{ $practice->passing_grade }}%
+                    @if ($practice->result_mode === \App\Enums\AssessmentResultMode::PASS_FAIL || $practice->result_mode === 'pass_fail')
+                        Passing Score: {{ number_format((float) $practice->passing_score, 2) }} / {{ number_format((float) $practice->total_score, 2) }}
+                    @else
+                        Result Mode: Score Only
+                    @endif
                 </span>
 
                 <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">

@@ -740,11 +740,15 @@ export function registerCourseBuilder(Alpine) {
             this.drawerData = {
                 title: '',
                 description: '',
-                passing_grade: 70,
+                result_mode: 'pass_fail',
+                total_score: 100,
+                passing_score: 80,
                 grading_method: 'auto',
+                attempt_mode: 'unlimited',
                 max_attempts: '',
                 is_required: true,
-                is_active: true
+                is_active: false,
+                is_locked: false
             };
 
             this.drawerOpen = true;
@@ -777,16 +781,26 @@ export function registerCourseBuilder(Alpine) {
                     const d = res.data;
                     this.drawerActionUrl = d.update_url;
                     this.drawerMethod = 'PUT';
+                    const resTotal = d.total_score !== undefined && d.total_score !== null ? d.total_score : 100;
+                    const resMode = d.result_mode || 'pass_fail';
+                    const resPassing = d.passing_score !== undefined && d.passing_score !== null ? d.passing_score : (resMode === 'pass_fail' ? 80 : '');
+                    const resMaxAttempts = d.max_attempts;
+                    const resAttemptMode = d.attempt_mode || (resMaxAttempts === 1 ? 'one' : (resMaxAttempts > 1 ? 'multiple' : 'unlimited'));
+
                     this.drawerData = {
                         id: d.id,
                         module_id: d.module_id,
                         title: d.title || '',
                         description: d.description || '',
-                        passing_grade: d.passing_grade || 70,
+                        result_mode: resMode,
+                        total_score: resTotal,
+                        passing_score: resPassing,
                         grading_method: d.grading_method || 'auto',
-                        max_attempts: d.max_attempts || '',
+                        attempt_mode: resAttemptMode,
+                        max_attempts: resMaxAttempts || '',
                         is_required: !!d.is_required,
-                        is_active: !!d.is_active
+                        is_active: !!d.is_active,
+                        is_locked: !!d.is_locked
                     };
                     this.focusFirstDrawerInput();
                     this.initRichTextEditors();
@@ -899,10 +913,14 @@ export function registerCourseBuilder(Alpine) {
             this.drawerData = {
                 title: '',
                 description: '',
-                passing_grade: 75,
+                result_mode: 'pass_fail',
+                total_score: 100,
+                passing_score: 75,
                 grading_method: 'auto',
+                attempt_mode: 'unlimited',
                 max_attempts: '',
-                is_active: true
+                is_active: false,
+                is_locked: false
             };
 
             this.drawerOpen = true;
@@ -935,16 +953,26 @@ export function registerCourseBuilder(Alpine) {
                     const d = res.data;
                     this.drawerActionUrl = d.update_url;
                     this.drawerMethod = 'PUT';
+                    const resTotal = d.total_score !== undefined && d.total_score !== null ? d.total_score : 100;
+                    const resMode = d.result_mode || 'pass_fail';
+                    const resPassing = d.passing_score !== undefined && d.passing_score !== null ? d.passing_score : (resMode === 'pass_fail' ? 75 : '');
+                    const resMaxAttempts = d.max_attempts;
+                    const resAttemptMode = d.attempt_mode || (resMaxAttempts === 1 ? 'one' : (resMaxAttempts > 1 ? 'multiple' : 'unlimited'));
+
                     this.drawerData = {
                         id: d.id,
                         course_level_id: d.course_level_id,
                         title: d.title || '',
                         description: d.description || '',
-                        passing_grade: d.passing_grade || 75,
+                        result_mode: resMode,
+                        total_score: resTotal,
+                        passing_score: resPassing,
                         grading_method: d.grading_method || 'auto',
-                        max_attempts: d.max_attempts || '',
+                        attempt_mode: resAttemptMode,
+                        max_attempts: resMaxAttempts || '',
                         sort_order: d.sort_order,
-                        is_active: !!d.is_active
+                        is_active: !!d.is_active,
+                        is_locked: !!d.is_locked
                     };
                     this.focusFirstDrawerInput();
                     this.initRichTextEditors();
@@ -1155,7 +1183,6 @@ export function registerCourseBuilder(Alpine) {
             } else if (this.drawerType.includes('practice') && !this.drawerType.includes('question')) {
                 formData.set('title', this.drawerData.title || '');
                 formData.set('description', this.drawerData.description || (document.getElementById('drawer_practice_description')?.value || ''));
-                formData.set('passing_grade', this.drawerData.passing_grade || 70);
                 formData.set('grading_method', this.drawerData.grading_method || 'auto');
                 if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
                 if (this.drawerData.is_required) formData.set('is_required', '1'); else formData.delete('is_required');
@@ -1180,7 +1207,6 @@ export function registerCourseBuilder(Alpine) {
             } else if (this.drawerType.includes('final_exam_section')) {
                 formData.set('title', this.drawerData.title || '');
                 formData.set('description', this.drawerData.description || (document.getElementById('drawer_exam_section_description')?.value || ''));
-                formData.set('passing_grade', this.drawerData.passing_grade || 75);
                 formData.set('grading_method', this.drawerData.grading_method || 'auto');
                 if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
                 if (this.drawerData.sort_order !== undefined) formData.set('sort_order', this.drawerData.sort_order);

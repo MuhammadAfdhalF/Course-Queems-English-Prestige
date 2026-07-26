@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\CourseProgram;
 use App\Models\ModulePractice;
 use App\Models\ModulePracticeQuestion;
+use App\Services\AssessmentConfigService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ModulePracticeQuestionController extends Controller
 {
+    public function __construct(
+        protected AssessmentConfigService $configService
+    ) {}
+
     public function index(ModulePractice $modulePractice)
     {
         $modulePractice->load('module.courseLevel.courseProgram');
@@ -54,18 +59,28 @@ class ModulePracticeQuestionController extends Controller
             ], 403);
         }
 
+        $this->configService->ensureNotLocked($modulePractice);
+
         $validated = $this->validateQuestion($request);
+        $questionIsActive = $request->boolean('is_active');
+        $questionScore = (float) ($validated['score'] ?? 0);
 
-        $question = DB::transaction(function () use ($modulePractice, $validated, $request) {
-            $sortOrder = $validated['sort_order'] ?? (((int) $modulePractice->questions()->max('sort_order')) + 1);
+        $this->configService->validateProspectiveScore($modulePractice, $questionScore, $questionIsActive);
 
-            $q = $modulePractice->questions()->create([
+        $question = DB::transaction(function () use ($modulePractice, $validated, $questionIsActive, $questionScore) {
+            $lockedPractice = ModulePractice::whereKey($modulePractice->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedPractice);
+            $this->configService->validateProspectiveScore($lockedPractice, $questionScore, $questionIsActive);
+
+            $sortOrder = $validated['sort_order'] ?? (((int) $lockedPractice->questions()->max('sort_order')) + 1);
+
+            $q = $lockedPractice->questions()->create([
                 'question_type' => $validated['question_type'],
                 'question' => $validated['question'],
                 'explanation' => $validated['explanation'] ?? null,
-                'score' => $validated['score'] ?? 0,
+                'score' => $questionScore,
                 'sort_order' => $sortOrder,
-                'is_active' => $request->boolean('is_active'),
+                'is_active' => $questionIsActive,
             ]);
 
             if ($validated['question_type'] === 'multiple_choice') {
@@ -75,9 +90,15 @@ class ModulePracticeQuestionController extends Controller
             return $q;
         });
 
+        $deactivated = $this->configService->handlePostMutationDeactivation($modulePractice);
+        $message = $deactivated
+            ? 'Practice question created. Practice was deactivated because active question scores no longer match total score.'
+            : 'Practice question created successfully.';
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Practice question created successfully.',
+            'message' => $message,
+            'deactivated' => $deactivated,
             'question_id' => $question->id,
             'redirect_node' => [
                 'level' => $modulePractice->module->course_level_id,
@@ -119,6 +140,7 @@ class ModulePracticeQuestionController extends Controller
                 'score' => $modulePracticeQuestion->score,
                 'sort_order' => $modulePracticeQuestion->sort_order,
                 'is_active' => (bool) $modulePracticeQuestion->is_active,
+                'is_locked' => $this->configService->hasHistory($modulePracticeQuestion->practice),
                 'options' => $optionsDict,
                 'correct_option' => $correctOption,
                 'update_url' => route('admin.course-management.programs.builder.questions.update', ['courseProgram' => $courseProgram->id, 'modulePracticeQuestion' => $modulePracticeQuestion->id]),
@@ -137,16 +159,27 @@ class ModulePracticeQuestionController extends Controller
             ], 403);
         }
 
-        $validated = $this->validateQuestion($request);
+        $practice = $modulePracticeQuestion->practice;
+        $this->configService->ensureNotLocked($practice);
 
-        DB::transaction(function () use ($modulePracticeQuestion, $validated, $request) {
+        $validated = $this->validateQuestion($request);
+        $questionIsActive = $request->boolean('is_active');
+        $questionScore = (float) ($validated['score'] ?? 0);
+
+        $this->configService->validateProspectiveScore($practice, $questionScore, $questionIsActive, $modulePracticeQuestion);
+
+        DB::transaction(function () use ($modulePracticeQuestion, $practice, $validated, $questionIsActive, $questionScore) {
+            $lockedPractice = ModulePractice::whereKey($practice->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedPractice);
+            $this->configService->validateProspectiveScore($lockedPractice, $questionScore, $questionIsActive, $modulePracticeQuestion);
+
             $modulePracticeQuestion->update([
                 'question_type' => $validated['question_type'],
                 'question' => $validated['question'],
                 'explanation' => $validated['explanation'] ?? null,
-                'score' => $validated['score'] ?? 0,
+                'score' => $questionScore,
                 'sort_order' => $validated['sort_order'] ?? $modulePracticeQuestion->sort_order,
-                'is_active' => $request->boolean('is_active'),
+                'is_active' => $questionIsActive,
             ]);
 
             if ($validated['question_type'] === 'multiple_choice') {
@@ -156,9 +189,15 @@ class ModulePracticeQuestionController extends Controller
             }
         });
 
+        $deactivated = $this->configService->handlePostMutationDeactivation($practice);
+        $message = $deactivated
+            ? 'Practice question updated. Practice was deactivated because active question scores no longer match total score.'
+            : 'Practice question updated successfully.';
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Practice question updated successfully.',
+            'message' => $message,
+            'deactivated' => $deactivated,
             'question_id' => $modulePracticeQuestion->id,
             'redirect_node' => [
                 'level' => $modulePracticeQuestion->practice->module->course_level_id,
@@ -180,20 +219,33 @@ class ModulePracticeQuestionController extends Controller
             ], 403);
         }
 
-        // Delete Guard: Check if student answers exist
-        if ($modulePracticeQuestion->answers()->exists()) {
+        $practice = $modulePracticeQuestion->practice;
+        $this->configService->ensureNotLocked($practice);
+
+        // Delete Guard: Check if student answers/attempts exist
+        if ($this->configService->hasHistory($practice)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Cannot delete question because student answers exist.'
+                'message' => 'Questions cannot be changed because this assessment already has student attempts/results.'
             ], 422);
         }
 
-        $practice = $modulePracticeQuestion->practice;
-        $modulePracticeQuestion->delete();
+        DB::transaction(function () use ($modulePracticeQuestion, $practice) {
+            $lockedPractice = ModulePractice::whereKey($practice->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedPractice);
+
+            $modulePracticeQuestion->delete();
+        });
+
+        $deactivated = $this->configService->handlePostMutationDeactivation($practice);
+        $message = $deactivated
+            ? 'Practice question deleted. Practice was deactivated because active question scores no longer match total score.'
+            : 'Practice question deleted successfully.';
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Practice question deleted successfully.',
+            'message' => $message,
+            'deactivated' => $deactivated,
             'redirect_node' => [
                 'level' => $practice->module->course_level_id,
                 'module' => $practice->module_id,
@@ -214,6 +266,8 @@ class ModulePracticeQuestionController extends Controller
             ], 403);
         }
 
+        $this->configService->ensureNotLocked($modulePractice);
+
         $validated = $request->validate([
             'ordered_ids' => ['required', 'array'],
             'ordered_ids.*' => ['required', 'integer'],
@@ -230,6 +284,8 @@ class ModulePracticeQuestionController extends Controller
                 $lockedPractice = ModulePractice::whereKey($modulePractice->id)
                     ->lockForUpdate()
                     ->firstOrFail();
+
+                $this->configService->ensureNotLocked($lockedPractice);
 
                 // 2. Lock & read current server siblings
                 $siblings = $lockedPractice->questions()
@@ -294,24 +350,44 @@ class ModulePracticeQuestionController extends Controller
 
     public function store(Request $request, ModulePractice $modulePractice)
     {
+        $this->configService->ensureNotLocked($modulePractice);
+
         $validated = $this->validateQuestion($request);
 
-        $question = $modulePractice->questions()->create([
-            'question_type' => $validated['question_type'],
-            'question' => $validated['question'],
-            'explanation' => $validated['explanation'] ?? null,
-            'score' => $validated['score'] ?? 0,
-            'sort_order' => $validated['sort_order'] ?? 0,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $questionIsActive = $request->boolean('is_active');
+        $questionScore = (float) ($validated['score'] ?? 0);
 
-        if ($validated['question_type'] === 'multiple_choice') {
-            $this->saveOptions($question, $validated['options'], $validated['correct_option']);
-        }
+        $this->configService->validateProspectiveScore($modulePractice, $questionScore, $questionIsActive);
+
+        $question = DB::transaction(function () use ($modulePractice, $validated, $questionIsActive, $questionScore) {
+            $lockedPractice = ModulePractice::whereKey($modulePractice->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedPractice);
+            $this->configService->validateProspectiveScore($lockedPractice, $questionScore, $questionIsActive);
+
+            $q = $lockedPractice->questions()->create([
+                'question_type' => $validated['question_type'],
+                'question' => $validated['question'],
+                'explanation' => $validated['explanation'] ?? null,
+                'score' => $questionScore,
+                'sort_order' => $validated['sort_order'] ?? 0,
+                'is_active' => $questionIsActive,
+            ]);
+
+            if ($validated['question_type'] === 'multiple_choice') {
+                $this->saveOptions($q, $validated['options'], $validated['correct_option']);
+            }
+
+            return $q;
+        });
+
+        $deactivated = $this->configService->handlePostMutationDeactivation($modulePractice);
+        $message = $deactivated
+            ? 'Practice question created. Practice was deactivated because active question scores no longer match total score.'
+            : 'Practice question has been created successfully.';
 
         return redirect()
             ->route('admin.course-management.practices.questions.index', $modulePractice)
-            ->with('success', 'Practice question has been created successfully.');
+            ->with($deactivated ? 'warning' : 'success', $message);
     }
 
     public function edit(ModulePracticeQuestion $modulePracticeQuestion)
@@ -323,37 +399,67 @@ class ModulePracticeQuestionController extends Controller
 
     public function update(Request $request, ModulePracticeQuestion $modulePracticeQuestion)
     {
+        $practice = $modulePracticeQuestion->practice;
+        $this->configService->ensureNotLocked($practice);
+
         $validated = $this->validateQuestion($request);
 
-        $modulePracticeQuestion->update([
-            'question_type' => $validated['question_type'],
-            'question' => $validated['question'],
-            'explanation' => $validated['explanation'] ?? null,
-            'score' => $validated['score'] ?? 0,
-            'sort_order' => $validated['sort_order'] ?? 0,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $questionIsActive = $request->boolean('is_active');
+        $questionScore = (float) ($validated['score'] ?? 0);
 
-        if ($validated['question_type'] === 'multiple_choice') {
-            $this->saveOptions($modulePracticeQuestion, $validated['options'], $validated['correct_option']);
-        } else {
-            $modulePracticeQuestion->options()->delete();
-        }
+        $this->configService->validateProspectiveScore($practice, $questionScore, $questionIsActive, $modulePracticeQuestion);
+
+        DB::transaction(function () use ($modulePracticeQuestion, $practice, $validated, $questionIsActive, $questionScore) {
+            $lockedPractice = ModulePractice::whereKey($practice->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedPractice);
+            $this->configService->validateProspectiveScore($lockedPractice, $questionScore, $questionIsActive, $modulePracticeQuestion);
+
+            $modulePracticeQuestion->update([
+                'question_type' => $validated['question_type'],
+                'question' => $validated['question'],
+                'explanation' => $validated['explanation'] ?? null,
+                'score' => $questionScore,
+                'sort_order' => $validated['sort_order'] ?? 0,
+                'is_active' => $questionIsActive,
+            ]);
+
+            if ($validated['question_type'] === 'multiple_choice') {
+                $this->saveOptions($modulePracticeQuestion, $validated['options'], $validated['correct_option']);
+            } else {
+                $modulePracticeQuestion->options()->delete();
+            }
+        });
+
+        $deactivated = $this->configService->handlePostMutationDeactivation($practice);
+        $message = $deactivated
+            ? 'Practice question updated. Practice was deactivated because active question scores no longer match total score.'
+            : 'Practice question has been updated successfully.';
 
         return redirect()
-            ->route('admin.course-management.practices.questions.index', $modulePracticeQuestion->practice)
-            ->with('success', 'Practice question has been updated successfully.');
+            ->route('admin.course-management.practices.questions.index', $practice)
+            ->with($deactivated ? 'warning' : 'success', $message);
     }
 
     public function destroy(ModulePracticeQuestion $modulePracticeQuestion)
     {
         $practice = $modulePracticeQuestion->practice;
+        $this->configService->ensureNotLocked($practice);
 
-        $modulePracticeQuestion->delete();
+        DB::transaction(function () use ($modulePracticeQuestion, $practice) {
+            $lockedPractice = ModulePractice::whereKey($practice->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedPractice);
+
+            $modulePracticeQuestion->delete();
+        });
+
+        $deactivated = $this->configService->handlePostMutationDeactivation($practice);
+        $message = $deactivated
+            ? 'Practice question deleted. Practice was deactivated because active question scores no longer match total score.'
+            : 'Practice question has been deleted successfully.';
 
         return redirect()
             ->route('admin.course-management.practices.questions.index', $practice)
-            ->with('success', 'Practice question has been deleted successfully.');
+            ->with($deactivated ? 'warning' : 'success', $message);
     }
 
     private function validateQuestion(Request $request): array

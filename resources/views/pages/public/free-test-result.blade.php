@@ -4,28 +4,25 @@
 @php
 $freeTest = $freeTestResult->freeTest;
 
-$maxScore = $freeTest
-? (int) $freeTest->questions()->where('is_active', true)->sum('score')
-: 100;
+$maxScore = round((float) ($freeTestResult->max_score ?? $freeTest?->total_score ?? 100), 2);
+$rawScore = round((float) ($freeTestResult->raw_score ?? $freeTestResult->total_score ?? 0), 2);
+$scorePercentage = $maxScore > 0 ? round(($rawScore / $maxScore) * 100, 2) : 0;
 
-$maxScore = $maxScore > 0 ? $maxScore : 100;
+$resultMode = $freeTestResult->result_mode instanceof \App\Enums\AssessmentResultMode
+    ? $freeTestResult->result_mode->value
+    : (string) ($freeTestResult->result_mode ?? 'pass_fail');
 
-$score = (int) $freeTestResult->total_score;
-$passingGrade = (int) ($freeTest?->passing_grade ?? 0);
-$isPassed = $passingGrade > 0 ? $score >= $passingGrade : false;
+$isPassed = $freeTestResult->is_passed;
 
-$levelLabel = $isPassed
-? 'Passed'
-: 'Need Improvement';
+$levelLabel = match ($resultMode) {
+    'pass_fail' => ($isPassed ? 'Passed' : 'Need Improvement'),
+    default => 'Completed',
+};
 
 $summary = $freeTestResult->recommendation ?: 'Thank you for completing the free test. Our team can help you choose the right program based on your result.';
 
 $whatsappMessage = 'Hello Queens English Prestige, I have completed the free test and would like to consult about the recommended course.';
 $whatsappHref = 'https://wa.me/6285274979336?text=' . urlencode($whatsappMessage);
-
-$scorePercentage = $maxScore > 0
-? round(($score / $maxScore) * 100)
-: 0;
 @endphp
 
 <section class="bg-[#f7f6f2]">
@@ -44,14 +41,14 @@ $scorePercentage = $maxScore > 0
                 <div class="reveal rounded-[20px] border border-slate-200 bg-white px-6 py-10 lg:px-10 lg:py-12">
                     <div class="flex flex-col items-center text-center">
                         <x-public.test-score-ring
-                            :score="$score"
-                            :maxScore="$maxScore" />
+                            :score="(int) round($rawScore)"
+                            :maxScore="(int) round($maxScore)" />
 
                         <div class="mt-8">
                             <x-public.test-level-badge>
                                 <x-slot:icon>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        @if ($isPassed)
+                                        @if ($resultMode === 'pass_fail' && $isPassed)
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4" />
                                         @else
@@ -71,10 +68,14 @@ $scorePercentage = $maxScore > 0
                         <div class="mt-6 grid w-full max-w-md gap-3 sm:grid-cols-2">
                             <div class="rounded-2xl bg-slate-50 p-4">
                                 <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-                                    Passing Grade
+                                    Passing Score
                                 </p>
                                 <p class="mt-1 text-xl font-bold text-slate-900">
-                                    {{ $passingGrade ?: '-' }}
+                                    @if ($resultMode === 'pass_fail' && $freeTestResult->passing_score !== null)
+                                        {{ number_format((float) $freeTestResult->passing_score, 2) }} pts
+                                    @else
+                                        Score Only
+                                    @endif
                                 </p>
                             </div>
 

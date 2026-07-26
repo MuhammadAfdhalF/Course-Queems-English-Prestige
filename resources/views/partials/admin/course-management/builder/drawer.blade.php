@@ -440,18 +440,29 @@
                                             class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
                                     </div>
 
-                                    <div class="grid gap-4 sm:grid-cols-3">
+                                    {{-- Locked Notice --}}
+                                    <template x-if="drawerData.is_locked">
+                                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs font-semibold text-amber-800 flex items-start gap-2">
+                                            <svg class="h-4 w-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                            </svg>
+                                            <span>Scoring configuration cannot be changed because this practice already has student attempts.</span>
+                                        </div>
+                                    </template>
+
+                                    <div class="grid gap-4 sm:grid-cols-2">
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Passing Grade (%) <span class="text-rose-500">*</span></label>
-                                            <input
-                                                type="number"
-                                                x-model="drawerData.passing_grade"
-                                                min="0"
-                                                max="100"
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Result Type <span class="text-rose-500">*</span></label>
+                                            <select
+                                                x-model="drawerData.result_mode"
+                                                :disabled="drawerData.is_locked"
                                                 required
-                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
-                                            <template x-if="drawerErrors.passing_grade">
-                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.passing_grade[0]"></p>
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500">
+                                                <option value="pass_fail">Pass / Fail</option>
+                                                <option value="score_only">Score Only</option>
+                                            </select>
+                                            <template x-if="drawerErrors.result_mode">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.result_mode[0]"></p>
                                             </template>
                                         </div>
 
@@ -459,22 +470,95 @@
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Grading Method <span class="text-rose-500">*</span></label>
                                             <select
                                                 x-model="drawerData.grading_method"
+                                                :disabled="drawerData.is_locked"
                                                 required
-                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none">
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500">
                                                 <option value="auto">Automatic</option>
                                                 <option value="manual">Manual Review</option>
                                                 <option value="mixed">Mixed (Auto & Manual)</option>
                                             </select>
                                         </div>
+                                    </div>
 
+                                    <div class="grid gap-4 sm:grid-cols-2">
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Max Attempts</label>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Total Score <span class="text-rose-500">*</span></label>
                                             <input
                                                 type="number"
+                                                step="0.01"
+                                                min="0.01"
+                                                x-model="drawerData.total_score"
+                                                :disabled="drawerData.is_locked"
+                                                required
+                                                placeholder="e.g. 100"
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500" />
+                                            <template x-if="drawerErrors.total_score">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.total_score[0]"></p>
+                                            </template>
+                                        </div>
+
+                                        <div x-show="drawerData.result_mode === 'pass_fail'">
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Minimum Passing Score <span class="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0.01"
+                                                :max="drawerData.total_score"
+                                                x-model="drawerData.passing_score"
+                                                :disabled="drawerData.is_locked"
+                                                :required="drawerData.result_mode === 'pass_fail'"
+                                                placeholder="e.g. 80"
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500" />
+                                            <template x-if="drawerErrors.passing_score">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.passing_score[0]"></p>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    {{-- Helper Text --}}
+                                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600 space-y-1">
+                                        <template x-if="drawerData.result_mode === 'pass_fail'">
+                                            <p class="font-medium">Students pass when their earned score is equal to or greater than the minimum passing score.</p>
+                                        </template>
+                                        <template x-if="drawerData.result_mode === 'score_only'">
+                                            <p class="font-medium">This assessment reports a score without Passed or Failed status.</p>
+                                        </template>
+                                        <div class="flex items-center gap-4 text-slate-500 font-semibold pt-1 border-t border-slate-200/60">
+                                            <span>Score Range: 0–<span x-text="drawerData.total_score || 0"></span></span>
+                                            <span x-show="drawerData.result_mode === 'pass_fail'">Passing Score: <span x-text="drawerData.passing_score || 0"></span></span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Attempt Limit --}}
+                                    <div class="space-y-2 pt-2 border-t border-slate-200">
+                                        <label class="block text-xs font-bold text-slate-700">Attempt Limit <span class="text-rose-500">*</span></label>
+                                        <div class="grid gap-3 sm:grid-cols-3">
+                                            <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
+                                                <input type="radio" value="unlimited" x-model="drawerData.attempt_mode" name="practice_attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+                                                <span class="text-xs font-bold text-slate-700">Unlimited</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
+                                                <input type="radio" value="one" x-model="drawerData.attempt_mode" name="practice_attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+                                                <span class="text-xs font-bold text-slate-700">One Attempt</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
+                                                <input type="radio" value="multiple" x-model="drawerData.attempt_mode" name="practice_attempt_mode" class="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+                                                <span class="text-xs font-bold text-slate-700">Multiple</span>
+                                            </label>
+                                        </div>
+
+                                        <div x-show="drawerData.attempt_mode === 'multiple'" class="pt-2">
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Maximum Attempts <span class="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                min="2"
                                                 x-model="drawerData.max_attempts"
-                                                min="1"
-                                                placeholder="Unlimited if empty"
-                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
+                                                :required="drawerData.attempt_mode === 'multiple'"
+                                                placeholder="e.g. 3"
+                                                class="w-full sm:w-48 rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
+                                            <template x-if="drawerErrors.max_attempts">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.max_attempts[0]"></p>
+                                            </template>
                                         </div>
                                     </div>
 
@@ -627,18 +711,29 @@
                                             class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none"></textarea>
                                     </div>
 
-                                    <div class="grid gap-4 sm:grid-cols-3">
+                                    {{-- Locked Notice --}}
+                                    <template x-if="drawerData.is_locked">
+                                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs font-semibold text-amber-800 flex items-start gap-2">
+                                            <svg class="h-4 w-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                            </svg>
+                                            <span>Scoring configuration cannot be changed because this section already has student attempts.</span>
+                                        </div>
+                                    </template>
+
+                                    <div class="grid gap-4 sm:grid-cols-2">
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Passing Grade (%) <span class="text-rose-500">*</span></label>
-                                            <input
-                                                type="number"
-                                                x-model="drawerData.passing_grade"
-                                                min="0"
-                                                max="100"
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Result Type <span class="text-rose-500">*</span></label>
+                                            <select
+                                                x-model="drawerData.result_mode"
+                                                :disabled="drawerData.is_locked"
                                                 required
-                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none" />
-                                            <template x-if="drawerErrors.passing_grade">
-                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.passing_grade[0]"></p>
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500">
+                                                <option value="pass_fail">Pass / Fail</option>
+                                                <option value="score_only">Score Only</option>
+                                            </select>
+                                            <template x-if="drawerErrors.result_mode">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.result_mode[0]"></p>
                                             </template>
                                         </div>
 
@@ -646,22 +741,95 @@
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Grading Method <span class="text-rose-500">*</span></label>
                                             <select
                                                 x-model="drawerData.grading_method"
+                                                :disabled="drawerData.is_locked"
                                                 required
-                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none">
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500">
                                                 <option value="auto">Automatic</option>
                                                 <option value="manual">Manual Review</option>
                                                 <option value="mixed">Mixed (Auto & Manual)</option>
                                             </select>
                                         </div>
+                                    </div>
 
+                                    <div class="grid gap-4 sm:grid-cols-2">
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Max Attempts</label>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Total Score <span class="text-rose-500">*</span></label>
                                             <input
                                                 type="number"
+                                                step="0.01"
+                                                min="0.01"
+                                                x-model="drawerData.total_score"
+                                                :disabled="drawerData.is_locked"
+                                                required
+                                                placeholder="e.g. 100"
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500" />
+                                            <template x-if="drawerErrors.total_score">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.total_score[0]"></p>
+                                            </template>
+                                        </div>
+
+                                        <div x-show="drawerData.result_mode === 'pass_fail'">
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Minimum Passing Score <span class="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0.01"
+                                                :max="drawerData.total_score"
+                                                x-model="drawerData.passing_score"
+                                                :disabled="drawerData.is_locked"
+                                                :required="drawerData.result_mode === 'pass_fail'"
+                                                placeholder="e.g. 75"
+                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500" />
+                                            <template x-if="drawerErrors.passing_score">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.passing_score[0]"></p>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    {{-- Helper Text --}}
+                                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600 space-y-1">
+                                        <template x-if="drawerData.result_mode === 'pass_fail'">
+                                            <p class="font-medium">Students pass when their earned score is equal to or greater than the minimum passing score.</p>
+                                        </template>
+                                        <template x-if="drawerData.result_mode === 'score_only'">
+                                            <p class="font-medium">This assessment reports a score without Passed or Failed status.</p>
+                                        </template>
+                                        <div class="flex items-center gap-4 text-slate-500 font-semibold pt-1 border-t border-slate-200/60">
+                                            <span>Score Range: 0–<span x-text="drawerData.total_score || 0"></span></span>
+                                            <span x-show="drawerData.result_mode === 'pass_fail'">Passing Score: <span x-text="drawerData.passing_score || 0"></span></span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Attempt Limit --}}
+                                    <div class="space-y-2 pt-2 border-t border-slate-200">
+                                        <label class="block text-xs font-bold text-slate-700">Attempt Limit <span class="text-rose-500">*</span></label>
+                                        <div class="grid gap-3 sm:grid-cols-3">
+                                            <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
+                                                <input type="radio" value="unlimited" x-model="drawerData.attempt_mode" name="exam_attempt_mode" class="h-4 w-4 text-purple-600 focus:ring-purple-500" />
+                                                <span class="text-xs font-bold text-slate-700">Unlimited</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
+                                                <input type="radio" value="one" x-model="drawerData.attempt_mode" name="exam_attempt_mode" class="h-4 w-4 text-purple-600 focus:ring-purple-500" />
+                                                <span class="text-xs font-bold text-slate-700">One Attempt</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 rounded-xl border border-slate-300 p-2.5 cursor-pointer hover:bg-slate-50">
+                                                <input type="radio" value="multiple" x-model="drawerData.attempt_mode" name="exam_attempt_mode" class="h-4 w-4 text-purple-600 focus:ring-purple-500" />
+                                                <span class="text-xs font-bold text-slate-700">Multiple</span>
+                                            </label>
+                                        </div>
+
+                                        <div x-show="drawerData.attempt_mode === 'multiple'" class="pt-2">
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Maximum Attempts <span class="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                min="2"
                                                 x-model="drawerData.max_attempts"
-                                                min="1"
-                                                placeholder="Unlimited if empty"
-                                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none" />
+                                                :required="drawerData.attempt_mode === 'multiple'"
+                                                placeholder="e.g. 3"
+                                                class="w-full sm:w-48 rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none" />
+                                            <template x-if="drawerErrors.max_attempts">
+                                                <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.max_attempts[0]"></p>
+                                            </template>
                                         </div>
                                     </div>
 

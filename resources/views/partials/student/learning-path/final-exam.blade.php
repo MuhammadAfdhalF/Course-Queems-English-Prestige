@@ -5,7 +5,6 @@
             'id' => $finalExam->id,
             'title' => $finalExam->title,
             'description' => $finalExam->description,
-            'passing_grade' => $finalExam->passing_grade,
             'grading_method' => $finalExam->grading_method,
             'max_attempts' => $finalExam->max_attempts,
             'sort_order' => $finalExam->sort_order,
@@ -54,7 +53,11 @@
                         </span>
 
                         <span class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-[var(--color-brand-gold)] ring-1 ring-white/10">
-                            Passing grade: {{ $item['passing_grade'] }}%
+                            @if (($item['result_mode'] ?? 'pass_fail') === 'pass_fail' && isset($item['passing_score']) && $item['passing_score'] !== null)
+                                Passing: {{ number_format((float) $item['passing_score'], 2) }} / {{ number_format((float) ($item['total_score'] ?? 100), 2) }}
+                            @else
+                                Score Only Mode
+                            @endif
                         </span>
 
                         @if ($item['max_attempts'])

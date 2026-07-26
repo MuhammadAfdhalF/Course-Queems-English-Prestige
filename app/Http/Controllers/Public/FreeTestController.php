@@ -8,8 +8,14 @@ use App\Models\FreeTestCategory;
 use App\Models\FreeTestResult;
 use Illuminate\Http\Request;
 
+use App\Services\AssessmentScoringService;
+
 class FreeTestController extends Controller
 {
+    public function __construct(
+        protected AssessmentScoringService $scoringService
+    ) {}
+
     public function index(Request $request)
     {
         $selectedCategory = $request->query('category');
@@ -105,27 +111,24 @@ class FreeTestController extends Controller
             ]);
         }
 
-        $totalScore = 0;
+        $earnedScore = 0;
 
         foreach ($questions as $question) {
             $selectedAnswer = $validated['answers'][$question->id] ?? null;
 
             if ($selectedAnswer === $question->correct_answer) {
-                $totalScore += (int) $question->score;
+                $earnedScore += (float) $question->score;
             }
         }
 
-        $recommendation = $this->buildRecommendation($freeTest, $totalScore);
+        $resultPayload = $this->scoringService->calculateFreeTestSubmission($freeTest, $earnedScore);
 
-        $freeTestResult = FreeTestResult::create([
+        $freeTestResult = FreeTestResult::create(array_merge([
             'free_test_id' => $freeTest->id,
             'participant_name' => $validated['participant_name'],
             'participant_email' => $validated['participant_email'],
             'participant_whatsapp' => $validated['participant_whatsapp'],
-            'total_score' => $totalScore,
-            'recommendation' => $recommendation,
-            'submitted_at' => now(),
-        ]);
+        ], $resultPayload));
 
         return redirect()->route('free-test.result', $freeTestResult);
     }
@@ -135,16 +138,5 @@ class FreeTestController extends Controller
         $freeTestResult->load('freeTest.categoryRelation');
 
         return view('pages.public.free-test-result', compact('freeTestResult'));
-    }
-
-    private function buildRecommendation(FreeTest $freeTest, int $totalScore): string
-    {
-        $passingGrade = (int) $freeTest->passing_grade;
-
-        if ($passingGrade > 0 && $totalScore >= $passingGrade) {
-            return 'Great job! You passed this free test. You already have a strong foundation, and we recommend continuing with a structured program to sharpen your fluency, accuracy, and confidence.';
-        }
-
-        return 'We recommend starting from a foundational program to strengthen your English basics before moving to more advanced materials. Our team can help you choose the most suitable course based on your result.';
     }
 }

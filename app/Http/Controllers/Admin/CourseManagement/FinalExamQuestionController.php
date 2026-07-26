@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\CourseProgram;
 use App\Models\FinalExam;
 use App\Models\FinalExamQuestion;
+use App\Services\AssessmentConfigService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class FinalExamQuestionController extends Controller
 {
+    public function __construct(
+        protected AssessmentConfigService $configService
+    ) {}
+
     public function index(FinalExam $finalExam)
     {
         $finalExam->load('courseLevel.courseProgram');
@@ -56,17 +61,26 @@ class FinalExamQuestionController extends Controller
             ], 403);
         }
 
+        $this->configService->ensureNotLocked($finalExam);
+
         $validated = $this->validateQuestion($request);
         $questionIsActive = $request->boolean('is_active');
+        $questionScore = (float) ($validated['score'] ?? 0);
 
-        $question = DB::transaction(function () use ($finalExam, $validated, $questionIsActive) {
-            $sortOrder = $validated['sort_order'] ?? (((int) $finalExam->questions()->max('sort_order')) + 1);
+        $this->configService->validateProspectiveScore($finalExam, $questionScore, $questionIsActive);
 
-            $q = $finalExam->questions()->create([
+        $question = DB::transaction(function () use ($finalExam, $validated, $questionIsActive, $questionScore) {
+            $lockedExam = FinalExam::whereKey($finalExam->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedExam);
+            $this->configService->validateProspectiveScore($lockedExam, $questionScore, $questionIsActive);
+
+            $sortOrder = $validated['sort_order'] ?? (((int) $lockedExam->questions()->max('sort_order')) + 1);
+
+            $q = $lockedExam->questions()->create([
                 'question_type' => $validated['question_type'],
                 'question' => $validated['question'],
                 'explanation' => $validated['explanation'] ?? null,
-                'score' => $validated['score'] ?? 0,
+                'score' => $questionScore,
                 'sort_order' => $sortOrder,
                 'is_active' => $questionIsActive,
             ]);
@@ -78,9 +92,15 @@ class FinalExamQuestionController extends Controller
             return $q;
         });
 
+        $deactivated = $this->configService->handlePostMutationDeactivation($finalExam);
+        $message = $deactivated
+            ? 'Final Exam question created. Section was deactivated because active question scores no longer match total score.'
+            : 'Final Exam question created successfully.';
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Final Exam question created successfully.',
+            'message' => $message,
+            'deactivated' => $deactivated,
             'question_id' => $question->id,
             'redirect_node' => [
                 'level' => $finalExam->course_level_id,
@@ -122,6 +142,7 @@ class FinalExamQuestionController extends Controller
                 'score' => $finalExamQuestion->score,
                 'sort_order' => $finalExamQuestion->sort_order,
                 'is_active' => (bool) $finalExamQuestion->is_active,
+                'is_locked' => $this->configService->hasHistory($finalExamQuestion->finalExam),
                 'options' => $optionsDict,
                 'correct_option' => $correctOption,
                 'update_url' => route('admin.course-management.programs.builder.final-exam-questions.update', ['courseProgram' => $courseProgram->id, 'finalExamQuestion' => $finalExamQuestion->id]),
@@ -140,16 +161,27 @@ class FinalExamQuestionController extends Controller
             ], 403);
         }
 
-        $validated = $this->validateQuestion($request);
+        $finalExam = $finalExamQuestion->finalExam;
+        $this->configService->ensureNotLocked($finalExam);
 
-        DB::transaction(function () use ($finalExamQuestion, $validated, $request) {
+        $validated = $this->validateQuestion($request);
+        $questionIsActive = $request->boolean('is_active');
+        $questionScore = (float) ($validated['score'] ?? 0);
+
+        $this->configService->validateProspectiveScore($finalExam, $questionScore, $questionIsActive, $finalExamQuestion);
+
+        DB::transaction(function () use ($finalExamQuestion, $finalExam, $validated, $request, $questionIsActive, $questionScore) {
+            $lockedExam = FinalExam::whereKey($finalExam->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedExam);
+            $this->configService->validateProspectiveScore($lockedExam, $questionScore, $questionIsActive, $finalExamQuestion);
+
             $finalExamQuestion->update([
                 'question_type' => $validated['question_type'],
                 'question' => $validated['question'],
                 'explanation' => $validated['explanation'] ?? null,
-                'score' => $validated['score'] ?? 0,
+                'score' => $questionScore,
                 'sort_order' => $validated['sort_order'] ?? $finalExamQuestion->sort_order,
-                'is_active' => $request->boolean('is_active'),
+                'is_active' => $questionIsActive,
             ]);
 
             if ($validated['question_type'] === 'multiple_choice') {
@@ -159,9 +191,15 @@ class FinalExamQuestionController extends Controller
             }
         });
 
+        $deactivated = $this->configService->handlePostMutationDeactivation($finalExam);
+        $message = $deactivated
+            ? 'Final Exam question updated. Section was deactivated because active question scores no longer match total score.'
+            : 'Final Exam question updated successfully.';
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Final Exam question updated successfully.',
+            'message' => $message,
+            'deactivated' => $deactivated,
             'question_id' => $finalExamQuestion->id,
             'redirect_node' => [
                 'level' => $finalExamQuestion->finalExam->course_level_id,
@@ -183,20 +221,33 @@ class FinalExamQuestionController extends Controller
             ], 403);
         }
 
-        // Delete Guard: Check if student answers exist
-        if ($finalExamQuestion->answers()->exists()) {
+        $finalExam = $finalExamQuestion->finalExam;
+        $this->configService->ensureNotLocked($finalExam);
+
+        // Delete Guard: Check if student answers/attempts exist
+        if ($this->configService->hasHistory($finalExam)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Cannot delete question because student answers exist.'
+                'message' => 'Questions cannot be changed because this assessment already has student attempts/results.'
             ], 422);
         }
 
-        $finalExam = $finalExamQuestion->finalExam;
-        $finalExamQuestion->delete();
+        DB::transaction(function () use ($finalExamQuestion, $finalExam) {
+            $lockedExam = FinalExam::whereKey($finalExam->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedExam);
+
+            $finalExamQuestion->delete();
+        });
+
+        $deactivated = $this->configService->handlePostMutationDeactivation($finalExam);
+        $message = $deactivated
+            ? 'Final Exam question deleted. Section was deactivated because active question scores no longer match total score.'
+            : 'Final Exam question deleted successfully.';
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Final Exam question deleted successfully.',
+            'message' => $message,
+            'deactivated' => $deactivated,
             'redirect_node' => [
                 'level' => $finalExam->course_level_id,
                 'module' => null,
@@ -217,6 +268,8 @@ class FinalExamQuestionController extends Controller
             ], 403);
         }
 
+        $this->configService->ensureNotLocked($finalExam);
+
         $validated = $request->validate([
             'ordered_ids' => ['required', 'array'],
             'ordered_ids.*' => ['required', 'integer'],
@@ -233,6 +286,8 @@ class FinalExamQuestionController extends Controller
                 $lockedExam = FinalExam::whereKey($finalExam->id)
                     ->lockForUpdate()
                     ->firstOrFail();
+
+                $this->configService->ensureNotLocked($lockedExam);
 
                 // 2. Lock & read current server siblings
                 $siblings = $lockedExam->questions()
@@ -297,41 +352,44 @@ class FinalExamQuestionController extends Controller
 
     public function store(Request $request, FinalExam $finalExam)
     {
+        $this->configService->ensureNotLocked($finalExam);
+
         $validated = $this->validateQuestion($request);
 
         $questionIsActive = $request->boolean('is_active');
+        $questionScore = (float) ($validated['score'] ?? 0);
 
-        $question = $finalExam->questions()->create([
-            'question_type' => $validated['question_type'],
-            'question' => $validated['question'],
-            'explanation' => $validated['explanation'] ?? null,
-            'score' => $validated['score'] ?? 0,
-            'sort_order' => $validated['sort_order'] ?? 0,
-            'is_active' => $questionIsActive,
-        ]);
+        $this->configService->validateProspectiveScore($finalExam, $questionScore, $questionIsActive);
 
-        if ($validated['question_type'] === 'multiple_choice') {
-            $this->saveOptions($question, $validated['options'], $validated['correct_option']);
-        }
+        $question = DB::transaction(function () use ($finalExam, $validated, $questionIsActive, $questionScore) {
+            $lockedExam = FinalExam::whereKey($finalExam->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedExam);
+            $this->configService->validateProspectiveScore($lockedExam, $questionScore, $questionIsActive);
 
-        $activateWhenReady = $request->boolean('activate_when_ready');
-        $sectionActivated = false;
+            $q = $lockedExam->questions()->create([
+                'question_type' => $validated['question_type'],
+                'question' => $validated['question'],
+                'explanation' => $validated['explanation'] ?? null,
+                'score' => $questionScore,
+                'sort_order' => $validated['sort_order'] ?? 0,
+                'is_active' => $questionIsActive,
+            ]);
 
-        if ($activateWhenReady && $questionIsActive && ! $finalExam->is_active) {
-            $activeQuestionsCount = $finalExam->questions()->where('is_active', true)->count();
-            if ($activeQuestionsCount === 1) {
-                $finalExam->update(['is_active' => true]);
-                $sectionActivated = true;
+            if ($validated['question_type'] === 'multiple_choice') {
+                $this->saveOptions($q, $validated['options'], $validated['correct_option']);
             }
-        }
 
-        $message = $sectionActivated
-            ? 'Question created and Final Exam section activated successfully.'
+            return $q;
+        });
+
+        $deactivated = $this->configService->handlePostMutationDeactivation($finalExam);
+        $message = $deactivated
+            ? 'Final exam question created. Section was deactivated because active question scores no longer match total score.'
             : 'Final exam question has been created successfully.';
 
         return redirect()
             ->route('admin.course-management.final-exams.questions.index', $finalExam)
-            ->with('success', $message);
+            ->with($deactivated ? 'warning' : 'success', $message);
     }
 
     public function edit(FinalExamQuestion $finalExamQuestion)
@@ -343,37 +401,67 @@ class FinalExamQuestionController extends Controller
 
     public function update(Request $request, FinalExamQuestion $finalExamQuestion)
     {
+        $finalExam = $finalExamQuestion->finalExam;
+        $this->configService->ensureNotLocked($finalExam);
+
         $validated = $this->validateQuestion($request);
 
-        $finalExamQuestion->update([
-            'question_type' => $validated['question_type'],
-            'question' => $validated['question'],
-            'explanation' => $validated['explanation'] ?? null,
-            'score' => $validated['score'] ?? 0,
-            'sort_order' => $validated['sort_order'] ?? 0,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $questionIsActive = $request->boolean('is_active');
+        $questionScore = (float) ($validated['score'] ?? 0);
 
-        if ($validated['question_type'] === 'multiple_choice') {
-            $this->saveOptions($finalExamQuestion, $validated['options'], $validated['correct_option']);
-        } else {
-            $finalExamQuestion->options()->delete();
-        }
+        $this->configService->validateProspectiveScore($finalExam, $questionScore, $questionIsActive, $finalExamQuestion);
+
+        DB::transaction(function () use ($finalExamQuestion, $finalExam, $validated, $questionIsActive, $questionScore) {
+            $lockedExam = FinalExam::whereKey($finalExam->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedExam);
+            $this->configService->validateProspectiveScore($lockedExam, $questionScore, $questionIsActive, $finalExamQuestion);
+
+            $finalExamQuestion->update([
+                'question_type' => $validated['question_type'],
+                'question' => $validated['question'],
+                'explanation' => $validated['explanation'] ?? null,
+                'score' => $questionScore,
+                'sort_order' => $validated['sort_order'] ?? 0,
+                'is_active' => $questionIsActive,
+            ]);
+
+            if ($validated['question_type'] === 'multiple_choice') {
+                $this->saveOptions($finalExamQuestion, $validated['options'], $validated['correct_option']);
+            } else {
+                $finalExamQuestion->options()->delete();
+            }
+        });
+
+        $deactivated = $this->configService->handlePostMutationDeactivation($finalExam);
+        $message = $deactivated
+            ? 'Final exam question updated. Section was deactivated because active question scores no longer match total score.'
+            : 'Final exam question has been updated successfully.';
 
         return redirect()
-            ->route('admin.course-management.final-exams.questions.index', $finalExamQuestion->finalExam)
-            ->with('success', 'Final exam question has been updated successfully.');
+            ->route('admin.course-management.final-exams.questions.index', $finalExam)
+            ->with($deactivated ? 'warning' : 'success', $message);
     }
 
     public function destroy(FinalExamQuestion $finalExamQuestion)
     {
         $finalExam = $finalExamQuestion->finalExam;
+        $this->configService->ensureNotLocked($finalExam);
 
-        $finalExamQuestion->delete();
+        DB::transaction(function () use ($finalExamQuestion, $finalExam) {
+            $lockedExam = FinalExam::whereKey($finalExam->id)->lockForUpdate()->firstOrFail();
+            $this->configService->ensureNotLocked($lockedExam);
+
+            $finalExamQuestion->delete();
+        });
+
+        $deactivated = $this->configService->handlePostMutationDeactivation($finalExam);
+        $message = $deactivated
+            ? 'Final exam question deleted. Section was deactivated because active question scores no longer match total score.'
+            : 'Final exam question has been deleted successfully.';
 
         return redirect()
             ->route('admin.course-management.final-exams.questions.index', $finalExam)
-            ->with('success', 'Final exam question has been deleted successfully.');
+            ->with($deactivated ? 'warning' : 'success', $message);
     }
 
     public function preview(FinalExam $finalExam)

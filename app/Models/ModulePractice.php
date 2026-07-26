@@ -6,13 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Enums\AssessmentResultMode;
+
 class ModulePractice extends Model
 {
     protected $fillable = [
         'module_id',
         'title',
         'description',
-        'passing_grade',
+        'total_score',
+        'result_mode',
+        'passing_score',
         'grading_method',
         'max_attempts',
         'is_required',
@@ -20,7 +24,9 @@ class ModulePractice extends Model
     ];
 
     protected $casts = [
-        'passing_grade' => 'integer',
+        'total_score' => 'decimal:2',
+        'result_mode' => AssessmentResultMode::class,
+        'passing_score' => 'decimal:2',
         'max_attempts' => 'integer',
         'is_required' => 'boolean',
         'is_active' => 'boolean',

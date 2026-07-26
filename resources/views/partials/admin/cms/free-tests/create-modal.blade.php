@@ -36,7 +36,7 @@
             placeholder="Write a short description for this free test..."
             rows="4" />
 
-        <div class="grid gap-6 md:grid-cols-2">
+        <div class="grid gap-6 md:grid-cols-3">
             <x-admin.form.input
                 label="Duration Minutes"
                 name="duration_minutes"
@@ -46,15 +46,36 @@
                 :value="old('_form_type') === 'create' ? old('duration_minutes') : ''"
                 placeholder="Example: 30" />
 
+            <x-admin.form.select
+                label="Result Type"
+                name="result_mode"
+                id="create_result_mode"
+                :value="old('_form_type') === 'create' ? old('result_mode', 'score_only') : 'score_only'"
+                :options="['score_only' => 'Score Only', 'pass_fail' => 'Pass / Fail']"
+                :required="true" />
+
             <x-admin.form.input
-                label="Passing Grade (%)"
-                name="passing_grade"
-                id="create_passing_grade"
+                label="Total Score"
+                name="total_score"
+                id="create_total_score"
                 type="number"
-                min="0"
-                max="100"
-                :value="old('_form_type') === 'create' ? old('passing_grade') : ''"
-                placeholder="Example: 70" />
+                step="0.01"
+                min="0.01"
+                :value="old('_form_type') === 'create' ? old('total_score', 100) : 100"
+                placeholder="Example: 100"
+                :required="true" />
+        </div>
+
+        <div id="create_passing_score_wrapper" class="grid gap-6 md:grid-cols-2">
+            <x-admin.form.input
+                label="Minimum Passing Score"
+                name="passing_score"
+                id="create_passing_score"
+                type="number"
+                step="0.01"
+                min="0.01"
+                :value="old('_form_type') === 'create' ? old('passing_score') : ''"
+                placeholder="Required if Pass / Fail" />
         </div>
 
         <x-admin.form.checkbox

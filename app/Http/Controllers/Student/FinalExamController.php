@@ -14,8 +14,14 @@ use App\Services\CertificateService;
 use App\Models\Certificate;
 use App\Services\AdminNotificationService;
 
+use App\Services\AssessmentScoringService;
+
 class FinalExamController extends Controller
 {
+    public function __construct(
+        protected AssessmentScoringService $scoringService
+    ) {}
+
     public function show(StudentCourseEnrollment $enrollment, FinalExam $finalExam): View|RedirectResponse
     {
         $this->authorizeAccess($enrollment, $finalExam);
@@ -126,97 +132,98 @@ class FinalExamController extends Controller
                 ->withInput();
         }
 
-        $attemptNumber = FinalExamAttempt::query()
-            ->where('student_id', auth()->id())
-            ->where('final_exam_id', $finalExam->id)
-            ->count() + 1;
+        // Process attempt & scoring atomically
+        $resultData = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $finalExam, $answers) {
+            $lockedExam = FinalExam::whereKey($finalExam->id)->lockForUpdate()->firstOrFail();
 
-        $attempt = FinalExamAttempt::create([
-            'student_id' => auth()->id(),
-            'final_exam_id' => $finalExam->id,
-            'attempt_number' => $attemptNumber,
-            'total_score' => 0,
-            'status' => 'in_progress',
-            'started_at' => now(),
-        ]);
-
-        $earnedScore = 0;
-        $maxScore = 0;
-        $hasManualReview = false;
-
-        foreach ($finalExam->questions as $question) {
-            $questionScore = (float) $question->score;
-            $maxScore += $questionScore;
-
-            $answerPayload = [
-                'final_exam_attempt_id' => $attempt->id,
-                'final_exam_question_id' => $question->id,
-                'selected_option_id' => null,
-                'answer_text' => null,
-                'uploaded_file' => null,
-                'score' => 0,
-                'feedback' => null,
-                'is_correct' => null,
-            ];
-
-            if ($question->question_type === 'multiple_choice') {
-                $selectedOptionId = (int) ($answers[$question->id] ?? 0);
-
-                $selectedOption = $question->options
-                    ->firstWhere('id', $selectedOptionId);
-
-                if (! $selectedOption) {
-                    $attempt->delete();
-
-                    return back()
-                        ->withErrors([
-                            "answers.$question->id" => 'Selected option is invalid.',
-                        ])
-                        ->withInput();
-                }
-
-                $isCorrect = (bool) $selectedOption->is_correct;
-                $score = $isCorrect ? $questionScore : 0;
-
-                $earnedScore += $score;
-
-                $answerPayload['selected_option_id'] = $selectedOption->id;
-                $answerPayload['answer_text'] = $selectedOption->option_label;
-                $answerPayload['score'] = $score;
-                $answerPayload['is_correct'] = $isCorrect;
-            } elseif ($question->question_type === 'upload') {
-                $hasManualReview = true;
-
-                $file = $request->file("uploads.$question->id");
-
-                if ($file) {
-                    $answerPayload['uploaded_file'] = $file->store('final-exam-answers', 'public');
-                }
-            } else {
-                $hasManualReview = true;
-                $answerPayload['answer_text'] = trim((string) ($answers[$question->id] ?? ''));
+            if (! $lockedExam->is_active) {
+                throw new \RuntimeException('This final exam is not active.');
             }
 
-            $attempt->answers()->create($answerPayload);
-        }
+            if ($this->hasReachedMaxAttempts($lockedExam)) {
+                throw new \RuntimeException('Maximum attempts reached.');
+            }
 
-        $percentageScore = $maxScore > 0
-            ? round(($earnedScore / $maxScore) * 100, 2)
-            : 0;
+            $snapshot = $this->scoringService->createSnapshotPayload($lockedExam);
 
-        $status = 'waiting_review';
+            $attemptNumber = FinalExamAttempt::query()
+                ->where('student_id', auth()->id())
+                ->where('final_exam_id', $lockedExam->id)
+                ->lockForUpdate()
+                ->count() + 1;
 
-        if (! $hasManualReview) {
-            $status = $percentageScore >= (float) $finalExam->passing_grade
-                ? 'passed'
-                : 'failed';
-        }
-        $attempt->update([
-            'total_score' => $percentageScore,
-            'status' => $status,
-            'submitted_at' => now(),
-            'graded_at' => $hasManualReview ? null : now(),
-        ]);
+            $attempt = FinalExamAttempt::create([
+                'student_id' => auth()->id(),
+                'final_exam_id' => $lockedExam->id,
+                'attempt_number' => $attemptNumber,
+                'raw_score' => null,
+                'max_score' => $snapshot['max_score'],
+                'percentage_score' => null,
+                'result_mode' => $snapshot['result_mode'],
+                'passing_score' => $snapshot['passing_score'],
+                'is_passed' => null,
+                'status' => 'in_progress',
+                'started_at' => now(),
+            ]);
+
+            $earnedScore = 0;
+            $hasManualReview = false;
+
+            foreach ($lockedExam->questions as $question) {
+                $questionScore = (float) $question->score;
+
+                $answerPayload = [
+                    'final_exam_attempt_id' => $attempt->id,
+                    'final_exam_question_id' => $question->id,
+                    'selected_option_id' => null,
+                    'answer_text' => null,
+                    'uploaded_file' => null,
+                    'score' => 0,
+                    'feedback' => null,
+                    'is_correct' => null,
+                ];
+
+                if ($question->question_type === 'multiple_choice') {
+                    $selectedOptionId = (int) ($answers[$question->id] ?? 0);
+                    $selectedOption = $question->options->firstWhere('id', $selectedOptionId);
+
+                    if (! $selectedOption) {
+                        throw new \InvalidArgumentException("Selected option is invalid for question #{$question->id}");
+                    }
+
+                    $isCorrect = (bool) $selectedOption->is_correct;
+                    $score = $isCorrect ? $questionScore : 0;
+                    $earnedScore += $score;
+
+                    $answerPayload['selected_option_id'] = $selectedOption->id;
+                    $answerPayload['answer_text'] = $selectedOption->option_label;
+                    $answerPayload['score'] = $score;
+                    $answerPayload['is_correct'] = $isCorrect;
+                } elseif ($question->question_type === 'upload') {
+                    $hasManualReview = true;
+                    $file = $request->file("uploads.$question->id");
+                    if ($file) {
+                        $answerPayload['uploaded_file'] = $file->store('final-exam-answers', 'public');
+                    }
+                } else {
+                    $hasManualReview = true;
+                    $answerPayload['answer_text'] = trim((string) ($answers[$question->id] ?? ''));
+                }
+
+                $attempt->answers()->create($answerPayload);
+            }
+
+            $submissionData = $this->scoringService->calculateSubmission($attempt, $earnedScore, $hasManualReview);
+            $attempt->update($submissionData);
+
+            return [
+                'attempt' => $attempt,
+                'status' => $submissionData['status'],
+            ];
+        });
+
+        $attempt = $resultData['attempt'];
+        $status = $resultData['status'];
 
         if ($status === 'waiting_review') {
             $adminNotificationService->finalExamWaitingReview($attempt->fresh());
@@ -225,6 +232,7 @@ class FinalExamController extends Controller
         if ($status === 'passed') {
             $certificateService->evaluateAndCreateForEnrollment($enrollment);
         }
+
         return redirect()
             ->route('student.final-exam-result', [
                 'enrollment' => $enrollment,

@@ -33,7 +33,7 @@
     ? $result->submitted_at->format('M d, Y H:i')
     : $result->created_at?->format('M d, Y H:i');
 
-    $passingGrade = $freeTest?->passing_grade;
+    $passingScore = $result->passing_score ?? $freeTest?->passing_score;
     @endphp
 
     <tr class="text-sm text-slate-700">

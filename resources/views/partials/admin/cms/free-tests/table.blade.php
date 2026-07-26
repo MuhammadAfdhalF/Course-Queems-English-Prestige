@@ -4,29 +4,34 @@
         <th class="px-6 py-4">Category</th>
         <th class="px-6 py-4">Duration</th>
         <th class="px-6 py-4">Questions</th>
-        <th class="px-6 py-4">Passing Grade</th>
+        <th class="px-6 py-4">Result Mode</th>
+        <th class="px-6 py-4">Total / Passing Score</th>
         <th class="px-6 py-4">Status</th>
         <th class="px-6 py-4 text-center">Action</th>
     </x-slot:head>
 
     @forelse ($freeTests as $freeTest)
     @php
+    $resMode = $freeTest->result_mode?->value ?? (string) $freeTest->result_mode ?? 'score_only';
     $editPayload = [
-    'id' => $freeTest->id,
-    'title' => $freeTest->title,
-    'free_test_category_id' => $freeTest->free_test_category_id,
-    'category' => $freeTest->categoryRelation?->name ?? $freeTest->category,
-    'description' => $freeTest->description,
-    'duration_minutes' => $freeTest->duration_minutes,
-    'passing_grade' => $freeTest->passing_grade,
-    'is_active' => (bool) $freeTest->is_active,
-    'update_url' => route('admin.cms.free-tests.update', $freeTest),
+        'id' => $freeTest->id,
+        'title' => $freeTest->title,
+        'free_test_category_id' => $freeTest->free_test_category_id,
+        'category' => $freeTest->categoryRelation?->name ?? $freeTest->category,
+        'description' => $freeTest->description,
+        'duration_minutes' => $freeTest->duration_minutes,
+        'result_mode' => $resMode,
+        'total_score' => (float) $freeTest->total_score,
+        'passing_score' => $freeTest->passing_score !== null ? (float) $freeTest->passing_score : null,
+        'is_active' => (bool) $freeTest->is_active,
+        'is_locked' => $freeTest->results()->exists(),
+        'update_url' => route('admin.cms.free-tests.update', $freeTest),
     ];
 
     $deletePayload = [
-    'id' => $freeTest->id,
-    'title' => $freeTest->title,
-    'delete_url' => route('admin.cms.free-tests.destroy', $freeTest),
+        'id' => $freeTest->id,
+        'title' => $freeTest->title,
+        'delete_url' => route('admin.cms.free-tests.destroy', $freeTest),
     ];
     @endphp
 
@@ -55,8 +60,19 @@
             </span>
         </td>
 
-        <td class="px-6 py-4">
-            {{ $freeTest->passing_grade ? $freeTest->passing_grade . '%' : '-' }}
+        <td class="px-6 py-4 font-medium capitalize">
+            @if ($resMode === 'pass_fail')
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">Pass / Fail</span>
+            @else
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">Score Only</span>
+            @endif
+        </td>
+
+        <td class="px-6 py-4 text-xs font-semibold">
+            Total: {{ (float) $freeTest->total_score }}
+            @if ($resMode === 'pass_fail')
+                <span class="block text-slate-400">Pass: {{ (float) $freeTest->passing_score }}</span>
+            @endif
         </td>
 
         <td class="px-6 py-4">
