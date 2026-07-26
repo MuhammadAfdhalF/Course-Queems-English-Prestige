@@ -194,7 +194,7 @@
                     <button
                         type="button"
                         x-show="!reorderMode"
-                        @click="openCreateQuestionDrawer('{{ route('admin.course-management.programs.builder.questions.store', ['courseProgram' => $courseProgram->id, 'modulePractice' => $practice->id]) }}')"
+                        @click="openCreateQuestionDrawer('{{ route('admin.course-management.programs.builder.questions.store', ['courseProgram' => $courseProgram->id, 'modulePractice' => $practice->id]) }}', { total_score: {{ (float) $readiness['total_score'] }}, allocated_score: {{ (float) $readiness['allocated_score'] }}, remaining_score: {{ (float) $readiness['remaining_score'] }} })"
                         class="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-brand-blue)] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -216,7 +216,7 @@
                     <div class="mt-3">
                         <button
                             type="button"
-                            @click="openCreateQuestionDrawer('{{ route('admin.course-management.programs.builder.questions.store', ['courseProgram' => $courseProgram->id, 'modulePractice' => $practice->id]) }}')"
+                            @click="openCreateQuestionDrawer('{{ route('admin.course-management.programs.builder.questions.store', ['courseProgram' => $courseProgram->id, 'modulePractice' => $practice->id]) }}', { total_score: {{ (float) $readiness['total_score'] }}, allocated_score: {{ (float) $readiness['allocated_score'] }}, remaining_score: {{ (float) $readiness['remaining_score'] }} })"
                             class="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-brand-blue)] px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:opacity-90">
                             <span>Add First Question</span> &rarr;
                         </button>
@@ -267,7 +267,7 @@
                                 {{-- Edit Question --}}
                                 <button
                                     type="button"
-                                    @click="openEditQuestionDrawer('{{ route('admin.course-management.programs.builder.questions.edit', ['courseProgram' => $courseProgram->id, 'modulePracticeQuestion' => $q->id]) }}')"
+                                    @click="openEditQuestionDrawer('{{ route('admin.course-management.programs.builder.questions.edit', ['courseProgram' => $courseProgram->id, 'modulePracticeQuestion' => $q->id]) }}', { total_score: {{ (float) $readiness['total_score'] }}, allocated_score: {{ (float) $readiness['allocated_score'] }}, remaining_score: {{ (float) $readiness['remaining_score'] }} })"
                                     class="rounded-xl border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
                                     title="Edit Question">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

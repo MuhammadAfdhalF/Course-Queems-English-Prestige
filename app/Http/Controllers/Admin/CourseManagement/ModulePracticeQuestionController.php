@@ -129,6 +129,9 @@ class ModulePracticeQuestionController extends Controller
             }
         }
 
+        $practice = $modulePracticeQuestion->practice;
+        $readiness = $this->configService->getReadinessStatus($practice);
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -137,12 +140,17 @@ class ModulePracticeQuestionController extends Controller
                 'question_type' => $modulePracticeQuestion->question_type,
                 'question' => $modulePracticeQuestion->question,
                 'explanation' => $modulePracticeQuestion->explanation,
-                'score' => $modulePracticeQuestion->score,
+                'score' => (float) $modulePracticeQuestion->score,
                 'sort_order' => $modulePracticeQuestion->sort_order,
                 'is_active' => (bool) $modulePracticeQuestion->is_active,
-                'is_locked' => $this->configService->hasHistory($modulePracticeQuestion->practice),
+                'is_locked' => $this->configService->hasHistory($practice),
                 'options' => $optionsDict,
                 'correct_option' => $correctOption,
+                'allocation' => [
+                    'total_score' => (float) $readiness['total_score'],
+                    'allocated_score' => (float) $readiness['allocated_score'],
+                    'remaining_score' => (float) $readiness['remaining_score'],
+                ],
                 'update_url' => route('admin.course-management.programs.builder.questions.update', ['courseProgram' => $courseProgram->id, 'modulePracticeQuestion' => $modulePracticeQuestion->id]),
             ]
         ]);

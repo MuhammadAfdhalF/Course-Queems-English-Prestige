@@ -43,16 +43,108 @@ export function registerCourseBuilder(Alpine) {
         // Drawer State
         drawerOpen: false,
         drawerType: null,
-        drawerSize: 'medium', // 'medium' (860px), 'wide' (1120px), 'editor' (1280px)
+        drawerSize: 'default',
         drawerTitle: '',
         drawerParentContext: '',
-        drawerLoading: false,
-        drawerSaving: false,
-        drawerErrors: {},
-        drawerGeneralError: null,
         drawerActionUrl: '',
         drawerMethod: 'POST',
         drawerData: {},
+        drawerErrors: {},
+        drawerGeneralError: null,
+        drawerLoading: false,
+        drawerSaving: false,
+
+        // Score Allocation Guidance State (TASK-013)
+        drawerAllocation: {
+            total_score: 0,
+            allocated_score: 0,
+            remaining_score: 0,
+            current_question_score: 0,
+            current_question_is_active: true
+        },
+
+        getQuestionMaxAvailableScore() {
+            const remaining = parseFloat(this.drawerAllocation.remaining_score) || 0;
+            const currentQScore = this.drawerAllocation.current_question_is_active ? (parseFloat(this.drawerAllocation.current_question_score) || 0) : 0;
+            return Math.max(0, Math.round((remaining + currentQScore) * 100) / 100);
+        },
+
+        getProspectiveAllocationStatus() {
+            const total = parseFloat(this.drawerAllocation.total_score) || 0;
+            const allocated = parseFloat(this.drawerAllocation.allocated_score) || 0;
+            const currentQScore = this.drawerAllocation.current_question_is_active ? (parseFloat(this.drawerAllocation.current_question_score) || 0) : 0;
+            const maxAvailable = this.getQuestionMaxAvailableScore();
+
+            const isQuestionActive = !!this.drawerData.is_active;
+            const rawScoreInput = this.drawerData.score;
+            const isScoreEmpty = (rawScoreInput === '' || rawScoreInput === null || rawScoreInput === undefined);
+            const scoreVal = isScoreEmpty ? 0 : parseFloat(rawScoreInput);
+
+            let prospectiveAllocated = allocated;
+            if (isQuestionActive) {
+                prospectiveAllocated = allocated - currentQScore + (isNaN(scoreVal) ? 0 : scoreVal);
+            } else {
+                prospectiveAllocated = allocated - currentQScore;
+            }
+
+            prospectiveAllocated = Math.round(prospectiveAllocated * 100) / 100;
+            const prospectiveRemaining = Math.max(0, Math.round((total - prospectiveAllocated) * 100) / 100);
+
+            const isScoreValid = !isScoreEmpty && !isNaN(scoreVal) && scoreVal >= 0 && /^\d+(\.\d{1,2})?$/.test(String(rawScoreInput).trim());
+
+            let status = 'under';
+            let isSaveable = true;
+            let message = '';
+
+            if (total <= 0) {
+                status = 'invalid';
+                isSaveable = false;
+                message = 'Configured total score for parent assessment must be greater than 0.';
+            } else if (prospectiveAllocated > total) {
+                status = 'over';
+                isSaveable = false;
+                const exceededBy = Math.round((prospectiveAllocated - total) * 100) / 100;
+                message = `This score exceeds the remaining allocation by ${exceededBy} point${exceededBy === 1 ? '' : 's'}. Maximum allowed: ${maxAvailable}.`;
+            } else if (prospectiveAllocated === total) {
+                status = 'exact';
+                isSaveable = isScoreValid;
+                message = 'Score allocation will be complete. This assessment will be activated automatically after saving.';
+            } else {
+                status = 'under';
+                isSaveable = isScoreValid;
+                message = 'This assessment will remain inactive until all question scores equal the configured total score.';
+            }
+
+            if (!isScoreValid && !isScoreEmpty && !isNaN(scoreVal)) {
+                isSaveable = false;
+                if (scoreVal < 0) {
+                    message = 'Score / Points cannot be negative.';
+                } else if (!/^\d+(\.\d{1,2})?$/.test(String(rawScoreInput).trim())) {
+                    message = 'Score / Points supports up to 2 decimal places.';
+                }
+            }
+
+            return {
+                status: status,
+                total_score: total,
+                allocated_score: allocated,
+                remaining_score: parseFloat(this.drawerAllocation.remaining_score) || 0,
+                max_available: maxAvailable,
+                prospective_allocated: prospectiveAllocated,
+                prospective_remaining: prospectiveRemaining,
+                exceeded_by: prospectiveAllocated > total ? Math.round((prospectiveAllocated - total) * 100) / 100 : 0,
+                is_saveable: isSaveable,
+                is_score_empty: isScoreEmpty,
+                is_score_valid: isScoreValid,
+                message: message
+            };
+        },
+
+        useAvailableQuestionScore() {
+            const maxAvailable = this.getQuestionMaxAvailableScore();
+            const formatted = (Math.round(maxAvailable * 100) / 100).toString();
+            this.drawerData.score = formatted;
+        },
 
         // Delete Modal State
         deleteModalOpen: false,
@@ -844,7 +936,7 @@ export function registerCourseBuilder(Alpine) {
             });
         },
 
-        openCreateQuestionDrawer(storeUrl) {
+        openCreateQuestionDrawer(storeUrl, allocation = {}) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_question';
@@ -858,11 +950,19 @@ export function registerCourseBuilder(Alpine) {
             this.drawerLoading = false;
             this.drawerSaving = false;
 
+            this.drawerAllocation = {
+                total_score: parseFloat(allocation.total_score) || 0,
+                allocated_score: parseFloat(allocation.allocated_score) || 0,
+                remaining_score: parseFloat(allocation.remaining_score) || 0,
+                current_question_score: 0,
+                current_question_is_active: false
+            };
+
             this.drawerData = {
                 question_type: 'multiple_choice',
                 question: '',
                 explanation: '',
-                score: 10,
+                score: '',
                 options: { A: '', B: '', C: '', D: '' },
                 correct_option: 'A',
                 is_active: true
@@ -873,7 +973,7 @@ export function registerCourseBuilder(Alpine) {
             this.initRichTextEditors();
         },
 
-        openEditQuestionDrawer(editUrl) {
+        openEditQuestionDrawer(editUrl, allocation = {}) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_question';
@@ -884,6 +984,15 @@ export function registerCourseBuilder(Alpine) {
             this.drawerGeneralError = null;
             this.drawerLoading = true;
             this.drawerSaving = false;
+
+            this.drawerAllocation = {
+                total_score: parseFloat(allocation.total_score) || 0,
+                allocated_score: parseFloat(allocation.allocated_score) || 0,
+                remaining_score: parseFloat(allocation.remaining_score) || 0,
+                current_question_score: 0,
+                current_question_is_active: true
+            };
+
             this.drawerOpen = true;
 
             fetch(editUrl, {
@@ -898,13 +1007,22 @@ export function registerCourseBuilder(Alpine) {
                     const d = res.data;
                     this.drawerActionUrl = d.update_url;
                     this.drawerMethod = 'PUT';
+
+                    if (d.allocation) {
+                        this.drawerAllocation.total_score = parseFloat(d.allocation.total_score) || 0;
+                        this.drawerAllocation.allocated_score = parseFloat(d.allocation.allocated_score) || 0;
+                        this.drawerAllocation.remaining_score = parseFloat(d.allocation.remaining_score) || 0;
+                    }
+                    this.drawerAllocation.current_question_score = d.is_active ? (parseFloat(d.score) || 0) : 0;
+                    this.drawerAllocation.current_question_is_active = !!d.is_active;
+
                     this.drawerData = {
                         id: d.id,
                         module_practice_id: d.module_practice_id,
                         question_type: d.question_type || 'multiple_choice',
                         question: d.question || '',
                         explanation: d.explanation || '',
-                        score: d.score || 10,
+                        score: (d.score !== undefined && d.score !== null) ? d.score : '',
                         sort_order: d.sort_order,
                         options: d.options || { A: '', B: '', C: '', D: '' },
                         correct_option: d.correct_option || 'A',
@@ -1016,7 +1134,7 @@ export function registerCourseBuilder(Alpine) {
             });
         },
 
-        openCreateFinalExamQuestionDrawer(storeUrl) {
+        openCreateFinalExamQuestionDrawer(storeUrl, allocation = {}) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_final_exam_question';
@@ -1030,11 +1148,19 @@ export function registerCourseBuilder(Alpine) {
             this.drawerLoading = false;
             this.drawerSaving = false;
 
+            this.drawerAllocation = {
+                total_score: parseFloat(allocation.total_score) || 0,
+                allocated_score: parseFloat(allocation.allocated_score) || 0,
+                remaining_score: parseFloat(allocation.remaining_score) || 0,
+                current_question_score: 0,
+                current_question_is_active: false
+            };
+
             this.drawerData = {
                 question_type: 'multiple_choice',
                 question: '',
                 explanation: '',
-                score: 10,
+                score: '',
                 options: { A: '', B: '', C: '', D: '' },
                 correct_option: 'A',
                 is_active: true
@@ -1045,7 +1171,7 @@ export function registerCourseBuilder(Alpine) {
             this.initRichTextEditors();
         },
 
-        openEditFinalExamQuestionDrawer(editUrl) {
+        openEditFinalExamQuestionDrawer(editUrl, allocation = {}) {
             this.destroyRichTextEditors();
             this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_final_exam_question';
@@ -1056,6 +1182,15 @@ export function registerCourseBuilder(Alpine) {
             this.drawerGeneralError = null;
             this.drawerLoading = true;
             this.drawerSaving = false;
+
+            this.drawerAllocation = {
+                total_score: parseFloat(allocation.total_score) || 0,
+                allocated_score: parseFloat(allocation.allocated_score) || 0,
+                remaining_score: parseFloat(allocation.remaining_score) || 0,
+                current_question_score: 0,
+                current_question_is_active: true
+            };
+
             this.drawerOpen = true;
 
             fetch(editUrl, {
@@ -1070,13 +1205,22 @@ export function registerCourseBuilder(Alpine) {
                     const d = res.data;
                     this.drawerActionUrl = d.update_url;
                     this.drawerMethod = 'PUT';
+
+                    if (d.allocation) {
+                        this.drawerAllocation.total_score = parseFloat(d.allocation.total_score) || 0;
+                        this.drawerAllocation.allocated_score = parseFloat(d.allocation.allocated_score) || 0;
+                        this.drawerAllocation.remaining_score = parseFloat(d.allocation.remaining_score) || 0;
+                    }
+                    this.drawerAllocation.current_question_score = d.is_active ? (parseFloat(d.score) || 0) : 0;
+                    this.drawerAllocation.current_question_is_active = !!d.is_active;
+
                     this.drawerData = {
                         id: d.id,
                         final_exam_id: d.final_exam_id,
                         question_type: d.question_type || 'multiple_choice',
                         question: d.question || '',
                         explanation: d.explanation || '',
-                        score: d.score || 10,
+                        score: (d.score !== undefined && d.score !== null) ? d.score : '',
                         sort_order: d.sort_order,
                         options: d.options || { A: '', B: '', C: '', D: '' },
                         correct_option: d.correct_option || 'A',
@@ -1158,6 +1302,15 @@ export function registerCourseBuilder(Alpine) {
                 try { window.tinymce.triggerSave(); } catch(e) {}
             }
 
+            if (this.drawerType && this.drawerType.includes('question')) {
+                const allocStatus = this.getProspectiveAllocationStatus();
+                if (!allocStatus.is_saveable) {
+                    this.drawerSaving = false;
+                    this.drawerGeneralError = allocStatus.message || 'Cannot save question: score allocation is invalid or exceeds maximum allowed.';
+                    return;
+                }
+            }
+
             this.drawerSaving = true;
             this.drawerErrors = {};
             this.drawerGeneralError = null;
@@ -1231,7 +1384,7 @@ export function registerCourseBuilder(Alpine) {
                 formData.set('question_type', this.drawerData.question_type || 'multiple_choice');
                 formData.set('question', this.drawerData.question || (document.getElementById('drawer_question_text')?.value || ''));
                 formData.set('explanation', this.drawerData.explanation || (document.getElementById('drawer_question_explanation')?.value || ''));
-                formData.set('score', this.drawerData.score || 10);
+                formData.set('score', (this.drawerData.score !== undefined && this.drawerData.score !== null) ? this.drawerData.score : '');
                 if (this.drawerData.question_type === 'multiple_choice') {
                     if (this.drawerData.options) {
                         formData.set('options[A]', this.drawerData.options.A || '');
@@ -1267,7 +1420,7 @@ export function registerCourseBuilder(Alpine) {
                 formData.set('question_type', this.drawerData.question_type || 'multiple_choice');
                 formData.set('question', this.drawerData.question || (document.getElementById('drawer_exam_question_text')?.value || ''));
                 formData.set('explanation', this.drawerData.explanation || (document.getElementById('drawer_exam_question_explanation')?.value || ''));
-                formData.set('score', this.drawerData.score || 10);
+                formData.set('score', (this.drawerData.score !== undefined && this.drawerData.score !== null) ? this.drawerData.score : '');
                 if (this.drawerData.question_type === 'multiple_choice') {
                     if (this.drawerData.options) {
                         formData.set('options[A]', this.drawerData.options.A || '');

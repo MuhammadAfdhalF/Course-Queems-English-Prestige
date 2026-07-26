@@ -592,6 +592,75 @@
                             {{-- PRACTICE QUESTION FORM FIELDS (PHASE D) --}}
                             <template x-if="drawerType === 'create_question' || drawerType === 'edit_question'">
                                 <div class="space-y-6">
+                                    {{-- SCORE ALLOCATION SUMMARY PANEL (TASK-013) --}}
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 space-y-3 shadow-2xs">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                </svg>
+                                                Score Allocation Summary
+                                            </h4>
+                                            <template x-if="getQuestionMaxAvailableScore() > 0">
+                                                <button
+                                                    type="button"
+                                                    @click="useAvailableQuestionScore()"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-blue-100 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-200 transition cursor-pointer">
+                                                    <span>Use Available: <strong x-text="getQuestionMaxAvailableScore()"></strong></span>
+                                                </button>
+                                            </template>
+                                        </div>
+
+                                        <div class="grid grid-cols-3 gap-2 text-center">
+                                            <div class="rounded-xl border border-slate-200/80 bg-white p-2">
+                                                <span class="block text-[10px] font-bold uppercase text-slate-400">Total Score</span>
+                                                <span class="text-sm font-black text-slate-800" x-text="drawerAllocation.total_score || 0"></span>
+                                            </div>
+                                            <div class="rounded-xl border border-slate-200/80 bg-white p-2">
+                                                <span class="block text-[10px] font-bold uppercase text-slate-400">Allocated</span>
+                                                <span class="text-sm font-black text-emerald-700" x-text="drawerAllocation.allocated_score || 0"></span>
+                                            </div>
+                                            <div class="rounded-xl border border-slate-200/80 bg-white p-2">
+                                                <span class="block text-[10px] font-bold uppercase text-slate-400">Remaining</span>
+                                                <span class="text-sm font-black" :class="drawerAllocation.remaining_score > 0 ? 'text-amber-600' : 'text-slate-500'" x-text="drawerAllocation.remaining_score || 0"></span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Zero Remaining Warning --}}
+                                        <template x-if="drawerAllocation.remaining_score === 0 && drawerType.startsWith('create_')">
+                                            <div class="rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-[11px] font-semibold text-amber-800 flex items-start gap-1.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span>Score allocation is already complete. Reduce another active question's score or create this question as inactive before assigning additional points.</span>
+                                            </div>
+                                        </template>
+
+                                        {{-- Real-time Prospective Preview Banner --}}
+                                        <template x-if="getProspectiveAllocationStatus().message">
+                                            <div
+                                                class="rounded-xl border p-2.5 text-[11px] font-semibold flex items-start gap-2"
+                                                :class="{
+                                                    'border-rose-300 bg-rose-50 text-rose-800': getProspectiveAllocationStatus().status === 'over',
+                                                    'border-emerald-300 bg-emerald-50 text-emerald-800': getProspectiveAllocationStatus().status === 'exact',
+                                                    'border-blue-200 bg-blue-50 text-blue-800': getProspectiveAllocationStatus().status === 'under',
+                                                    'border-slate-300 bg-slate-100 text-slate-700': getProspectiveAllocationStatus().status === 'invalid'
+                                                }"
+                                                aria-live="polite">
+                                                <svg x-show="getProspectiveAllocationStatus().status === 'over'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                                <svg x-show="getProspectiveAllocationStatus().status === 'exact'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <svg x-show="getProspectiveAllocationStatus().status === 'under'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span x-text="getProspectiveAllocationStatus().message"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div>
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Question Type <span class="text-rose-500">*</span></label>
@@ -612,8 +681,9 @@
                                                 type="number"
                                                 x-model="drawerData.score"
                                                 min="0"
-                                                step="1"
+                                                step="0.01"
                                                 required
+                                                placeholder="e.g. 8"
                                                 class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none" />
                                             <template x-if="drawerErrors.score">
                                                 <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.score[0]"></p>
@@ -856,6 +926,75 @@
                             {{-- FINAL EXAM QUESTION FORM FIELDS (PHASE E) --}}
                             <template x-if="drawerType === 'create_final_exam_question' || drawerType === 'edit_final_exam_question'">
                                 <div class="space-y-6">
+                                    {{-- SCORE ALLOCATION SUMMARY PANEL (TASK-013) --}}
+                                    <div class="rounded-2xl border border-purple-200 bg-purple-50/60 p-4 space-y-3 shadow-2xs">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-[11px] font-extrabold uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                </svg>
+                                                Score Allocation Summary
+                                            </h4>
+                                            <template x-if="getQuestionMaxAvailableScore() > 0">
+                                                <button
+                                                    type="button"
+                                                    @click="useAvailableQuestionScore()"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-purple-100 px-2.5 py-1 text-[11px] font-bold text-purple-800 hover:bg-purple-200 transition cursor-pointer">
+                                                    <span>Use Available: <strong x-text="getQuestionMaxAvailableScore()"></strong></span>
+                                                </button>
+                                            </template>
+                                        </div>
+
+                                        <div class="grid grid-cols-3 gap-2 text-center">
+                                            <div class="rounded-xl border border-purple-200/80 bg-white p-2">
+                                                <span class="block text-[10px] font-bold uppercase text-purple-400">Total Score</span>
+                                                <span class="text-sm font-black text-purple-950" x-text="drawerAllocation.total_score || 0"></span>
+                                            </div>
+                                            <div class="rounded-xl border border-purple-200/80 bg-white p-2">
+                                                <span class="block text-[10px] font-bold uppercase text-purple-400">Allocated</span>
+                                                <span class="text-sm font-black text-emerald-700" x-text="drawerAllocation.allocated_score || 0"></span>
+                                            </div>
+                                            <div class="rounded-xl border border-purple-200/80 bg-white p-2">
+                                                <span class="block text-[10px] font-bold uppercase text-purple-400">Remaining</span>
+                                                <span class="text-sm font-black" :class="drawerAllocation.remaining_score > 0 ? 'text-amber-600' : 'text-slate-500'" x-text="drawerAllocation.remaining_score || 0"></span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Zero Remaining Warning --}}
+                                        <template x-if="drawerAllocation.remaining_score === 0 && drawerType.startsWith('create_')">
+                                            <div class="rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-[11px] font-semibold text-amber-800 flex items-start gap-1.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span>Score allocation is already complete. Reduce another active question's score or create this question as inactive before assigning additional points.</span>
+                                            </div>
+                                        </template>
+
+                                        {{-- Real-time Prospective Preview Banner --}}
+                                        <template x-if="getProspectiveAllocationStatus().message">
+                                            <div
+                                                class="rounded-xl border p-2.5 text-[11px] font-semibold flex items-start gap-2"
+                                                :class="{
+                                                    'border-rose-300 bg-rose-50 text-rose-800': getProspectiveAllocationStatus().status === 'over',
+                                                    'border-emerald-300 bg-emerald-50 text-emerald-800': getProspectiveAllocationStatus().status === 'exact',
+                                                    'border-purple-200 bg-purple-50 text-purple-900': getProspectiveAllocationStatus().status === 'under',
+                                                    'border-slate-300 bg-slate-100 text-slate-700': getProspectiveAllocationStatus().status === 'invalid'
+                                                }"
+                                                aria-live="polite">
+                                                <svg x-show="getProspectiveAllocationStatus().status === 'over'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                                <svg x-show="getProspectiveAllocationStatus().status === 'exact'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <svg x-show="getProspectiveAllocationStatus().status === 'under'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span x-text="getProspectiveAllocationStatus().message"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div>
                                             <label class="block text-xs font-bold text-slate-700 mb-1">Question Type <span class="text-rose-500">*</span></label>
@@ -876,8 +1015,9 @@
                                                 type="number"
                                                 x-model="drawerData.score"
                                                 min="0"
-                                                step="1"
+                                                step="0.01"
                                                 required
+                                                placeholder="e.g. 10"
                                                 class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none" />
                                             <template x-if="drawerErrors.score">
                                                 <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.score[0]"></p>
@@ -942,7 +1082,6 @@
                                             placeholder="Optional explanation shown after grading..."
                                             class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none"></textarea>
                                     </div>
-                                    </div>
 
                                     <div class="border-t border-slate-200 pt-4">
                                         <label class="inline-flex items-center gap-2 cursor-pointer">
@@ -969,8 +1108,8 @@
                         <button
                             type="button"
                             @click="submitDrawerForm()"
-                            :disabled="drawerSaving"
-                            class="inline-flex items-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-5 py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 disabled:opacity-50">
+                            :disabled="drawerSaving || (drawerType && drawerType.includes('question') && !getProspectiveAllocationStatus().is_saveable)"
+                            class="inline-flex items-center gap-2 rounded-xl bg-[var(--color-brand-blue)] px-5 py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed">
                             <template x-if="drawerSaving">
                                 <div class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                             </template>
