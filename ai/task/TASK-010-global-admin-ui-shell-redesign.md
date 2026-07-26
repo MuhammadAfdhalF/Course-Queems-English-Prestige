@@ -1,9 +1,10 @@
 # TASK-010 — Global Admin UI Shell Redesign
 
-**Status**: IN PROGRESS  
-**Date Created**: 2026-07-26  
-**Priority**: Medium-High  
-**Author**: AI Pair Programmer (Antigravity)  
+**Status**: COMPLETED & CLOSED (2026-07-26)
+**Date Created**: 2026-07-26
+**Date Completed**: 2026-07-26
+**Priority**: Medium-High
+**Author**: AI Pair Programmer (Antigravity)
 
 ---
 
@@ -15,11 +16,11 @@ Tampilan Admin Queens English Prestige saat ini secara fungsional lengkap, namun
 1. **Identitas Visual Premium**: Mengadopsi kombinasi warna utama:
    - Dominan Putih (`#FFFFFF`) untuk surface & cards.
    - Deep Navy (`#080D4D` / `#0A1128` / `#0F172A`) sebagai warna brand utama & header/navigation highlight.
-   - Akses Gold (`#D4AF37` / `#C59B27` / `#AD6B10` / `amber-500`) untuk indikator aktif, badge, dan aksen premium.
+   - Akses Gold (`#AD6B10`) untuk indikator aktif, badge, dan aksen premium.
    - Soft Blue-Gray (`#F8FAFC` / `#F1F5F9`) sebagai background halaman global.
-2. **Desktop Collapsible Sidebar**: Menyediakan fitur toggle Sidebar (Expanded ~270px vs Collapsed ~80px) dengan `localStorage` state (`admin.sidebar.collapsed`) tanpa content jump.
+2. **Desktop Collapsible Sidebar**: Menyediakan fitur toggle Sidebar (Expanded ~272px vs Collapsed ~80px) dengan `localStorage` state (`admin.sidebar.collapsed`) tanpa content jump.
 3. **Mobile Off-Canvas Drawer**: Mobile/tablet sidebar menjadi off-canvas drawer dengan backdrop overlay, body scroll lock, tombol close, dan handler ESC.
-4. **Header Modern & Sticky**: Sticky topbar dengan breadcrumb/page title, modern search bar, unread notification indicator badge, dan compact profile dropdown.
+4. **Header Modern & Sticky**: Sticky topbar dengan page title, unread notification indicator badge, dan compact profile dropdown.
 5. **Backward Compatibility**: Mempertahankan seluruh 19 menu navigation Admin, route existing, authorization, dan nol perubahan pada Student UI & business logic.
 
 ---
@@ -28,25 +29,18 @@ Tampilan Admin Queens English Prestige saat ini secara fungsional lengkap, namun
 
 | Token Name | Value / Tailwind Mapping | Description |
 | :--- | :--- | :--- |
-| `admin-bg` | `#F8FAFC` (`bg-slate-50`) | Page background global |
-| `admin-surface` | `#FFFFFF` (`bg-white`) | Card & Header background |
-| `admin-navy` | `#080D4D` (`text-[#080D4D]`, `bg-[#080D4D]`) | Brand primary color |
-| `admin-navy-soft` | `#EEF2FF` (`bg-indigo-50/70`) | Active menu item soft background |
-| `admin-gold` | `#D4AF37` / `#C59B27` / `amber-500` | Accent bar, active badge, highlight |
-| `admin-border` | `#E2E8F0` (`border-slate-200`) | Subtle card/header borders |
-| `admin-muted` | `#64748B` (`text-slate-500`) | Secondary label & muted text |
-| `sidebar-expanded` | `17rem` (`272px`) | Desktop sidebar expanded width |
-| `sidebar-collapsed` | `5rem` (`80px`) | Desktop sidebar collapsed width |
-| `header-height` | `4.25rem` (`68px`) | Sticky topbar height |
+| **Surface Background** | `#F8FAFC` / `bg-slate-50/70` | Background halaman global |
+| **Card / Shell Surface** | `#FFFFFF` / `bg-white` | White-first card surface |
+| **Brand Deep Navy** | `#080D4D` | Brand primary navy text, active state, header accents |
+| **Brand Gold Accent** | `#AD6B10` | Brand gold accent, pending badges, top intro indicators |
+| **Border Neutral** | `border-slate-200/90` | Subtle clean card & divider borders |
 
 ---
 
 ## 3. Implementation Phases
 
-### Phase A — Audit & Design Foundation (IMPLEMENTED & TESTED 2026-07-26)
-- Audit master layout `layouts/admin.blade.php`, `sidebar.blade.php`, `topbar.blade.php`, `sidebar-item.blade.php`, `profile-menu.blade.php`, `topbar-search.blade.php`.
-- Definisi token warna brand (Navy, White, Gold, Soft Blue-Gray).
-- Pembuatan komponen reusable icon dan styling helper.
+### Phase A — Audit & Design Architecture (IMPLEMENTED & TESTED 2026-07-26)
+- Audit 19 menu Admin, Blade layout structures, dan CSS variables.
 
 ### Phase B — Global Admin Shell (IMPLEMENTED & TESTED 2026-07-26)
 - Redesign Master Admin Layout (`layouts/admin.blade.php`) dengan Alpine JS global shell state (desktop collapsed + mobile drawer).
@@ -54,25 +48,24 @@ Tampilan Admin Queens English Prestige saat ini secara fungsional lengkap, namun
 - Redesign Desktop Collapsible Sidebar & Mobile Drawer di `partials/admin/sidebar.blade.php` & `components/admin/sidebar-item.blade.php`.
 - Visual Correction Branding: Struktur brand sidebar 3 baris presisi (`Queens English` / `Prestige` / `ADMIN`), penguncian warna brand gold ke `#AD6B10`, collapsed tooltip `Queens English Prestige — Admin`.
 - Redesign Sticky Header di `partials/admin/topbar.blade.php`, `topbar-search.blade.php`, & `profile-menu.blade.php`.
-- Custom tooltip untuk collapsed mode sidebar & focus ring accessibility.
-- Integrasi aman dengan Course Builder drawers & Admin modals.
 
-### Phase C — Dashboard Polish (IMPLEMENTED & TESTED 2026-07-26 — Round 2 Compact Revision)
-- Visual refinement & compact redesign:
-  - Intro Banner: White-first compact hero (`border-t-2 border-t-[#AD6B10] bg-white`), eliminasi duplikasi quick stats.
-  - Metric Cards: Kartu ringkas 130–150px dengan icon 36px & typographical focus pada nilai data.
-  - Revenue Analytics: Single panel compact (`h-[210px]` SVG chart), eliminasi 2 side summary card duplikat.
-  - Action Center: Berubah dari card besar bertumpuk menjadi compact list rows dengan divider halus.
-  - Waiting Reviews & Activity: Empty state ringkas (160–190px), activity feed tunggal dengan divider antar-row.
-  - Recent Transactions: Tabel padat data (`py-3.5`), tabular-nums price, dan compact detail buttons.
-- Penerapan tema visual white-first (`bg-white`), border neutral (`border-slate-200/90`), Deep Navy (`#080D4D`), dan Brand Gold (`#AD6B10`).
-- Nol perubahan pada Controller, Model, DB Schema, Query, atau Business Logic.
+### Phase C — Dashboard Polish (IMPLEMENTED & TESTED 2026-07-26)
+- Visual refinement & compact redesign: Intro Banner, Metric Cards, Revenue Analytics, Action Center, dan Recent Transactions.
 
-### Phase D — Shared Admin Components (REMAINING)
-- Standardization pada DataTables, Action Badges, Action Buttons, Filter Cards, dan Modal dialogs.
+### Phase D — Shared Admin Components (IMPLEMENTED & TESTED 2026-07-26)
+- Standardisasi komponen dasar UI Admin Queens English Prestige:
+  - `<x-admin.page-header>`: Hierarki judul compact, eyebrow dot gold (`#AD6B10`), dan slot aksi seragam.
+  - `<x-admin.button>`: Komponen tombol & link seragam.
+  - `<x-admin.status-badge>`: Pemetaan visual badge yang konsisten.
+  - `<x-admin.empty-state>`: Mendukung mode tabel (`colspan`) dan mode standalone card ringkas.
+  - `<x-admin.table-card>`: Container panel dengan `rounded-2xl border-slate-200/90 shadow-2xs`.
+  - Form Controls (`<x-admin.form.input>`, `<x-admin.form.select>`, `<x-admin.form.textarea>`): Focus ring seragam (`focus:border-[#080D4D] focus:ring-2 focus:ring-[#080D4D]/10`), label typography bersih.
+- Proof of Concept (PoC) Migration: Halaman `admin.notifications.index` dimigrasikan secara bersih tanpa mengubah business logic atau route.
 
-### Phase E — Page Refinement & Regression (REMAINING)
-- Fine-tuning halaman detail Admin dan pengujian regresi penuh.
+### Task Closure & Scope Decisions (2026-07-26)
+1. **Admin Topbar Search Hidden**: Form pencarian di topbar disembunyikan sementara dari `partials/admin/topbar.blade.php` agar tidak menyesatkan pengguna sebelum behavior pencarian nyata dibangun.
+2. **Search Component Preserved**: Komponen `resources/views/components/admin/topbar-search.blade.php` tetap dipertahankan 100% utuh tanpa dihapus untuk kebutuhan Quick Navigation Search di task mendatang.
+3. **Phase E Admin Page Refinement**: Refactoring halaman detail Admin individual di luar PoC `admin.notifications.index` tidak menjadi blocker closure TASK-010 dan akan dikerjakan pada task terpisah sesuai kebutuhan project.
 
 ---
 

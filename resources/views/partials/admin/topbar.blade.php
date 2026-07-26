@@ -42,10 +42,10 @@
             </div>
         </div>
 
-        {{-- Right Section: Search, Notifications & Profile Menu --}}
+        {{-- Right Section: Notifications & Profile Menu --}}
         <div class="flex items-center gap-2 sm:gap-4">
-            {{-- Search Bar --}}
-            <x-admin.topbar-search />
+            {{-- Search Bar temporarily hidden until Quick Navigation feature is built in future task --}}
+            {{-- <x-admin.topbar-search /> --}}
 
             {{-- Notifications Button & Badge --}}
             @php

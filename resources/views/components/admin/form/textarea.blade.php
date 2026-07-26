@@ -1,12 +1,12 @@
 @props([
-'label',
-'name',
-'id' => null,
-'value' => '',
-'placeholder' => '',
-'rows' => 5,
-'required' => false,
-'errorName' => null,
+    'label' => null,
+    'name',
+    'id' => null,
+    'value' => '',
+    'placeholder' => '',
+    'rows' => 4,
+    'required' => false,
+    'errorName' => null,
 ])
 
 @php
@@ -15,13 +15,15 @@ $fieldError = $errorName ?? $name;
 @endphp
 
 <div>
-    <label for="{{ $fieldId }}" class="mb-2 block text-sm font-bold text-slate-700">
+    @if ($label)
+    <label for="{{ $fieldId }}" class="mb-1.5 block text-xs font-bold text-slate-700">
         {{ $label }}
 
         @if ($required)
         <span class="text-rose-500">*</span>
         @endif
     </label>
+    @endif
 
     <textarea
         id="{{ $fieldId }}"
@@ -30,10 +32,10 @@ $fieldError = $errorName ?? $name;
         placeholder="{{ $placeholder }}"
         {{ $required ? 'required' : '' }}
         {{ $attributes->merge([
-            'class' => 'w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[var(--color-brand-blue)] focus:ring-4 focus:ring-blue-100'
+            'class' => 'w-full rounded-xl border border-slate-200/90 bg-white px-3.5 py-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-[#080D4D] focus:ring-2 focus:ring-[#080D4D]/10 disabled:bg-slate-50 disabled:text-slate-400'
         ]) }}>{{ $value }}</textarea>
 
     @error($fieldError)
-    <p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>
+    <p class="mt-1 text-xs font-medium text-rose-600">{{ $message }}</p>
     @enderror
 </div>
