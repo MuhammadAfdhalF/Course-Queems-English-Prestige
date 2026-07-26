@@ -55,6 +55,7 @@ const initCourseBuilder = () => {
         originalReorderItems: '',
         reorderSaving: false,
         reorderError: null,
+        reorderConflict: false,
         reorderSaveUrl: '',
         draggedItemIndex: null,
 
@@ -74,6 +75,12 @@ const initCourseBuilder = () => {
             window.addEventListener('popstate', () => {
                 this.readQueryParams();
                 this.fetchWorkspace(false);
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this.reorderMode && !this.drawerOpen && !this.deleteModalOpen) {
+                    this.discardReorder();
+                }
             });
         },
 
@@ -123,6 +130,7 @@ const initCourseBuilder = () => {
                 }
             }
             this.reorderMode = false;
+            this.reorderConflict = false;
 
             const newParams = {
                 level: params.level !== undefined ? params.level : this.selectedParams.level,
@@ -245,6 +253,7 @@ const initCourseBuilder = () => {
             this.originalReorderItems = JSON.stringify(itemsList);
             this.reorderSaving = false;
             this.reorderError = null;
+            this.reorderConflict = false;
             this.reorderMode = true;
         },
 
@@ -296,19 +305,25 @@ const initCourseBuilder = () => {
             this.reorderItems = JSON.parse(this.originalReorderItems);
             this.reorderMode = false;
             this.reorderError = null;
+            this.reorderConflict = false;
         },
 
         saveReorder() {
             if (this.reorderSaving) return;
             this.reorderSaving = true;
             this.reorderError = null;
+            this.reorderConflict = false;
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             const orderedIds = this.reorderItems.map(item => item.id);
+            const originalOrderedIds = JSON.parse(this.originalReorderItems).map(item => item.id);
 
             fetch(this.reorderSaveUrl, {
                 method: 'PUT',
-                body: JSON.stringify({ ordered_ids: orderedIds }),
+                body: JSON.stringify({
+                    ordered_ids: orderedIds,
+                    original_ordered_ids: originalOrderedIds
+                }),
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -317,10 +332,17 @@ const initCourseBuilder = () => {
                 }
             })
             .then(res => {
+                if (res.status === 409) {
+                    return res.json().then(errData => {
+                        this.reorderConflict = true;
+                        this.reorderError = errData.message || 'The order has been changed by another administrator. Reload the latest order and try again.';
+                        throw new Error('Conflict Error');
+                    });
+                }
                 if (res.status === 422) {
                     return res.json().then(errData => {
                         this.reorderError = errData.message || 'The item list has changed. Reload the latest order and try again.';
-                        throw new Error('Conflict/Validation Error');
+                        throw new Error('Validation Error');
                     });
                 }
                 if (!res.ok) throw new Error(`Server returned status ${res.status}`);
@@ -329,6 +351,7 @@ const initCourseBuilder = () => {
             .then(data => {
                 if (data.status === 'success') {
                     this.reorderMode = false;
+                    this.reorderConflict = false;
                     this.refreshTree();
                     this.fetchWorkspace();
                 } else {
@@ -336,13 +359,20 @@ const initCourseBuilder = () => {
                 }
             })
             .catch(err => {
-                if (err.message !== 'Conflict/Validation Error') {
+                if (err.message !== 'Validation Error' && err.message !== 'Conflict Error') {
                     this.reorderError = err.message || 'Error saving order.';
                 }
             })
             .finally(() => {
                 this.reorderSaving = false;
             });
+        },
+
+        reloadLatestOrder() {
+            this.reorderMode = false;
+            this.reorderConflict = false;
+            this.reorderError = null;
+            this.fetchWorkspace();
         },
 
         // DRAWER ACTIONS

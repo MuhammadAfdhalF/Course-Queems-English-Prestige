@@ -43,16 +43,19 @@ class ModuleController extends Controller
 
         $validated['course_level_id'] = $courseLevel->id;
         $validated['slug'] = $this->generateUniqueSlug($validated['slug'] ?? $validated['title']);
-        $validated['sort_order'] = $validated['sort_order'] ?? (((int) $courseLevel->modules()->max('sort_order')) + 1);
         $validated['is_preview'] = $request->boolean('is_preview');
         $validated['is_active'] = $request->boolean('is_active');
+        $module = \Illuminate\Support\Facades\DB::transaction(function () use ($courseLevel, $validated) {
+            $lockedLevel = CourseLevel::whereKey($courseLevel->id)->lockForUpdate()->firstOrFail();
+            $validated['sort_order'] = $validated['sort_order'] ?? (((int) $lockedLevel->modules()->max('sort_order')) + 1);
 
-        $module = Module::create($validated);
+            return Module::create($validated);
+        });
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Module has been created successfully.',
+                'message' => 'Course module has been created successfully.',
                 'module_id' => $module->id,
                 'redirect_node' => [
                     'level' => $courseLevel->id,
@@ -65,7 +68,7 @@ class ModuleController extends Controller
 
         return redirect()
             ->route('admin.course-management.levels.modules.index', $courseLevel)
-            ->with('success', 'Module has been created successfully.');
+            ->with('success', 'Course module has been created successfully.');
     }
 
     public function edit(Request $request, Module $module)
@@ -200,32 +203,74 @@ class ModuleController extends Controller
         $validated = $request->validate([
             'ordered_ids' => ['required', 'array'],
             'ordered_ids.*' => ['required', 'integer'],
+            'original_ordered_ids' => ['nullable', 'array'],
+            'original_ordered_ids.*' => ['integer'],
         ]);
 
         $orderedIds = array_map('intval', $validated['ordered_ids']);
-        $existingIds = $courseLevel->modules()->pluck('id')->toArray();
+        $originalOrderedIds = isset($validated['original_ordered_ids']) ? array_map('intval', $validated['original_ordered_ids']) : null;
 
-        $existingIdsCopy = $existingIds;
-        $orderedIdsCopy = $orderedIds;
-        sort($existingIdsCopy);
-        sort($orderedIdsCopy);
+        try {
+            return \Illuminate\Support\Facades\DB::transaction(function () use ($courseLevel, $orderedIds, $originalOrderedIds) {
+                // 1. Explicitly execute parent SQL query lock
+                $lockedLevel = CourseLevel::whereKey($courseLevel->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        if (count($orderedIds) !== count($existingIds) || $existingIdsCopy !== $orderedIdsCopy || count(array_unique($orderedIds)) !== count($orderedIds)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'The item list has changed. Reload the latest order and try again.'
-            ], 422);
-        }
+                // 2. Lock & read current server siblings
+                $siblings = $lockedLevel->modules()
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get(['id', 'sort_order']);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($orderedIds) {
-            foreach ($orderedIds as $index => $id) {
-                Module::where('id', $id)->update(['sort_order' => $index + 1]);
+                $currentServerOrderedIds = $siblings->pluck('id')->values()->all();
+
+                $existingIdsCopy = $currentServerOrderedIds;
+                $orderedIdsCopy = $orderedIds;
+                sort($existingIdsCopy);
+                sort($orderedIdsCopy);
+
+                if (count($orderedIds) !== count($currentServerOrderedIds) || $existingIdsCopy !== $orderedIdsCopy || count(array_unique($orderedIds)) !== count($orderedIds)) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'The item list has changed. Reload the latest order and try again.'
+                    ], 422);
+                }
+
+                if ($originalOrderedIds !== null && $currentServerOrderedIds !== $originalOrderedIds) {
+                    return response()->json([
+                        'status' => 'conflict',
+                        'message' => 'The order has been changed by another administrator. Reload the latest order and try again.'
+                    ], 409);
+                }
+
+                foreach ($orderedIds as $index => $id) {
+                    Module::where('id', $id)->update(['sort_order' => $index + 1]);
+                }
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Modules order updated successfully.'
+                ]);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($this->isConcurrencyException($e)) {
+                return response()->json([
+                    'status' => 'conflict',
+                    'message' => 'A database concurrency conflict occurred. Reload the latest order and try again.'
+                ], 409);
             }
-        });
+            \Illuminate\Support\Facades\Log::error('Module reorder query error: ' . $e->getMessage(), ['exception' => $e]);
+            throw $e;
+        }
+    }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Modules order updated successfully.'
-        ]);
+    protected function isConcurrencyException(\Illuminate\Database\QueryException $e): bool
+    {
+        $sqlState = (string) $e->getCode();
+        $driverCode = $e->errorInfo[1] ?? null;
+
+        return $sqlState === '40001' || $driverCode === 1213 || $driverCode === 1205;
     }
 }

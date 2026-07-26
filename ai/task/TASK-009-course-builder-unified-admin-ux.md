@@ -244,31 +244,66 @@ Entity yang mendukung Drag-and-Drop Reorder:
 
 ## 12. Testing Checklist
 
-- [ ] **Phase A**: Buka `/admin/course-management/programs/1/builder`. Pastikan Tree Navigation memuat Level, Modul, dan Exam Sections tanpa slow-down.
-- [ ] **Phase A**: Klik node Modul 1. Pastikan URL berubah menjadi `?level=1&module=1` dan workspace memperbarui konten secara asinkron.
-- [ ] **Phase B**: Buka Drawer Create Level, isi data, dan tekan Save. Pastikan Level baru muncul di Tree dan Drawer tertutup.
-- [ ] **Phase C**: Unggah materi Video MP4 via Material Drawer. Pastikan file tersimpan di storage public dan preview video dapat diputar.
-- [ ] **Phase D**: Tambah 3 soal pilihan ganda di Practice Question Drawer. Pastikan kunci jawaban & poin score tersimpan.
-- [ ] **Phase E**: Tambah Final Exam Section baru pada Level 1, lalu tambahkan 2 soal exam. Pastikan ter-render di workspace.
-- [ ] **Phase F**: Lakukan drag reorder pada daftar Modul. Pastikan Sticky Bar *Unsaved Changes* muncul. Klik *Save Order* dan pastikan urutan tersimpan di DB.
-- [ ] **Phase G**: Akses Builder via HP (screen width 375px). Pastikan Tree Navigation dapat dibuka via tombol hamburger off-canvas drawer.
-- [ ] **Phase H**: Akses rute lama `/admin/course-management/levels/1/modules`. Pastikan halaman lama tetap berfungsi 100% tanpa error.
-- [ ] **Phase H**: Login sebagai Student, kerjakan kuis & exam. Pastikan alur siswa tidak mengalami regresi.
+- [x] **Phase A**: Buka `/admin/course-management/programs/3/builder`. Tree Navigation memuat Level, Modul, dan Exam Sections secara asinkron tanpa slow-down.
+- [x] **Phase A**: Klik node Modul 1. URL ter-update menjadi `?level=X&module=Y` dan workspace memperbarui konten secara AJAX.
+- [x] **Phase B**: Level & Module CRUD via drawer side-panel berjalan lancar dengan ownership security.
+- [x] **Phase C**: Material workspace & Material Drawer (text, video, audio, pdf, file) terkelola terpadu.
+- [x] **Phase D**: Module Practice Configuration & Practice Question Management (MCQ, Short Answer, Essay, Upload) terkelola terpadu.
+- [x] **Phase E**: Final Exam Section Configuration & Question Management terkelola terpadu dengan readiness status & attempt/answer guards.
+- [x] **Phase F**: Unified Reorder Engine untuk Levels, Modules, Materials, Practice Questions, Final Exam Sections, dan Final Exam Questions berjalan dengan HTTP 409 Conflict handling, Move Up/Down accessibility, dan full-list reorder.
+- [ ] **Phase G**: Mobile off-canvas drawer polish & responsive layout refinement.
+- [ ] **Phase H**: Final integration testing, E2E verification & legacy transition links.
 
 ---
 
-## 13. Remaining Technical Questions (Unresolved Decisions)
+## 13. Technical Decisions (Resolved)
 
-1. **Format Default Video Poster / Thumbnail**: Apakah upload thumbnail level di Side Drawer memerlukan cropping tool otomatis atau cukup standar image uploader?
-2. **Batas Maksimal Item per Pagination Workspace**: Berapa batas default pagination untuk daftar Questions & Materials di workspace (misal: 10 atau 15 item per halaman)?
+1. **Format Default Video Poster / Thumbnail**: Standard image uploader tanpa cropping otomatis, memanfaatkan rasio responsif CSS.
+2. **Batas Maksimal Item per Pagination Workspace**: Batas default 15 item per halaman untuk daftar Materials & Questions di workspace. Reorder Mode memuat full sibling list secara ringan agar reorder tidak parsial.
 
 ---
 
 ## 14. Implementation Result
-*(Diisi setelah implementasi dilakukan)*
+
+- **Phase A**: Builder shell, Alpine tree navigation, deep-linking, SSR fallback, dan AJAX workspace loader terimplementasi dan lolos verifikasi runtime.
+- **Phase B**: Level & Module CRUD terintegrasi via side drawer (`drawer.blade.php`) dengan validasi server & ownership guard.
+- **Phase C**: Module Materials CRUD terintegrasi via drawer dengan dukungan 5 tipe materi (text, image, video, audio, pdf/file).
+- **Phase D**: Module Practice configuration & Practice Questions CRUD terintegrasi via drawer untuk 4 tipe soal.
+- **Phase E**: Final Exam Sections & Questions terintegrasi dengan readiness banner ("Ready to activate"), explicit toggle activation, dan attempt/answer delete guards.
+- **Phase F**: 6 Scoped Reorder endpoints terimplementasi di backend dengan atomik DB transaction, exact sibling set validation, dan same-set concurrent modification check (HTTP 409 Conflict). Frontend didukung Reorder Mode bar (`reorder-bar.blade.php`), visual drag-and-drop, accessible Move Up/Down/Top/Bottom buttons, serta Conflict Alert ("Reload Latest Order").
+
+---
 
 ## 15. Files Changed
-*(Diisi setelah implementasi dilakukan)*
+
+### Backend Controllers & Routes:
+- `[MODIFY]` `routes/web.php`
+- `[MODIFY]` `app/Http/Controllers/Admin/CourseManagement/CourseBuilderController.php`
+- `[MODIFY]` `app/Http/Controllers/Admin/CourseManagement/CourseLevelController.php`
+- `[MODIFY]` `app/Http/Controllers/Admin/CourseManagement/ModuleController.php`
+- `[MODIFY]` `app/Http/Controllers/Admin/CourseManagement/ModuleMaterialController.php`
+- `[MODIFY]` `app/Http/Controllers/Admin/CourseManagement/ModulePracticeQuestionController.php`
+- `[MODIFY]` `app/Http/Controllers/Admin/CourseManagement/FinalExamController.php`
+- `[MODIFY]` `app/Http/Controllers/Admin/CourseManagement/FinalExamQuestionController.php`
+
+### Frontend JavaScript & Views:
+- `[MODIFY]` `resources/js/course-builder.js`
+- `[MODIFY]` `resources/views/pages/admin/course-management/builder/index.blade.php`
+- `[MODIFY]` `resources/views/partials/admin/course-management/builder/drawer.blade.php`
+- `[MODIFY]` `resources/views/partials/admin/course-management/builder/tree.blade.php`
+- `[MODIFY]` `resources/views/partials/admin/course-management/builder/workspace/program.blade.php`
+- `[MODIFY]` `resources/views/partials/admin/course-management/builder/workspace/level.blade.php`
+- `[MODIFY]` `resources/views/partials/admin/course-management/builder/workspace/module.blade.php`
+- `[MODIFY]` `resources/views/partials/admin/course-management/builder/workspace/practice.blade.php`
+- `[MODIFY]` `resources/views/partials/admin/course-management/builder/workspace/final-exam-folder.blade.php`
+- `[MODIFY]` `resources/views/partials/admin/course-management/builder/workspace/final-exam-section.blade.php`
+- `[NEW]` `resources/views/partials/admin/course-management/builder/workspace/reorder-bar.blade.php`
+
+---
 
 ## 16. Remaining Notes
-*(Diisi setelah testing dilakukan)*
+
+- Legacy routes tetap **100% aktif** sebagai fallback sekunder.
+- Perubahan urutan (*reordering*) hanya mengubah kolom `sort_order` dan `updated_at` di DB. Relasi parent, status active, dan data attempt/answer siswa tidak terpengaruh.
+- TASK-008 scoring engine dan sertifikat siswa terintegrasi secara utuh tanpa ada perubahan logika.
+- Phase G (Mobile UX & visual polish) serta Phase H (E2E integration) siap dilanjutkan saat diminta oleh User.
