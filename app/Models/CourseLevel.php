@@ -23,6 +23,7 @@ class CourseLevel extends Model
         'access_duration_days',
         'sort_order',
         'is_active',
+        'certificate_score_label',
     ];
 
     protected $casts = [

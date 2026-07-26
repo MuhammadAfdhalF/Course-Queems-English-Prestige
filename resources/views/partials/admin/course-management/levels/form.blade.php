@@ -244,6 +244,25 @@ $currentThumbnailType = old('thumbnail_type', $courseLevel?->thumbnail_type ?? '
 
         <div class="border-t border-slate-200 pt-8">
             <h2 class="text-xl font-bold text-slate-900">
+                Certificate Configuration
+            </h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Configure how scores and title labels appear on student completion certificates.
+            </p>
+        </div>
+
+        <x-admin.form.input
+            label="Certificate Score Label"
+            name="certificate_score_label"
+            id="certificate_score_label"
+            type="text"
+            maxlength="100"
+            :value="old('certificate_score_label', $courseLevel?->certificate_score_label)"
+            placeholder="Final Score"
+            hint="Optional. Used as the score heading on certificates. Leave empty to use “Final Score”." />
+
+        <div class="border-t border-slate-200 pt-8">
+            <h2 class="text-xl font-bold text-slate-900">
                 Settings
             </h2>
         </div>

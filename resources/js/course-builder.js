@@ -624,6 +624,7 @@ export function registerCourseBuilder(Alpine) {
                 learning_mode: 'online',
                 access_type: 'lifetime',
                 access_duration_days: '',
+                certificate_score_label: '',
                 is_active: true
             };
 
@@ -672,6 +673,7 @@ export function registerCourseBuilder(Alpine) {
                         learning_mode: d.learning_mode || 'online',
                         access_type: d.access_type || 'lifetime',
                         access_duration_days: d.access_duration_days || '',
+                        certificate_score_label: d.certificate_score_label || '',
                         sort_order: d.sort_order,
                         is_active: !!d.is_active
                     };
@@ -1335,6 +1337,7 @@ export function registerCourseBuilder(Alpine) {
                     formData.set('access_duration_days', this.drawerData.access_duration_days);
                 }
                 if (this.drawerData.sort_order !== undefined) formData.set('sort_order', this.drawerData.sort_order);
+                if (this.drawerData.certificate_score_label !== undefined) formData.set('certificate_score_label', this.drawerData.certificate_score_label || '');
                 if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
 
                 const imgInput = document.getElementById('drawer_thumbnail_file_image');

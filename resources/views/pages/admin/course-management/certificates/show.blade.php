@@ -178,7 +178,8 @@ $qrSvg = $verificationUrl
                                 $birthDateYear = $birthDateRaw ? $birthDateRaw->format('Y') : '';
                                 $hasBirthInfo = !empty($birthPlace) && !empty($birthDateRaw);
 
-                                $courseName = $courseLevel?->name ?? 'English Language Program';
+                                $courseName = \App\Services\CertificatePresentationService::courseDisplayName($courseProgram ?? $courseLevel?->courseProgram, $courseLevel);
+                                $certificateScoreLabel = \App\Services\CertificatePresentationService::scoreLabel($courseLevel);
                                 $issuedDateRaw = $certificate->issued_at ?? $certificate->created_at;
 
                                 $completionDateDayOfWeekMonthDay = $issuedDateRaw ? $issuedDateRaw->format('l, F j') : date('l, F j');
@@ -239,7 +240,7 @@ $qrSvg = $verificationUrl
                                     @if ($hasSectionScores && $sectionCount <= 5)
                                     <div class="mt-1.5 text-center">
                                         <p class="mb-0.5 text-[8px] font-bold text-[#0f172a] md:text-[9px]">
-                                            TOEFL Prediction Score:
+                                            {{ $certificateScoreLabel }}:
                                         </p>
                                         <table class="mx-auto w-[54%] border-collapse border border-black bg-white text-[7px] md:text-[8px]">
                                             <tbody>

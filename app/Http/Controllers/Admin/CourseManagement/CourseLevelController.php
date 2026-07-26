@@ -84,7 +84,12 @@ class CourseLevelController extends Controller
             'access_duration_days' => ['nullable', 'integer', 'min:1'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+            'certificate_score_label' => ['nullable', 'string', 'max:100'],
         ]);
+
+        $validated['certificate_score_label'] = \App\Services\CertificatePresentationService::normalizeScoreLabel(
+            $request->input('certificate_score_label')
+        );
 
         if ($validated['thumbnail_type'] === 'image') {
             $request->validate([
@@ -180,6 +185,7 @@ class CourseLevelController extends Controller
                     'access_duration_days' => $courseLevel->access_duration_days,
                     'sort_order' => $courseLevel->sort_order,
                     'is_active' => (bool) $courseLevel->is_active,
+                    'certificate_score_label' => $courseLevel->certificate_score_label,
                     'thumbnail_url' => $courseLevel->thumbnail_file ? Storage::url($courseLevel->thumbnail_file) : null,
                     'video_poster_url' => $courseLevel->video_poster_file ? Storage::url($courseLevel->video_poster_file) : null,
                     'update_url' => route('admin.course-management.levels.update', $courseLevel->id),
@@ -211,7 +217,12 @@ class CourseLevelController extends Controller
             'access_duration_days' => ['nullable', 'integer', 'min:1'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+            'certificate_score_label' => ['nullable', 'string', 'max:100'],
         ]);
+
+        $validated['certificate_score_label'] = \App\Services\CertificatePresentationService::normalizeScoreLabel(
+            $request->input('certificate_score_label')
+        );
 
         $changingToImage = $validated['thumbnail_type'] === 'image' && $courseLevel->thumbnail_type === 'video';
         $changingToVideo = $validated['thumbnail_type'] === 'video' && $courseLevel->thumbnail_type === 'image';

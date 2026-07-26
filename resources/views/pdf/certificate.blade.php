@@ -64,7 +64,8 @@
     $hasBirthInfo = !empty($birthPlace) && !empty($birthDateRaw);
 
     // Course & Date Info
-    $courseName = $courseLevel?->name ?? 'English Language Program';
+    $courseName = \App\Services\CertificatePresentationService::courseDisplayName($courseProgram ?? $courseLevel?->courseProgram, $courseLevel);
+    $certificateScoreLabel = \App\Services\CertificatePresentationService::scoreLabel($courseLevel);
     $issuedDateRaw = $certificate->issued_at ?? $certificate->created_at;
 
     $completionDateDayOfWeekMonthDay = $issuedDateRaw ? $issuedDateRaw->format('l, F j') : date('l, F j');
@@ -466,7 +467,7 @@
                 {{-- Compact Score Table on Page 1 if 1 to 5 sections --}}
                 @if ($hasSectionScores && $sectionCount <= 5)
                 <div class="score-container-page1">
-                    <div class="score-header-label">TOEFL Prediction Score:</div>
+                    <div class="score-header-label">{{ $certificateScoreLabel }}:</div>
                     <table class="score-table">
                         <tbody>
                             @foreach ($sectionScores as $idx => $sec)
