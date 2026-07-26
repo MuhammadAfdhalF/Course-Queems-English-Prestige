@@ -11,6 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        \Illuminate\Support\Facades\DB::table('final_exam_attempts')->whereNull('max_score')->update(['max_score' => 100.00]);
+        \Illuminate\Support\Facades\DB::table('final_exam_attempts')->whereNull('result_mode')->update(['result_mode' => 'pass_fail']);
+
+        \Illuminate\Support\Facades\DB::table('module_practice_attempts')->whereNull('max_score')->update(['max_score' => 100.00]);
+        \Illuminate\Support\Facades\DB::table('module_practice_attempts')->whereNull('result_mode')->update(['result_mode' => 'pass_fail']);
+
+        \Illuminate\Support\Facades\DB::table('free_test_results')->whereNull('max_score')->update(['max_score' => 100.00]);
+        \Illuminate\Support\Facades\DB::table('free_test_results')->whereNull('result_mode')->update(['result_mode' => 'pass_fail']);
+
         Schema::table('final_exam_attempts', function (Blueprint $table) {
             $table->decimal('max_score', 8, 2)->nullable(false)->change();
             $table->string('result_mode')->nullable(false)->change();
