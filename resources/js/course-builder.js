@@ -1,11 +1,11 @@
-const initCourseBuilder = () => {
-    if (!window.Alpine) return;
+export function registerCourseBuilder(Alpine) {
+    if (!Alpine) return;
 
     window.slugify = window.slugify || function(text) {
         return text ? text.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-') : '';
     };
 
-    window.Alpine.data('courseBuilder', (config = {}) => ({
+    Alpine.data('courseBuilder', (config = {}) => ({
         programId: config.programId || null,
         workspaceUrl: config.workspaceUrl || '',
         treeUrl: config.treeUrl || '',
@@ -17,12 +17,14 @@ const initCourseBuilder = () => {
         mobileTreeOpen: false,
         expandedNodes: {},
         fetchSequenceToken: 0,
+        lastActiveTriggerEl: null,
 
         selectedParams: {
             level: null,
             module: null,
             exam: null,
-            tab: 'overview'
+            tab: 'overview',
+            page: 1
         },
 
         // Drawer State
@@ -77,11 +79,38 @@ const initCourseBuilder = () => {
                 this.fetchWorkspace(false);
             });
 
+            // Global Keyboard Shortcuts
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.reorderMode && !this.drawerOpen && !this.deleteModalOpen) {
-                    this.discardReorder();
+                if (e.key === 'Escape') {
+                    if (this.deleteModalOpen) {
+                        this.deleteModalOpen = false;
+                    } else if (this.drawerOpen) {
+                        this.closeDrawer();
+                    } else if (this.reorderMode) {
+                        this.discardReorder();
+                    } else if (this.mobileTreeOpen) {
+                        this.mobileTreeOpen = false;
+                    }
                 }
             });
+
+            // Unsaved Changes Guard for Page Reload / Navigation
+            window.addEventListener('beforeunload', (e) => {
+                if (this.isDrawerDirty() || (this.reorderMode && JSON.stringify(this.reorderItems) !== this.originalReorderItems)) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            // Body Scroll Locking Watchers
+            this.$watch('mobileTreeOpen', val => this.updateBodyScroll());
+            this.$watch('drawerOpen', val => this.updateBodyScroll());
+            this.$watch('deleteModalOpen', val => this.updateBodyScroll());
+        },
+
+        updateBodyScroll() {
+            const isAnyModalOpen = this.mobileTreeOpen || this.drawerOpen || this.deleteModalOpen;
+            document.body.classList.toggle('overflow-hidden', isAnyModalOpen);
         },
 
         getStorageKey() {
@@ -123,10 +152,17 @@ const initCourseBuilder = () => {
             };
         },
 
-        selectNode(params = {}, updateUrl = true) {
-            if (this.reorderMode && JSON.stringify(this.reorderItems) !== this.originalReorderItems) {
-                if (!confirm('You have unsaved reorder changes. Are you sure you want to discard them?')) {
-                    return;
+        selectNode(params = {}, updateUrl = true, force = false) {
+            if (!force) {
+                if (this.reorderMode && JSON.stringify(this.reorderItems) !== this.originalReorderItems) {
+                    if (!confirm('You have unsaved reorder changes. Are you sure you want to discard them?')) {
+                        return;
+                    }
+                }
+                if (this.isDrawerDirty()) {
+                    if (!confirm('You have unsaved form changes. Are you sure you want to navigate away?')) {
+                        return;
+                    }
                 }
             }
             this.reorderMode = false;
@@ -141,6 +177,7 @@ const initCourseBuilder = () => {
             };
 
             if (
+                !force &&
                 String(newParams.level) === String(this.selectedParams.level) &&
                 String(newParams.module) === String(this.selectedParams.module) &&
                 String(newParams.exam) === String(this.selectedParams.exam) &&
@@ -179,10 +216,10 @@ const initCourseBuilder = () => {
                 window.history.pushState(null, '', newRelativePathQuery);
             }
 
-            this.fetchWorkspace();
+            this.fetchWorkspace(force);
         },
 
-        fetchWorkspace() {
+        fetchWorkspace(force = false) {
             this.loading = true;
             this.error = null;
 
@@ -218,7 +255,11 @@ const initCourseBuilder = () => {
             })
             .catch(err => {
                 if (currentToken !== this.fetchSequenceToken) return;
-                this.error = err.message || 'Error connecting to server.';
+                if (typeof window !== 'undefined' && !window.navigator.onLine) {
+                    this.error = 'Network disconnected. Please check your internet connection and click Retry.';
+                } else {
+                    this.error = err.message || 'Error connecting to server. Please try again.';
+                }
             })
             .finally(() => {
                 if (currentToken === this.fetchSequenceToken) {
@@ -227,9 +268,13 @@ const initCourseBuilder = () => {
             });
         },
 
+        retryFetch() {
+            this.fetchWorkspace(true);
+        },
+
         refreshTree() {
-            if (!this.treeUrl) return;
-            fetch(this.treeUrl, {
+            if (!this.treeUrl) return Promise.resolve();
+            return fetch(this.treeUrl, {
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
@@ -244,8 +289,45 @@ const initCourseBuilder = () => {
             .catch(e => {});
         },
 
-        // PHASE F: REORDER MANAGEMENT METHODS
+        // RICH TEXT TINYMCE LIFECYCLE MANAGEMENT
+        initRichTextEditors() {
+            setTimeout(() => {
+                if (typeof window.initAdminRichTextEditors === 'function') {
+                    window.initAdminRichTextEditors();
+                }
+                if (window.tinymce) {
+                    document.querySelectorAll('#builderDrawerForm textarea.js-admin-rich-text').forEach(el => {
+                        const inst = window.tinymce.get(el.id);
+                        if (inst && this.drawerData) {
+                            const propName = el.id.replace('drawer_', '').replace('_text', '');
+                            const val = this.drawerData[propName] || this.drawerData[el.name] || '';
+                            if (val !== undefined) {
+                                inst.setContent(val);
+                            }
+                        }
+                    });
+                }
+            }, 120);
+        },
+
+        destroyRichTextEditors() {
+            if (window.tinymce) {
+                document.querySelectorAll('#builderDrawerForm textarea.js-admin-rich-text').forEach(el => {
+                    const inst = window.tinymce.get(el.id);
+                    if (inst) {
+                        try { inst.destroy(); } catch(e) {}
+                    }
+                    el.removeAttribute('data-tinymce-ready');
+                });
+            }
+        },
+
+        // REORDER MANAGEMENT METHODS
         startReorder(type, title, saveUrl, itemsList = []) {
+            if (this.isDrawerDirty()) {
+                if (!confirm('You have unsaved drawer changes. Discard them to enter Reorder Mode?')) return;
+                this.closeDrawer(true);
+            }
             this.reorderType = type;
             this.reorderTitle = title;
             this.reorderSaveUrl = saveUrl;
@@ -352,8 +434,9 @@ const initCourseBuilder = () => {
                 if (data.status === 'success') {
                     this.reorderMode = false;
                     this.reorderConflict = false;
-                    this.refreshTree();
-                    this.fetchWorkspace();
+                    this.refreshTree().then(() => {
+                        this.fetchWorkspace(true);
+                    });
                 } else {
                     this.reorderError = data.message || 'Failed to save new order.';
                 }
@@ -372,11 +455,31 @@ const initCourseBuilder = () => {
             this.reorderMode = false;
             this.reorderConflict = false;
             this.reorderError = null;
-            this.fetchWorkspace();
+            this.refreshTree().then(() => {
+                this.fetchWorkspace(true);
+            });
         },
 
-        // DRAWER ACTIONS
+        // DRAWER ACTIONS & FOCUS MANAGEMENT
+        focusFirstDrawerInput() {
+            setTimeout(() => {
+                const formEl = document.getElementById('builderDrawerForm');
+                if (!formEl) return;
+                const firstInput = formEl.querySelector('input:not([type="hidden"]), select, textarea, button[type="submit"]');
+                if (firstInput) firstInput.focus();
+            }, 100);
+        },
+
+        focusFirstErrorInput() {
+            setTimeout(() => {
+                const firstErr = document.querySelector('#builderDrawerForm .border-rose-500, #builderDrawerForm [aria-invalid="true"]');
+                if (firstErr) firstErr.focus();
+            }, 100);
+        },
+
         openCreateLevelDrawer(storeUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_level';
             this.drawerTitle = 'Add Course Level';
             this.drawerParentContext = 'Program Course Level';
@@ -404,9 +507,13 @@ const initCourseBuilder = () => {
             };
 
             this.drawerOpen = true;
+            this.focusFirstDrawerInput();
+            this.initRichTextEditors();
         },
 
         openEditLevelDrawer(editUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_level';
             this.drawerTitle = 'Edit Course Level';
             this.drawerParentContext = 'Program Course Level';
@@ -445,6 +552,8 @@ const initCourseBuilder = () => {
                         sort_order: d.sort_order,
                         is_active: !!d.is_active
                     };
+                    this.focusFirstDrawerInput();
+                    this.initRichTextEditors();
                 } else {
                     this.drawerGeneralError = res.message || 'Failed to fetch level details.';
                 }
@@ -458,6 +567,8 @@ const initCourseBuilder = () => {
         },
 
         openCreateModuleDrawer(levelId, storeUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_module';
             this.drawerTitle = 'Add Course Module';
             this.drawerParentContext = 'Course Level Module';
@@ -478,9 +589,12 @@ const initCourseBuilder = () => {
             };
 
             this.drawerOpen = true;
+            this.focusFirstDrawerInput();
         },
 
         openEditModuleDrawer(editUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_module';
             this.drawerTitle = 'Edit Course Module';
             this.drawerParentContext = 'Course Level Module';
@@ -512,6 +626,7 @@ const initCourseBuilder = () => {
                         is_preview: !!d.is_preview,
                         is_active: !!d.is_active
                     };
+                    this.focusFirstDrawerInput();
                 } else {
                     this.drawerGeneralError = res.message || 'Failed to fetch module details.';
                 }
@@ -525,6 +640,8 @@ const initCourseBuilder = () => {
         },
 
         openCreateMaterialDrawer(moduleId, storeUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_material';
             this.drawerTitle = 'Add Module Material';
             this.drawerParentContext = 'Module Material';
@@ -546,9 +663,13 @@ const initCourseBuilder = () => {
             };
 
             this.drawerOpen = true;
+            this.focusFirstDrawerInput();
+            this.initRichTextEditors();
         },
 
         openEditMaterialDrawer(editUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_material';
             this.drawerTitle = 'Edit Module Material';
             this.drawerParentContext = 'Module Material';
@@ -581,6 +702,8 @@ const initCourseBuilder = () => {
                         sort_order: d.sort_order,
                         is_active: !!d.is_active
                     };
+                    this.focusFirstDrawerInput();
+                    this.initRichTextEditors();
                 } else {
                     this.drawerGeneralError = res.message || 'Failed to fetch material details.';
                 }
@@ -594,6 +717,8 @@ const initCourseBuilder = () => {
         },
 
         openCreatePracticeDrawer(storeUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_practice';
             this.drawerTitle = 'Configure Module Practice';
             this.drawerParentContext = 'Module Practice Quiz';
@@ -615,9 +740,13 @@ const initCourseBuilder = () => {
             };
 
             this.drawerOpen = true;
+            this.focusFirstDrawerInput();
+            this.initRichTextEditors();
         },
 
         openEditPracticeDrawer(editUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_practice';
             this.drawerTitle = 'Edit Module Practice';
             this.drawerParentContext = 'Module Practice Quiz';
@@ -650,6 +779,8 @@ const initCourseBuilder = () => {
                         is_required: !!d.is_required,
                         is_active: !!d.is_active
                     };
+                    this.focusFirstDrawerInput();
+                    this.initRichTextEditors();
                 } else {
                     this.drawerGeneralError = res.message || 'Failed to fetch practice details.';
                 }
@@ -663,6 +794,8 @@ const initCourseBuilder = () => {
         },
 
         openCreateQuestionDrawer(storeUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_question';
             this.drawerTitle = 'Add Practice Question';
             this.drawerParentContext = 'Practice Quiz Question';
@@ -684,9 +817,13 @@ const initCourseBuilder = () => {
             };
 
             this.drawerOpen = true;
+            this.focusFirstDrawerInput();
+            this.initRichTextEditors();
         },
 
         openEditQuestionDrawer(editUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_question';
             this.drawerTitle = 'Edit Practice Question';
             this.drawerParentContext = 'Practice Quiz Question';
@@ -720,6 +857,8 @@ const initCourseBuilder = () => {
                         correct_option: d.correct_option || 'A',
                         is_active: !!d.is_active
                     };
+                    this.focusFirstDrawerInput();
+                    this.initRichTextEditors();
                 } else {
                     this.drawerGeneralError = res.message || 'Failed to fetch question details.';
                 }
@@ -732,8 +871,9 @@ const initCourseBuilder = () => {
             });
         },
 
-        // PHASE E: FINAL EXAM DRAWER ACTIONS
         openCreateFinalExamSectionDrawer(storeUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_final_exam_section';
             this.drawerTitle = 'Add Final Exam Section';
             this.drawerParentContext = 'Course Level Final Exam';
@@ -754,9 +894,13 @@ const initCourseBuilder = () => {
             };
 
             this.drawerOpen = true;
+            this.focusFirstDrawerInput();
+            this.initRichTextEditors();
         },
 
         openEditFinalExamSectionDrawer(editUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_final_exam_section';
             this.drawerTitle = 'Edit Final Exam Section';
             this.drawerParentContext = 'Course Level Final Exam';
@@ -789,6 +933,8 @@ const initCourseBuilder = () => {
                         sort_order: d.sort_order,
                         is_active: !!d.is_active
                     };
+                    this.focusFirstDrawerInput();
+                    this.initRichTextEditors();
                 } else {
                     this.drawerGeneralError = res.message || 'Failed to fetch section details.';
                 }
@@ -802,6 +948,8 @@ const initCourseBuilder = () => {
         },
 
         openCreateFinalExamQuestionDrawer(storeUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'create_final_exam_question';
             this.drawerTitle = 'Add Final Exam Question';
             this.drawerParentContext = 'Final Exam Section Question';
@@ -823,9 +971,13 @@ const initCourseBuilder = () => {
             };
 
             this.drawerOpen = true;
+            this.focusFirstDrawerInput();
+            this.initRichTextEditors();
         },
 
         openEditFinalExamQuestionDrawer(editUrl) {
+            this.destroyRichTextEditors();
+            this.lastActiveTriggerEl = document.activeElement;
             this.drawerType = 'edit_final_exam_question';
             this.drawerTitle = 'Edit Final Exam Question';
             this.drawerParentContext = 'Final Exam Section Question';
@@ -859,6 +1011,8 @@ const initCourseBuilder = () => {
                         correct_option: d.correct_option || 'A',
                         is_active: !!d.is_active
                     };
+                    this.focusFirstDrawerInput();
+                    this.initRichTextEditors();
                 } else {
                     this.drawerGeneralError = res.message || 'Failed to fetch question details.';
                 }
@@ -892,8 +1046,9 @@ const initCourseBuilder = () => {
             })
             .then(data => {
                 if (data && data.status === 'success') {
-                    this.refreshTree();
-                    this.fetchWorkspace();
+                    this.refreshTree().then(() => {
+                        this.fetchWorkspace(true);
+                    });
                 }
             })
             .catch(err => {
@@ -918,18 +1073,23 @@ const initCourseBuilder = () => {
             if (!force && this.isDrawerDirty()) {
                 if (!confirm('You have unsaved changes. Are you sure you want to close?')) return;
             }
+            this.destroyRichTextEditors();
             this.drawerOpen = false;
+            if (this.lastActiveTriggerEl && typeof this.lastActiveTriggerEl.focus === 'function') {
+                this.lastActiveTriggerEl.focus();
+            }
         },
 
         submitDrawerForm() {
             if (this.drawerSaving) return;
-            this.drawerSaving = true;
-            this.drawerErrors = {};
-            this.drawerGeneralError = null;
 
             if (window.tinymce) {
                 try { window.tinymce.triggerSave(); } catch(e) {}
             }
+
+            this.drawerSaving = true;
+            this.drawerErrors = {};
+            this.drawerGeneralError = null;
 
             const formEl = document.getElementById('builderDrawerForm');
             const formData = new FormData(formEl);
@@ -979,7 +1139,7 @@ const initCourseBuilder = () => {
                 if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
             } else if (this.drawerType.includes('practice') && !this.drawerType.includes('question')) {
                 formData.set('title', this.drawerData.title || '');
-                formData.set('description', this.drawerData.description || '');
+                formData.set('description', this.drawerData.description || (document.getElementById('drawer_practice_description')?.value || ''));
                 formData.set('passing_grade', this.drawerData.passing_grade || 70);
                 formData.set('grading_method', this.drawerData.grading_method || 'auto');
                 if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
@@ -988,7 +1148,7 @@ const initCourseBuilder = () => {
             } else if (this.drawerType.includes('question') && !this.drawerType.includes('final_exam')) {
                 formData.set('question_type', this.drawerData.question_type || 'multiple_choice');
                 formData.set('question', this.drawerData.question || (document.getElementById('drawer_question_text')?.value || ''));
-                formData.set('explanation', this.drawerData.explanation || '');
+                formData.set('explanation', this.drawerData.explanation || (document.getElementById('drawer_question_explanation')?.value || ''));
                 formData.set('score', this.drawerData.score || 10);
                 if (this.drawerData.question_type === 'multiple_choice') {
                     if (this.drawerData.options) {
@@ -1004,7 +1164,7 @@ const initCourseBuilder = () => {
                 if (this.drawerData.is_active) formData.set('is_active', '1'); else formData.delete('is_active');
             } else if (this.drawerType.includes('final_exam_section')) {
                 formData.set('title', this.drawerData.title || '');
-                formData.set('description', this.drawerData.description || '');
+                formData.set('description', this.drawerData.description || (document.getElementById('drawer_exam_section_description')?.value || ''));
                 formData.set('passing_grade', this.drawerData.passing_grade || 75);
                 formData.set('grading_method', this.drawerData.grading_method || 'auto');
                 if (this.drawerData.max_attempts) formData.set('max_attempts', this.drawerData.max_attempts); else formData.delete('max_attempts');
@@ -1013,7 +1173,7 @@ const initCourseBuilder = () => {
             } else if (this.drawerType.includes('final_exam_question')) {
                 formData.set('question_type', this.drawerData.question_type || 'multiple_choice');
                 formData.set('question', this.drawerData.question || (document.getElementById('drawer_exam_question_text')?.value || ''));
-                formData.set('explanation', this.drawerData.explanation || '');
+                formData.set('explanation', this.drawerData.explanation || (document.getElementById('drawer_exam_question_explanation')?.value || ''));
                 formData.set('score', this.drawerData.score || 10);
                 if (this.drawerData.question_type === 'multiple_choice') {
                     if (this.drawerData.options) {
@@ -1045,6 +1205,7 @@ const initCourseBuilder = () => {
                     return res.json().then(errData => {
                         this.drawerErrors = errData.errors || {};
                         this.drawerGeneralError = errData.message || 'Please check validation errors.';
+                        this.focusFirstErrorInput();
                         throw new Error('Validation Error');
                     });
                 }
@@ -1053,12 +1214,14 @@ const initCourseBuilder = () => {
             })
             .then(data => {
                 if (data.status === 'success') {
+                    this.destroyRichTextEditors();
                     this.drawerOpen = false;
-                    this.refreshTree();
-                    if (data.redirect_node) {
-                        this.selectNode(data.redirect_node);
-                    } else {
-                        this.fetchWorkspace();
+                    const targetNode = data.redirect_node || this.selectedParams;
+                    this.refreshTree().then(() => {
+                        this.selectNode(targetNode, true, true);
+                    });
+                    if (this.lastActiveTriggerEl && typeof this.lastActiveTriggerEl.focus === 'function') {
+                        this.lastActiveTriggerEl.focus();
                     }
                 } else {
                     this.drawerGeneralError = data.message || 'Operation failed.';
@@ -1074,8 +1237,9 @@ const initCourseBuilder = () => {
             });
         },
 
-        // DELETE MODAL ACTIONS
+        // DELETE MODAL ACTIONS & FOCUS MANAGEMENT
         confirmDelete(type, id, title, deleteUrl, redirectNode = null) {
+            this.lastActiveTriggerEl = document.activeElement;
             this.deleteModalTitle = type === 'level' ? 'Delete Course Level' : (type === 'module' ? 'Delete Module' : (type === 'material' ? 'Delete Material' : (type === 'practice' ? 'Delete Practice' : (type === 'final_exam_section' ? 'Delete Exam Section' : 'Delete Question'))));
             this.deleteModalItemTitle = title;
             this.deleteModalUrl = deleteUrl;
@@ -1083,6 +1247,11 @@ const initCourseBuilder = () => {
             this.deleteModalDeleting = false;
             this.deleteModalError = null;
             this.deleteModalOpen = true;
+
+            setTimeout(() => {
+                const cancelBtn = document.getElementById('deleteModalCancelBtn');
+                if (cancelBtn) cancelBtn.focus();
+            }, 100);
         },
 
         executeDelete() {
@@ -1113,8 +1282,13 @@ const initCourseBuilder = () => {
                 if (!data) return;
                 if (data.status === 'success') {
                     this.deleteModalOpen = false;
-                    this.refreshTree();
-                    this.selectNode(data.redirect_node || this.deleteRedirectNode);
+                    const targetNode = data.redirect_node || this.deleteRedirectNode;
+                    this.refreshTree().then(() => {
+                        this.selectNode(targetNode, true, true);
+                    });
+                    if (this.lastActiveTriggerEl && typeof this.lastActiveTriggerEl.focus === 'function') {
+                        this.lastActiveTriggerEl.focus();
+                    }
                 } else {
                     this.deleteModalError = data.message || 'Failed to delete item.';
                 }
@@ -1129,10 +1303,12 @@ const initCourseBuilder = () => {
             });
         }
     }));
-};
+}
 
 if (window.Alpine) {
-    initCourseBuilder();
+    registerCourseBuilder(window.Alpine);
 } else {
-    document.addEventListener('alpine:init', initCourseBuilder);
+    document.addEventListener('alpine:init', () => {
+        if (window.Alpine) registerCourseBuilder(window.Alpine);
+    });
 }

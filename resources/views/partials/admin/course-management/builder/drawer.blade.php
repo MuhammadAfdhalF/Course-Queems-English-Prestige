@@ -120,7 +120,7 @@
                                             x-model="drawerData.description"
                                             rows="4"
                                             placeholder="Detailed level overview and syllabus..."
-                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                            class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
                                     </div>
 
                                     {{-- Media Section --}}
@@ -351,7 +351,7 @@
                                             x-model="drawerData.content"
                                             rows="8"
                                             placeholder="Write formatted learning content..."
-                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                            class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
                                         <template x-if="drawerErrors.content">
                                             <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.content[0]"></p>
                                         </template>
@@ -427,10 +427,12 @@
                                     <div>
                                         <label class="block text-xs font-bold text-slate-700 mb-1">Instructions / Description</label>
                                         <textarea
+                                            id="drawer_practice_description"
+                                            name="description"
                                             x-model="drawerData.description"
                                             rows="3"
                                             placeholder="Instructions for students taking this practice..."
-                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                            class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
                                     </div>
 
                                     <div class="grid gap-4 sm:grid-cols-3">
@@ -527,11 +529,12 @@
                                         <label class="block text-xs font-bold text-slate-700 mb-1">Question Prompt <span class="text-rose-500">*</span></label>
                                         <textarea
                                             id="drawer_question_text"
+                                            name="question"
                                             x-model="drawerData.question"
                                             rows="4"
                                             placeholder="Write the question text or prompt..."
                                             required
-                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                            class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
                                         <template x-if="drawerErrors.question">
                                             <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.question[0]"></p>
                                         </template>
@@ -572,10 +575,12 @@
                                     <div>
                                         <label class="block text-xs font-bold text-slate-700 mb-1">Explanation / Solution Notes</label>
                                         <textarea
+                                            id="drawer_question_explanation"
+                                            name="explanation"
                                             x-model="drawerData.explanation"
                                             rows="2"
                                             placeholder="Optional explanation shown to students after grading..."
-                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
+                                            class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-blue-500 focus:outline-none"></textarea>
                                     </div>
 
                                     <div class="border-t border-slate-200 pt-4">
@@ -609,10 +614,12 @@
                                     <div>
                                         <label class="block text-xs font-bold text-slate-700 mb-1">Instructions / Description</label>
                                         <textarea
+                                            id="drawer_exam_section_description"
+                                            name="description"
                                             x-model="drawerData.description"
                                             rows="3"
                                             placeholder="Section instructions for students..."
-                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none"></textarea>
+                                            class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none"></textarea>
                                     </div>
 
                                     <div class="grid gap-4 sm:grid-cols-3">
@@ -702,11 +709,12 @@
                                         <label class="block text-xs font-bold text-slate-700 mb-1">Question Prompt <span class="text-rose-500">*</span></label>
                                         <textarea
                                             id="drawer_exam_question_text"
+                                            name="question"
                                             x-model="drawerData.question"
                                             rows="4"
                                             placeholder="Write the exam question text or prompt..."
                                             required
-                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none"></textarea>
+                                            class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none"></textarea>
                                         <template x-if="drawerErrors.question">
                                             <p class="mt-1 text-[11px] font-bold text-rose-600" x-text="drawerErrors.question[0]"></p>
                                         </template>
@@ -747,10 +755,13 @@
                                     <div>
                                         <label class="block text-xs font-bold text-slate-700 mb-1">Explanation / Solution Notes</label>
                                         <textarea
+                                            id="drawer_exam_question_explanation"
+                                            name="explanation"
                                             x-model="drawerData.explanation"
                                             rows="2"
                                             placeholder="Optional explanation shown after grading..."
-                                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none"></textarea>
+                                            class="js-admin-rich-text w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none"></textarea>
+                                    </div>
                                     </div>
 
                                     <div class="border-t border-slate-200 pt-4">

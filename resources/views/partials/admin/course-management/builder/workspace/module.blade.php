@@ -176,32 +176,48 @@
                                         </h4>
 
                                         @if ($mat->material_type === 'text')
-                                        <p class="mt-1 text-xs text-slate-500 line-clamp-1">
-                                            {{ Str::limit(strip_tags($mat->content), 120) }}
-                                        </p>
+                                            <div class="mt-2 text-xs text-slate-600 line-clamp-2">
+                                                {!! strip_tags($mat->content, '<p><br><b><i><strong><em><ul><li><ol>') !!}
+                                            </div>
+                                        @elseif ($mat->material_type === 'image' && $mat->file_path)
+                                            <div class="mt-2">
+                                                <img src="{{ asset('storage/' . $mat->file_path) }}" class="h-32 max-w-full rounded-xl object-contain border border-slate-200" alt="{{ $mat->title }}" />
+                                            </div>
+                                        @elseif ($mat->material_type === 'video' && $mat->file_path)
+                                            <div class="mt-2">
+                                                <video controls preload="metadata" class="h-36 max-w-full rounded-xl bg-slate-900">
+                                                    <source src="{{ asset('storage/' . $mat->file_path) }}">
+                                                </video>
+                                            </div>
+                                        @elseif ($mat->material_type === 'audio' && $mat->file_path)
+                                            <div class="mt-2">
+                                                <audio controls preload="metadata" class="w-full max-w-md">
+                                                    <source src="{{ asset('storage/' . $mat->file_path) }}">
+                                                </audio>
+                                            </div>
                                         @elseif ($mat->file_path)
-                                        <p class="mt-1 text-[11px] text-slate-400 font-mono">
-                                            {{ basename($mat->file_path) }}
-                                        </p>
+                                            <p class="mt-1 text-[11px] text-slate-400 font-mono">
+                                                {{ basename($mat->file_path) }}
+                                            </p>
                                         @endif
                                     </div>
                                 </div>
 
                                 <div class="flex items-center gap-2 border-t border-slate-100 pt-3 sm:border-t-0 sm:pt-0 shrink-0">
-                                    {{-- Open / Preview Action --}}
+                                    {{-- Unified Preview Material Action --}}
                                     @if ($mat->material_type === 'text')
                                     <button
                                         type="button"
                                         @click="openEditMaterialDrawer('{{ route('admin.course-management.programs.builder.materials.edit', ['courseProgram' => $courseProgram->id, 'moduleMaterial' => $mat->id]) }}')"
                                         class="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition">
-                                        <span>Read / Edit</span>
+                                        <span>Preview Material</span>
                                     </button>
                                     @elseif ($mat->file_path)
                                     <a
                                         href="{{ asset('storage/' . $mat->file_path) }}"
                                         target="_blank"
                                         class="inline-flex items-center gap-1 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-[var(--color-brand-blue)] hover:bg-blue-100 transition">
-                                        <span>Preview File</span>
+                                        <span>Preview Material</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                         </svg>

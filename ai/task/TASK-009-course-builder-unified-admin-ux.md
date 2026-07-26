@@ -251,7 +251,7 @@ Entity yang mendukung Drag-and-Drop Reorder:
 - [x] **Phase D**: Module Practice Configuration & Practice Question Management (MCQ, Short Answer, Essay, Upload) terkelola terpadu.
 - [x] **Phase E**: Final Exam Section Configuration & Question Management terkelola terpadu dengan readiness status & attempt/answer guards.
 - [x] **Phase F**: Unified Reorder Engine untuk Levels, Modules, Materials, Practice Questions, Final Exam Sections, dan Final Exam Questions berjalan dengan HTTP 409 Conflict handling, Move Up/Down accessibility, dan full-list reorder.
-- [ ] **Phase G**: Mobile off-canvas drawer polish & responsive layout refinement.
+- [ ] **Phase G**: Mobile off-canvas tree drawer, full-screen mobile drawers/modals, focus management, body scroll locking, FOUC prevention (`x-cloak`), Rich Text TinyMCE lifecycle, dan automatic UI refresh stabilization (In Stabilization Testing).
 - [ ] **Phase H**: Final integration testing, E2E verification & legacy transition links.
 
 ---
@@ -271,6 +271,7 @@ Entity yang mendukung Drag-and-Drop Reorder:
 - **Phase D**: Module Practice configuration & Practice Questions CRUD terintegrasi via drawer untuk 4 tipe soal.
 - **Phase E**: Final Exam Sections & Questions terintegrasi dengan readiness banner ("Ready to activate"), explicit toggle activation, dan attempt/answer delete guards.
 - **Phase F**: 6 Scoped Reorder endpoints terimplementasi di backend dengan atomik DB transaction, exact sibling set validation, dan same-set concurrent modification check (HTTP 409 Conflict). Frontend didukung Reorder Mode bar (`reorder-bar.blade.php`), visual drag-and-drop, accessible Move Up/Down/Top/Bottom buttons, serta Conflict Alert ("Reload Latest Order").
+- **Phase G**: Mobile off-canvas tree drawer, full-screen form drawers pada layar <640px, focus management (auto-focus first input/error), body scroll lock (`overflow-hidden`), FOUC prevention (`x-cloak`), dan ARIA accessibility standards terimplementasi. Registrasi Alpine component terverifikasi aman melalui import `registerCourseBuilder(Alpine)` di `app.js` sebelum `Alpine.start()` dan SSR fallback (`{!! $initialWorkspaceHtml !!}` & `@include('tree')`) dipertahankan 100% tanpa panel putih kosong.
 
 ---
 

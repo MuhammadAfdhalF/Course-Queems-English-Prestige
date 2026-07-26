@@ -4,10 +4,18 @@
 ])
 
 @section('content')
+@php
+    $builderUrl = route('admin.course-management.programs.builder', [
+        'courseProgram' => $finalExam->courseLevel->course_program_id,
+        'level' => $finalExam->course_level_id,
+        'exam' => $finalExam->id
+    ]);
+@endphp
+
 <section class="mx-auto max-w-7xl space-y-6">
     <x-admin.page-toolbar
-        :back-url="route('admin.course-management.levels.final-exam.index', $finalExam->courseLevel)"
-        back-label="Back to Final Exam" />
+        :back-url="$builderUrl"
+        back-label="Back to Course Builder" />
 
     <x-admin.flash-message />
 
