@@ -542,4 +542,104 @@ class DataResetCommandTest extends TestCase
         $this::assertTrue(Storage::disk('public')->exists('course-thumbnails/thumb1.jpg'));
         $this::assertTrue(Storage::disk('public')->exists('video-posters/poster1.jpg'));
     }
+
+    public function test_guest_session_with_null_user_id_and_volatile_runtime_changes_do_not_cause_checksum_mismatch(): void
+    {
+        // Insert guest session with user_id NULL
+        DB::table('sessions')->insert([
+            'id' => 'session_guest_1',
+            'user_id' => null,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Browser',
+            'payload' => 'guest_payload_initial',
+            'last_activity' => time(),
+        ]);
+
+        $protectedUserIds = DB::table('users')->where('role', '!=', 'student')->pluck('id')->toArray();
+        $protectedUserEmails = DB::table('users')->where('role', '!=', 'student')->pluck('email')->toArray();
+
+        $before = \App\Services\DataReset\ProtectedDataVerifier::calculateChecksum('student_operations', $protectedUserIds, $protectedUserEmails);
+
+        // Mutate guest session, add another guest session, and mutate admin session payload/last_activity
+        DB::table('sessions')->where('id', 'session_guest_1')->update(['payload' => 'guest_payload_changed', 'last_activity' => time() + 100]);
+        DB::table('sessions')->insert([
+            'id' => 'session_guest_2',
+            'user_id' => null,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Browser',
+            'payload' => 'guest_2_payload',
+            'last_activity' => time(),
+        ]);
+        DB::table('sessions')->where('id', 'session_admin_1')->update([
+            'payload' => 'admin_payload_modified_at_runtime',
+            'last_activity' => time() + 200,
+        ]);
+
+        $after = \App\Services\DataReset\ProtectedDataVerifier::calculateChecksum('student_operations', $protectedUserIds, $protectedUserEmails);
+
+        // Verification must pass without throwing exception
+        \App\Services\DataReset\ProtectedDataVerifier::verifyChecksums($before, $after);
+
+        $this::assertEquals($before['overall_hash'], $after['overall_hash']);
+        $this::assertDatabaseHas('sessions', ['id' => 'session_admin_1', 'user_id' => $this->admin->id]);
+    }
+
+    public function test_admin_session_deletion_triggers_checksum_mismatch_and_rollback(): void
+    {
+        $protectedUserIds = DB::table('users')->where('role', '!=', 'student')->pluck('id')->toArray();
+        $protectedUserEmails = DB::table('users')->where('role', '!=', 'student')->pluck('email')->toArray();
+
+        $before = \App\Services\DataReset\ProtectedDataVerifier::calculateChecksum('student_operations', $protectedUserIds, $protectedUserEmails);
+
+        // Delete admin session
+        DB::table('sessions')->where('id', 'session_admin_1')->delete();
+
+        $after = \App\Services\DataReset\ProtectedDataVerifier::calculateChecksum('student_operations', $protectedUserIds, $protectedUserEmails);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Protected data verification failed! The following datasets were modified during reset: [sessions_non_student]. Transaction rolled back.');
+
+        \App\Services\DataReset\ProtectedDataVerifier::verifyChecksums($before, $after);
+    }
+
+    public function test_admin_session_user_id_mutation_triggers_checksum_mismatch(): void
+    {
+        $protectedUserIds = DB::table('users')->where('role', '!=', 'student')->pluck('id')->toArray();
+        $protectedUserEmails = DB::table('users')->where('role', '!=', 'student')->pluck('email')->toArray();
+
+        $before = \App\Services\DataReset\ProtectedDataVerifier::calculateChecksum('student_operations', $protectedUserIds, $protectedUserEmails);
+
+        // Change admin session user_id
+        DB::table('sessions')->where('id', 'session_admin_1')->update(['user_id' => 99999]);
+
+        $after = \App\Services\DataReset\ProtectedDataVerifier::calculateChecksum('student_operations', $protectedUserIds, $protectedUserEmails);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Protected data verification failed! The following datasets were modified during reset: [sessions_non_student]. Transaction rolled back.');
+
+        \App\Services\DataReset\ProtectedDataVerifier::verifyChecksums($before, $after);
+    }
+
+    public function test_password_reset_token_explicit_protected_email_handling(): void
+    {
+        DB::table('password_reset_tokens')->insert([
+            'email' => 'other_unprotected@gmail.com',
+            'token' => 'token_other',
+            'created_at' => now(),
+        ]);
+
+        $protectedUserIds = DB::table('users')->where('role', '!=', 'student')->pluck('id')->toArray();
+        $protectedUserEmails = DB::table('users')->where('role', '!=', 'student')->pluck('email')->toArray();
+
+        $before = \App\Services\DataReset\ProtectedDataVerifier::calculateChecksum('student_operations', $protectedUserIds, $protectedUserEmails);
+
+        // Delete unprotected token
+        DB::table('password_reset_tokens')->where('email', 'other_unprotected@gmail.com')->delete();
+
+        $after = \App\Services\DataReset\ProtectedDataVerifier::calculateChecksum('student_operations', $protectedUserIds, $protectedUserEmails);
+
+        // Checksum must remain identical because other_unprotected is not in protectedUserEmails
+        \App\Services\DataReset\ProtectedDataVerifier::verifyChecksums($before, $after);
+        $this::assertEquals($before['overall_hash'], $after['overall_hash']);
+    }
 }

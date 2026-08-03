@@ -61,8 +61,8 @@ class ProtectedDataVerifier
 
     public static function calculateChecksum(
         string $resetType,
-        array $studentIds = [],
-        array $studentEmails = []
+        array $protectedUserIds = [],
+        array $protectedUserEmails = []
     ): array {
         $tables = self::getProtectedTables($resetType);
         $summary = [];
@@ -80,34 +80,42 @@ class ProtectedDataVerifier
             ];
         }
 
-        // Add admin users checksum
-        $adminUsersCount = DB::table('users')->where('role', '!=', 'student')->count();
+        // Add admin/non-student users checksum
+        $adminUsersQuery = DB::table('users')->where('role', '!=', 'student');
+        if (!empty($protectedUserIds)) {
+            $adminUsersQuery->whereIn('id', $protectedUserIds);
+        }
+        $adminUsersCount = (clone $adminUsersQuery)->count();
         $adminUsersHash = hash('sha256', json_encode(
-            DB::table('users')->where('role', '!=', 'student')->orderBy('id')->get(['id', 'email', 'name', 'role'])->toArray()
+            (clone $adminUsersQuery)->orderBy('id')->get(['id', 'email', 'name', 'role'])->toArray()
         ));
         $summary['users_non_student'] = [
             'count' => $adminUsersCount,
             'hash' => $adminUsersHash,
         ];
 
-        // Add non-student sessions checksum
+        // Add protected non-student sessions checksum using explicit user IDs and stable identity columns
         $adminSessionsQuery = DB::table('sessions');
-        if (!empty($studentIds)) {
-            $adminSessionsQuery->whereNotIn('user_id', $studentIds);
+        if (!empty($protectedUserIds)) {
+            $adminSessionsQuery->whereIn('user_id', $protectedUserIds);
+        } else {
+            $adminSessionsQuery->whereRaw('1 = 0');
         }
         $summary['sessions_non_student'] = [
             'count' => (clone $adminSessionsQuery)->count(),
             'hash' => hash('sha256', json_encode((clone $adminSessionsQuery)->orderBy('id')->get(['id', 'user_id'])->toArray())),
         ];
 
-        // Add non-student reset tokens checksum
+        // Add protected non-student reset tokens checksum using explicit emails
         $adminTokensQuery = DB::table('password_reset_tokens');
-        if (!empty($studentEmails)) {
-            $adminTokensQuery->whereNotIn('email', $studentEmails);
+        if (!empty($protectedUserEmails)) {
+            $adminTokensQuery->whereIn('email', $protectedUserEmails);
+        } else {
+            $adminTokensQuery->whereRaw('1 = 0');
         }
         $summary['tokens_non_student'] = [
             'count' => (clone $adminTokensQuery)->count(),
-            'hash' => hash('sha256', json_encode((clone $adminTokensQuery)->orderBy('email')->get(['email', 'created_at'])->toArray())),
+            'hash' => hash('sha256', json_encode((clone $adminTokensQuery)->orderBy('email')->get(['email'])->toArray())),
         ];
 
         $overallHash = hash('sha256', json_encode($summary));

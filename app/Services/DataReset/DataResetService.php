@@ -23,6 +23,8 @@ class DataResetService
         // 2. Pre-extract Student metadata and file paths before deletion
         $studentIds = DB::table('users')->where('role', 'student')->pluck('id')->toArray();
         $studentEmails = DB::table('users')->where('role', 'student')->pluck('email')->toArray();
+        $protectedUserIds = DB::table('users')->where('role', '!=', 'student')->pluck('id')->toArray();
+        $protectedUserEmails = DB::table('users')->where('role', '!=', 'student')->pluck('email')->toArray();
 
         $certificateFiles = Schema::hasTable('certificates')
             ? DB::table('certificates')->whereNotNull('certificate_file')->where('certificate_file', '!=', '')->pluck('certificate_file')->toArray()
@@ -33,7 +35,7 @@ class DataResetService
             : [];
 
         // 3. Baseline Protected Data Checksum
-        $baselineChecksum = ProtectedDataVerifier::calculateChecksum($resetType, $studentIds, $studentEmails);
+        $baselineChecksum = ProtectedDataVerifier::calculateChecksum($resetType, $protectedUserIds, $protectedUserEmails);
 
         $deletionSteps = $plan->getDeletionSteps();
         $tableSummaries = [];
@@ -99,7 +101,7 @@ class DataResetService
             }
 
             // Post-deletion protected data checksum verification BEFORE commit
-            $postChecksum = ProtectedDataVerifier::calculateChecksum($resetType, [], []);
+            $postChecksum = ProtectedDataVerifier::calculateChecksum($resetType, $protectedUserIds, $protectedUserEmails);
             ProtectedDataVerifier::verifyChecksums($baselineChecksum, $postChecksum);
 
             DB::commit();

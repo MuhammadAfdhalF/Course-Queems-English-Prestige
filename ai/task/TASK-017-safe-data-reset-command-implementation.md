@@ -174,6 +174,24 @@ Development database `queens_english_db` baseline record counts remain 100% inta
 
 ---
 
-## 9. Recommended Next Steps (TASK-018)
+## 9. TASK-017-R1 — Protected Session Verifier Hardening
 
-- **TASK-018**: Reset Database Clone Rehearsal & Verification on `queens_english_reset_test`.
+### A. TASK-018 Rehearsal Finding & Confirmed Root Cause
+- **Finding**: Saat rehearsal TASK-018 dijalankan pada database clone `queens_english_reset_test`, baik Reset 1 maupun Reset 2 memicu rollback dengan error `Protected data verification failed! [sessions_non_student]`.
+- **Root Cause**:
+  1. Parameter `studentIds` yang dikirim ke `calculateChecksum` berbeda antara sebelum deletion (`$studentIds` lengkap) dan sesudah deletion (`[]` kosong), menyebabkan kueri filter `whereNotIn('user_id', $studentIds)` bergeser dari subset filter menjadi `DB::table('sessions')` tanpa filter.
+  2. Kueri `whereNotIn('user_id', $studentIds)` dalam standar SQL mengabaikan baris di mana `user_id IS NULL` (sesi guest/CLI).
+  3. Menyertakan kolom volatile (`payload`, `last_activity`) membuat checksum peka terhadap perubahan runtime timestamp session driver Laravel.
+
+### B. Hardened Strategy for Session & Password Reset Tokens
+- **Explicit Identity Strategy**: Mengambil `$protectedUserIds` (user role `!= student`) dan `$protectedUserEmails` sebelum transaksi dimulai. Daftar yang persis sama dikirim ke checksum `before` dan `after`.
+- **Protected Sessions Query**: `DB::table('sessions')->whereIn('user_id', $protectedUserIds)`
+- **Stable Identity Columns**: Hanya menyertakan `id` dan `user_id` (mengabaikan `payload` dan `last_activity`).
+- **Guest Session Policy**: Sesi guest (`user_id IS NULL`) tidak dikategorikan sebagai protected session dan tidak memicu false positive mismatch.
+- **Protected Password Reset Tokens Query**: `DB::table('password_reset_tokens')->whereIn('email', $protectedUserEmails)` dengan kolom stabil `['email']`.
+
+---
+
+## 10. Recommended Next Steps (Re-run TASK-018)
+
+- Re-run TASK-018 rehearsal pada database clone `queens_english_reset_test` dengan verifier session yang telah diperbarui.
