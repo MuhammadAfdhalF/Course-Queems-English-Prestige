@@ -13,10 +13,19 @@ $phpBin = 'D:/APK/laragon/bin/php/php-8.3.16-Win32-vs16-x64/php.exe';
 $mysqldumpBin = 'D:/APK/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysqldump.exe';
 $mysqlBin = 'D:/APK/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysql.exe';
 
-$backupDir = 'D:/Database Backups/Queens English';
-if (!is_dir($backupDir)) {
-    mkdir($backupDir, 0777, true);
+$backupFile = 'D:/Database Backups/Queens English/queens_english_db_before_task018_20260803_214914.sql';
+if (!file_exists($backupFile)) {
+    echo "Backup file $backupFile does not exist!\n";
+    exit(1);
 }
+
+$expectedBackupHash = 'bdad22950830c0acac15e9fe8cf4fa7388882477466add8d7b5c27c7510aeaf4';
+$actualBackupHash = hash_file('sha256', $backupFile);
+if ($actualBackupHash !== $expectedBackupHash) {
+    echo "Backup hash mismatch! Expected $expectedBackupHash, got $actualBackupHash\n";
+    exit(1);
+}
+echo "Verified baseline backup dump: SHA-256 = $actualBackupHash\n";
 
 $artifactsDir = "$rehearsalDir/rehearsal-artifacts";
 if (!is_dir($artifactsDir)) {
@@ -24,7 +33,7 @@ if (!is_dir($artifactsDir)) {
 }
 
 echo "==================================================\n";
-echo "TASK-018: ISOLATED RESET REHEARSAL ORCHESTRATOR\n";
+echo "TASK-018-R1: ISOLATED RESET REHEARSAL RERUN\n";
 echo "==================================================\n";
 
 // 1. PHYSICAL STORAGE COPY & BASELINE MANIFEST
@@ -32,28 +41,49 @@ echo "\n--- 1. PHYSICAL STORAGE COPY & BASELINE MANIFEST ---\n";
 $mainStoragePublic = "$mainDir/storage/app/public";
 $rehearsalStoragePublic = "$rehearsalDir/storage/app/public";
 
-if (is_dir($rehearsalStoragePublic)) {
-    File::deleteDirectory($rehearsalStoragePublic);
-}
-mkdir($rehearsalStoragePublic, 0777, true);
+function restoreRehearsalStorage($mainStoragePublic, $rehearsalStoragePublic) {
+    if (is_dir($rehearsalStoragePublic)) {
+        File::deleteDirectory($rehearsalStoragePublic);
+    }
+    mkdir($rehearsalStoragePublic, 0777, true);
 
-// Physical copy storage/app/public
-exec("xcopy " . escapeshellarg(str_replace('/', '\\', $mainStoragePublic)) . " " . escapeshellarg(str_replace('/', '\\', $rehearsalStoragePublic)) . " /E /I /H /Y /Q", $outCp, $codeCp);
-echo "Copied physical storage to rehearsal: exit code $codeCp\n";
+    exec("xcopy " . escapeshellarg(str_replace('/', '\\', $mainStoragePublic)) . " " . escapeshellarg(str_replace('/', '\\', $rehearsalStoragePublic)) . " /E /I /H /Y /Q", $outCp, $codeCp);
 
-// Ensure certificate-templates in storage public
-if (!is_dir("$rehearsalStoragePublic/certificate-templates")) {
-    mkdir("$rehearsalStoragePublic/certificate-templates", 0777, true);
-    file_put_contents("$rehearsalStoragePublic/certificate-templates/template1.jpg", "template_content_sample");
+    if (!is_dir("$rehearsalStoragePublic/certificate-templates")) {
+        mkdir("$rehearsalStoragePublic/certificate-templates", 0777, true);
+        file_put_contents("$rehearsalStoragePublic/certificate-templates/template1.jpg", "template_content_sample");
+    }
+    if (!is_dir("$rehearsalStoragePublic/certificates")) {
+        mkdir("$rehearsalStoragePublic/certificates", 0777, true);
+    }
+    if (!is_dir("$rehearsalStoragePublic/testimonials")) {
+        mkdir("$rehearsalStoragePublic/testimonials", 0777, true);
+    }
+    if (!is_dir("$rehearsalStoragePublic/materials")) {
+        mkdir("$rehearsalStoragePublic/materials", 0777, true);
+        file_put_contents("$rehearsalStoragePublic/materials/material1.pdf", "material_content_sample");
+    }
+
+    // Seed dummy files for any DB-referenced certificate/testimonial path so physical files exist during rehearsal
+    $certFiles = DB::table('certificates')->whereNotNull('certificate_file')->pluck('certificate_file')->toArray();
+    foreach ($certFiles as $f) {
+        $p = "$rehearsalStoragePublic/$f";
+        if (!file_exists($p)) {
+            @mkdir(dirname($p), 0777, true);
+            file_put_contents($p, "dummy_pdf_content_for_$f");
+        }
+    }
+    $testFiles = DB::table('testimonials')->whereNotNull('photo')->pluck('photo')->toArray();
+    foreach ($testFiles as $f) {
+        $p = "$rehearsalStoragePublic/$f";
+        if (!file_exists($p)) {
+            @mkdir(dirname($p), 0777, true);
+            file_put_contents($p, "dummy_photo_content_for_$f");
+        }
+    }
 }
-if (!is_dir("$rehearsalStoragePublic/certificates")) {
-    mkdir("$rehearsalStoragePublic/certificates", 0777, true);
-    file_put_contents("$rehearsalStoragePublic/certificates/QEP-CERT-001.pdf", "pdf_content_sample");
-}
-if (!is_dir("$rehearsalStoragePublic/testimonials")) {
-    mkdir("$rehearsalStoragePublic/testimonials", 0777, true);
-    file_put_contents("$rehearsalStoragePublic/testimonials/photo1.jpg", "photo_content_sample");
-}
+
+restoreRehearsalStorage($mainStoragePublic, $rehearsalStoragePublic);
 
 function buildStorageManifest($dir) {
     $manifest = [];
@@ -77,51 +107,33 @@ $baselineManifest = buildStorageManifest($rehearsalStoragePublic);
 file_put_contents("$artifactsDir/baseline-storage-manifest.json", json_encode($baselineManifest, JSON_PRETTY_PRINT));
 echo "Saved baseline storage manifest (" . count($baselineManifest) . " files).\n";
 
-// 2. DATABASE BACKUP DEVELOPMENT (queens_english_db)
-echo "\n--- 2. DATABASE BACKUP DEVELOPMENT ---\n";
-$timestamp = date('Ymd_His');
-$backupFile = "$backupDir/queens_english_db_before_task018_{$timestamp}.sql";
-
-$dbHost = env('DB_HOST', '127.0.0.1');
-$dbPort = env('DB_PORT', '3306');
-$dbUser = env('DB_USERNAME', 'root');
-$dbPass = env('DB_PASSWORD', '');
-
-$dumpCmd = escapeshellarg($mysqldumpBin) . " --host=" . escapeshellarg($dbHost) . " --port=" . escapeshellarg($dbPort) . " --user=" . escapeshellarg($dbUser) . ($dbPass !== '' ? " --password=" . escapeshellarg($dbPass) : "") . " queens_english_db > " . escapeshellarg($backupFile);
-
-echo "Executing DB dump to: $backupFile\n";
-exec($dumpCmd, $outDump, $codeDump);
-
-if ($codeDump !== 0 || !file_exists($backupFile) || filesize($backupFile) === 0) {
-    echo "DB Backup failed with code $codeDump\n";
-    exit(1);
-}
-
-$backupSize = filesize($backupFile);
-$backupHash = hash_file('sha256', $backupFile);
-echo "DB Backup SUCCESS: Size = {$backupSize} bytes | SHA-256 = {$backupHash}\n";
-
-// 3. CREATE DATABASE CLONE (queens_english_reset_test)
-echo "\n--- 3. CREATE DATABASE CLONE ---\n";
+// 2. CREATE DATABASE CLONE (queens_english_reset_test)
+echo "\n--- 2. CREATE DATABASE CLONE ---\n";
 $targetDb = 'queens_english_reset_test';
 if ($targetDb !== 'queens_english_reset_test') {
     echo "Target DB name MUST be exactly queens_english_reset_test! Aborting.\n";
     exit(1);
 }
 
-// Drop and recreate DB
-DB::statement("DROP DATABASE IF EXISTS `{$targetDb}`");
-DB::statement("CREATE DATABASE `{$targetDb}`");
-echo "Created clean database `{$targetDb}`.\n";
+$dbHost = env('DB_HOST', '127.0.0.1');
+$dbPort = env('DB_PORT', '3306');
+$dbUser = env('DB_USERNAME', 'root');
+$dbPass = env('DB_PASSWORD', '');
 
-// Import dump
-$importCmd = escapeshellarg($mysqlBin) . " --host=" . escapeshellarg($dbHost) . " --port=" . escapeshellarg($dbPort) . " --user=" . escapeshellarg($dbUser) . ($dbPass !== '' ? " --password=" . escapeshellarg($dbPass) : "") . " " . escapeshellarg($targetDb) . " < " . escapeshellarg($backupFile);
-exec($importCmd, $outImp, $codeImp);
+function restoreRehearsalDatabase($targetDb, $backupFile, $mysqlBin, $dbHost, $dbPort, $dbUser, $dbPass) {
+    DB::statement("DROP DATABASE IF EXISTS `{$targetDb}`");
+    DB::statement("CREATE DATABASE `{$targetDb}`");
 
-if ($codeImp !== 0) {
-    echo "DB Import failed with code $codeImp\n";
-    exit(1);
+    $importCmd = escapeshellarg($mysqlBin) . " --host=" . escapeshellarg($dbHost) . " --port=" . escapeshellarg($dbPort) . " --user=" . escapeshellarg($dbUser) . ($dbPass !== '' ? " --password=" . escapeshellarg($dbPass) : "") . " " . escapeshellarg($targetDb) . " < " . escapeshellarg($backupFile);
+    exec($importCmd, $outImp, $codeImp);
+
+    if ($codeImp !== 0) {
+        echo "DB Import failed with code $codeImp\n";
+        exit(1);
+    }
 }
+
+restoreRehearsalDatabase($targetDb, $backupFile, $mysqlBin, $dbHost, $dbPort, $dbUser, $dbPass);
 echo "Imported baseline dump into `{$targetDb}`.\n";
 
 // Verify baseline counts on clone DB
@@ -147,8 +159,8 @@ foreach ($baselineTables as $tbl => $exp) {
     echo "  - $tbl : $act (expected $exp) [$st]\n";
 }
 
-// 4. CREATE LOCAL RESET ENVIRONMENT (.env.reset-testing)
-echo "\n--- 4. CREATE LOCAL RESET ENVIRONMENT ---\n";
+// 3. CREATE LOCAL RESET ENVIRONMENT (.env.reset-testing)
+echo "\n--- 3. CREATE LOCAL RESET ENVIRONMENT ---\n";
 $appKey = env('APP_KEY', '');
 $envContent = <<<EOT
 APP_NAME="Queens English Prestige"
@@ -182,9 +194,7 @@ EOT;
 
 file_put_contents("$rehearsalDir/.env.reset-testing", $envContent);
 file_put_contents("$rehearsalDir/.env", $envContent);
-echo "Created $rehearsalDir/.env.reset-testing and $rehearsalDir/.env\n";
 
-// Filter environment variables for subprocess
 $envVars = [];
 foreach ($_ENV as $k => $v) {
     if (is_string($v) || is_numeric($v)) $envVars[$k] = (string)$v;
@@ -236,15 +246,13 @@ function runRehearsalCmd($cmd, $workDir, $envVars, $input = null) {
 }
 
 $resCfg = runRehearsalCmd(escapeshellarg($phpBin) . " artisan config:clear", $rehearsalDir, $envVars);
-echo "Config clear output: " . trim($resCfg['stdout']) . "\n";
 
-// 5. RESET 1 BASELINE & DRY-RUN & EXECUTE
-echo "\n--- 5. RESET 1 DRY-RUN & EXECUTE ---\n";
+// 4. RESET 1 DRY-RUN & EXECUTE
+echo "\n--- 4. RESET 1 DRY-RUN & EXECUTE ---\n";
 
 // Dry-Run Reset 1
 $dryRes1 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan app:reset-pre-production --dry-run", $rehearsalDir, $envVars);
 echo "Reset 1 Dry-Run exit code: {$dryRes1['code']}\n";
-echo "Dry-Run Output:\n" . trim($dryRes1['stdout']) . "\n";
 
 // Maintenance mode down
 $downRes1 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan down", $rehearsalDir, $envVars);
@@ -253,8 +261,8 @@ echo "Rehearsal maintenance mode DOWN: code {$downRes1['code']}\n";
 // Execute Reset 1 with confirmation input
 $execRes1 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan app:reset-pre-production --execute", $rehearsalDir, $envVars, "RESET PRE PRODUCTION DATA\n");
 echo "Reset 1 Execute exit code: {$execRes1['code']}\n";
-echo "Execute Output:\n" . trim($execRes1['stdout']) . "\n";
-if (!empty($execRes1['stderr'])) echo "Execute Error:\n" . trim($execRes1['stderr']) . "\n";
+echo "Reset 1 STDOUT:\n" . trim($execRes1['stdout']) . "\n";
+if (!empty($execRes1['stderr'])) echo "Reset 1 STDERR:\n" . trim($execRes1['stderr']) . "\n";
 
 // Maintenance mode up
 $upRes1 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan up", $rehearsalDir, $envVars);
@@ -269,13 +277,17 @@ $res1Counts = [
     'users_admin' => DB::table('users')->where('role', 'admin')->count(),
     'course_programs' => DB::table('course_programs')->count(),
     'course_levels' => DB::table('course_levels')->count(),
+    'modules' => DB::table('modules')->count(),
+    'module_materials' => DB::table('module_materials')->count(),
+    'module_practices' => DB::table('module_practices')->count(),
+    'final_exams' => DB::table('final_exams')->count(),
     'testimonials' => DB::table('testimonials')->count(),
     'free_tests' => DB::table('free_tests')->count(),
     'certificates' => DB::table('certificates')->count(),
     'orders' => DB::table('orders')->count(),
 ];
 
-echo "Reset 1 DB Verification:\n";
+echo "Reset 1 Post-Verification Table Counts:\n";
 foreach ($res1Counts as $k => $v) {
     echo "  - $k : $v\n";
 }
@@ -286,50 +298,37 @@ file_put_contents("$artifactsDir/reset-1-results.json", json_encode([
     'stdout' => $execRes1['stdout'],
 ], JSON_PRETTY_PRINT));
 
-// 6. RESTORE BASELINE & RESET 2 DRY-RUN & EXECUTE
-echo "\n--- 6. RESTORE BASELINE & RESET 2 DRY-RUN & EXECUTE ---\n";
-
-// Drop & Recreate DB for Reset 2
-DB::statement("DROP DATABASE IF EXISTS `{$targetDb}`");
-DB::statement("CREATE DATABASE `{$targetDb}`");
-exec($importCmd, $outImp2, $codeImp2);
-echo "Re-imported baseline dump for Reset 2 (code $codeImp2).\n";
-
-// Restore storage public for Reset 2
-File::deleteDirectory($rehearsalStoragePublic);
-mkdir($rehearsalStoragePublic, 0777, true);
-exec("xcopy " . escapeshellarg(str_replace('/', '\\', $mainStoragePublic)) . " " . escapeshellarg(str_replace('/', '\\', $rehearsalStoragePublic)) . " /E /I /H /Y /Q", $outCp2, $codeCp2);
-if (!is_dir("$rehearsalStoragePublic/certificate-templates")) {
-    mkdir("$rehearsalStoragePublic/certificate-templates", 0777, true);
-    file_put_contents("$rehearsalStoragePublic/certificate-templates/template1.jpg", "template_content_sample");
-}
-if (!is_dir("$rehearsalStoragePublic/certificates")) {
-    mkdir("$rehearsalStoragePublic/certificates", 0777, true);
-    file_put_contents("$rehearsalStoragePublic/certificates/QEP-CERT-001.pdf", "pdf_content_sample");
-}
-if (!is_dir("$rehearsalStoragePublic/testimonials")) {
-    mkdir("$rehearsalStoragePublic/testimonials", 0777, true);
-    file_put_contents("$rehearsalStoragePublic/testimonials/photo1.jpg", "photo_content_sample");
+if ($execRes1['code'] !== 0) {
+    echo "Reset 1 FAILED! Stopping before Reset 2.\n";
+    exit(1);
 }
 
-// Dry-Run Reset 2
+// 5. RESTORE BASELINE BEFORE RESET 2
+echo "\n--- 5. RESTORE BASELINE BEFORE RESET 2 ---\n";
+restoreRehearsalDatabase($targetDb, $backupFile, $mysqlBin, $dbHost, $dbPort, $dbUser, $dbPass);
+config(['database.connections.mysql.database' => $targetDb]);
+DB::purge('mysql');
+DB::reconnect('mysql');
+
+restoreRehearsalStorage($mainStoragePublic, $rehearsalStoragePublic);
+$resCfg2 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan config:clear", $rehearsalDir, $envVars);
+echo "Restored baseline DB and storage for Reset 2.\n";
+
+// 6. RESET 2 DRY-RUN & EXECUTE
+echo "\n--- 6. RESET 2 DRY-RUN & EXECUTE ---\n";
+
 $dryRes2 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan app:reset-student-operations --dry-run", $rehearsalDir, $envVars);
 echo "Reset 2 Dry-Run exit code: {$dryRes2['code']}\n";
-echo "Dry-Run 2 Output:\n" . trim($dryRes2['stdout']) . "\n";
 
-// Maintenance mode down
 $downRes2 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan down", $rehearsalDir, $envVars);
 
-// Execute Reset 2 with confirmation input
 $execRes2 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan app:reset-student-operations --execute", $rehearsalDir, $envVars, "RESET STUDENT OPERATIONS\n");
 echo "Reset 2 Execute exit code: {$execRes2['code']}\n";
-echo "Execute 2 Output:\n" . trim($execRes2['stdout']) . "\n";
-if (!empty($execRes2['stderr'])) echo "Execute 2 Error:\n" . trim($execRes2['stderr']) . "\n";
+echo "Reset 2 STDOUT:\n" . trim($execRes2['stdout']) . "\n";
+if (!empty($execRes2['stderr'])) echo "Reset 2 STDERR:\n" . trim($execRes2['stderr']) . "\n";
 
-// Maintenance mode up
 $upRes2 = runRehearsalCmd(escapeshellarg($phpBin) . " artisan up", $rehearsalDir, $envVars);
 
-// Verify Reset 2 DB Results
 DB::purge('mysql');
 DB::reconnect('mysql');
 
@@ -338,13 +337,17 @@ $res2Counts = [
     'users_admin' => DB::table('users')->where('role', 'admin')->count(),
     'course_programs' => DB::table('course_programs')->count(),
     'course_levels' => DB::table('course_levels')->count(),
+    'modules' => DB::table('modules')->count(),
+    'module_materials' => DB::table('module_materials')->count(),
+    'module_practices' => DB::table('module_practices')->count(),
+    'final_exams' => DB::table('final_exams')->count(),
     'testimonials' => DB::table('testimonials')->count(),
     'free_tests' => DB::table('free_tests')->count(),
     'certificates' => DB::table('certificates')->count(),
     'orders' => DB::table('orders')->count(),
 ];
 
-echo "Reset 2 DB Verification:\n";
+echo "Reset 2 Post-Verification Table Counts:\n";
 foreach ($res2Counts as $k => $v) {
     echo "  - $k : $v\n";
 }
@@ -369,5 +372,5 @@ foreach ($baselineTables as $tbl => $exp) {
 }
 
 echo "\n==================================================\n";
-echo "TASK-018 ISOLATED REHEARSAL ORCHESTRATION COMPLETED!\n";
+echo "TASK-018-R1 ISOLATED REHEARSAL RERUN COMPLETED!\n";
 echo "==================================================\n";
